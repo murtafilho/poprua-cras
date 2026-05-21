@@ -1,0 +1,541 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Console\\Commands\\ImportGeoJson\:\:convertCoordinates\(\) has parameter \$coords with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/ImportGeoJson.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\ImportGeoJson\:\:convertCoordinates\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/ImportGeoJson.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\ImportGeoJson\:\:convertGeometry\(\) has parameter \$geometry with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/ImportGeoJson.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\ImportGeoJson\:\:convertGeometry\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/ImportGeoJson.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\ImportGeoJson\:\:convertPoint\(\) has parameter \$coords with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/ImportGeoJson.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\ImportGeoJson\:\:convertPoint\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/ImportGeoJson.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\MigrateMySqlToPostgres\:\:processEnderecoTable\(\) has parameter \$row with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/MigrateMySqlToPostgres.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\MigrateMySqlToPostgres\:\:processEnderecoTable\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/MigrateMySqlToPostgres.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\MigrateMySqlToPostgres\:\:processGeoTable\(\) has parameter \$row with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/MigrateMySqlToPostgres.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\MigrateMySqlToPostgres\:\:processGeoTable\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/MigrateMySqlToPostgres.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\MigrateMySqlToPostgres\:\:processPontosTable\(\) has parameter \$row with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/MigrateMySqlToPostgres.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\MigrateMySqlToPostgres\:\:processPontosTable\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/MigrateMySqlToPostgres.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\MigrateMySqlToPostgres\:\:processRows\(\) has parameter \$bar with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Console/Commands/MigrateMySqlToPostgres.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\MigrateMySqlToPostgres\:\:processRows\(\) has parameter \$rows with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Console/Commands/MigrateMySqlToPostgres.php
+
+		-
+			message: '#^Property App\\Console\\Commands\\MigrateMySqlToPostgres\:\:\$tables type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/MigrateMySqlToPostgres.php
+
+		-
+			message: '#^Property App\\Console\\Commands\\SyncMySqlToPostgres\:\:\$vistoriasColunasDescartar is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Console/Commands/SyncMySqlToPostgres.php
+
+		-
+			message: '#^Property App\\Console\\Commands\\SyncMySqlToPostgres\:\:\$vistoriasColunasDescartar type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/SyncMySqlToPostgres.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TransporCoordenadasPontos\:\:salvarVinculo\(\) has parameter \$resultado with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TransporCoordenadasPontos.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TransporCoordenadasPontos\:\:vincularPorAlfanumerico\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TransporCoordenadasPontos.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\TransporCoordenadasPontos\:\:vincularPorCoordenada\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Console/Commands/TransporCoordenadasPontos.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Api/ClientLogController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\GeoController\:\:geoJsonResponse\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Api/GeoController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PontoController\:\:getFilterData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/PontoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\VistoriaController\:\:extractVistoriaFields\(\) has parameter \$validated with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/VistoriaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\VistoriaController\:\:getFilterData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/VistoriaController.php
+
+		-
+			message: '#^Parameter \#1 \$ids of method App\\Services\\VistoriaService\:\:getTiposAbrigoSelecionados\(\) expects array\<mixed\>\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/VistoriaController.php
+
+		-
+			message: '#^Property App\\Http\\Controllers\\VistoriaController\:\:\$enderecoService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Http/Controllers/VistoriaController.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdatePontoRequest\:\:messages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdatePontoRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdatePontoRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdatePontoRequest.php
+
+		-
+			message: '#^Property App\\Jobs\\TestRedisJob\:\:\$message has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Jobs/TestRedisJob.php
+
+		-
+			message: '#^Property App\\Jobs\\UploadMediaToDriveJob\:\:\$backoff type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Jobs/UploadMediaToDriveJob.php
+
+		-
+			message: '#^Method App\\Models\\CaracteristicaAbrigo\:\:pontos\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CaracteristicaAbrigo.php
+
+		-
+			message: '#^Class App\\Models\\EnderecoAtualizado uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EnderecoAtualizado.php
+
+		-
+			message: '#^Method App\\Models\\EnderecoAtualizado\:\:pontos\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EnderecoAtualizado.php
+
+		-
+			message: '#^PHPDoc tag @extends contains generic type Illuminate\\Database\\Eloquent\\Model\<App\\Models\\EnderecoAtualizado\> but class Illuminate\\Database\\Eloquent\\Model is not generic\.$#'
+			identifier: generics.notGeneric
+			count: 1
+			path: app/Models/EnderecoAtualizado.php
+
+		-
+			message: '#^Method App\\Models\\Morador\:\:historico\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Morador.php
+
+		-
+			message: '#^Method App\\Models\\Morador\:\:pontoAtual\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Morador.php
+
+		-
+			message: '#^Method App\\Models\\Morador\:\:pontos\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Morador.php
+
+		-
+			message: '#^PHPDoc tag @extends contains generic type Illuminate\\Database\\Eloquent\\Model\<App\\Models\\Morador\> but class Illuminate\\Database\\Eloquent\\Model is not generic\.$#'
+			identifier: generics.notGeneric
+			count: 1
+			path: app/Models/Morador.php
+
+		-
+			message: '#^Method App\\Models\\MoradorHistorico\:\:morador\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/MoradorHistorico.php
+
+		-
+			message: '#^Method App\\Models\\MoradorHistorico\:\:ponto\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/MoradorHistorico.php
+
+		-
+			message: '#^Method App\\Models\\MoradorHistorico\:\:vistoriaEntrada\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/MoradorHistorico.php
+
+		-
+			message: '#^Method App\\Models\\MoradorHistorico\:\:vistoriaSaida\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/MoradorHistorico.php
+
+		-
+			message: '#^PHPDoc tag @extends contains generic type Illuminate\\Database\\Eloquent\\Model\<App\\Models\\MoradorHistorico\> but class Illuminate\\Database\\Eloquent\\Model is not generic\.$#'
+			identifier: generics.notGeneric
+			count: 1
+			path: app/Models/MoradorHistorico.php
+
+		-
+			message: '#^Class App\\Models\\Ponto uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeBairro\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeBairro\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeComEndereco\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeComEndereco\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeGeorreferenciado\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeGeorreferenciado\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeInBounds\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeInBounds\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeLogradouro\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeLogradouro\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeNaoGeorreferenciado\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeNaoGeorreferenciado\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeRegional\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\Ponto\:\:scopeRegional\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^PHPDoc tag @extends contains generic type Illuminate\\Database\\Eloquent\\Model\<App\\Models\\Ponto\> but class Illuminate\\Database\\Eloquent\\Model is not generic\.$#'
+			identifier: generics.notGeneric
+			count: 1
+			path: app/Models/Ponto.php
+
+		-
+			message: '#^Method App\\Models\\ResultadoAcao\:\:vistorias\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ResultadoAcao.php
+
+		-
+			message: '#^Method App\\Models\\TipoAbordagem\:\:vistorias\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/TipoAbordagem.php
+
+		-
+			message: '#^Method App\\Models\\TipoAbrigoDesmontado\:\:vistorias\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/TipoAbrigoDesmontado.php
+
+		-
+			message: '#^Class App\\Models\\Vistoria uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\Vistoria\:\:encaminhamento1\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\Vistoria\:\:encaminhamento2\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\Vistoria\:\:encaminhamento3\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\Vistoria\:\:encaminhamento4\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\Vistoria\:\:encaminhamento5\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\Vistoria\:\:encaminhamento6\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\Vistoria\:\:fotos\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\Vistoria\:\:moradoresEntrada\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\Vistoria\:\:moradoresSaida\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^PHPDoc tag @extends contains generic type Illuminate\\Database\\Eloquent\\Model\<App\\Models\\Vistoria\> but class Illuminate\\Database\\Eloquent\\Model is not generic\.$#'
+			identifier: generics.notGeneric
+			count: 1
+			path: app/Models/Vistoria.php
+
+		-
+			message: '#^Method App\\Models\\VistoriaFoto\:\:vistoria\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/VistoriaFoto.php
+
+		-
+			message: '#^Method App\\Services\\GeoService\:\:loadBairros\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/GeoService.php
+
+		-
+			message: '#^Method App\\Services\\GeoService\:\:loadLimite\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/GeoService.php
+
+		-
+			message: '#^Method App\\Services\\GeoService\:\:loadRegionais\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/GeoService.php
+
+		-
+			message: '#^Method App\\Services\\MoradorService\:\:buscarPorNome\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/MoradorService.php
+
+		-
+			message: '#^Method App\\Services\\MoradorService\:\:getHistorico\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/MoradorService.php
+
+		-
+			message: '#^Method App\\Services\\MoradorService\:\:getMoradoresDoPonto\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/MoradorService.php
+
+		-
+			message: '#^Method App\\Services\\VistoriaService\:\:buscarLogradourosSugeridos\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/VistoriaService.php
+
+		-
+			message: '#^Method App\\Services\\VistoriaService\:\:getFilterData\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 4
+			path: app/Services/VistoriaService.php
+
+		-
+			message: '#^Method App\\Services\\VistoriaService\:\:getFormSelectData\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 5
+			path: app/Services/VistoriaService.php
+
+		-
+			message: '#^Method App\\Services\\VistoriaService\:\:listarComFiltros\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/VistoriaService.php
+
+		-
+			message: '#^Method App\\Services\\VistoriaService\:\:listarMinhas\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/VistoriaService.php
+
+		-
+			message: '#^Method App\\Services\\VistoriaService\:\:listarRoteiro\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/VistoriaService.php
+
+		-
+			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/View/Components/AppLayout.php

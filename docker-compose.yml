@@ -1,0 +1,252 @@
+################################################################################
+# PopRua Cras — docker-compose portavel
+#
+# Uso local (Windows/Mac/Linux com Docker Desktop):
+#   1. cp .env.example .env  (preencher DB_PASSWORD)
+#   2. docker compose up -d --build
+#   3. docker compose exec app composer install --no-interaction
+#   4. docker compose exec app php artisan key:generate
+#   5. docker compose exec app php artisan migrate --no-interaction
+#
+# Uso producao (vlcp-sufis01):
+#   Ver docker/rebuild.sh (gera /opt/docker/poprua-cras/docker-compose.yml
+#   com bind mounts absolutos no host).
+################################################################################
+
+services:
+  # Init sidecar (ADR-010): self-healing de perms cross-host/container.
+  # - Grupo www-data (gid 33) em toda a arvore + setgid + ACL default
+  # - umask 002 ja vem do container; aqui garantimos o estado da arvore
+  # - storage/ e bootstrap/cache/ owner 33 (Laravel sessions)
+  # Cobre arquivos deixados como root:root por `docker exec -u root` e drift
+  # de perms apos git checkout/pull.
+  init-perms:
+    image: alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc
+    container_name: init-perms-poprua-cras
+    user: root
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - .:/app
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        echo "[init-perms] instalando acl (apenas neste container, idempotente)..."
+        apk add --no-cache acl >/dev/null
+
+        echo "[init-perms] normalizando arvore (ADR-010): grupo 33 + setgid + ACL default..."
+        cd /app
+
+        # Pruning de paths gerenciados por outras ferramentas
+        FIND_PRUNE="( -name .git -o -name vendor -o -name node_modules ) -prune -o"
+
+        # 1. chgrp para www-data (gid 33)
+        find /app $$FIND_PRUNE -print0 2>/dev/null | xargs -0 -r chgrp 33 2>/dev/null || true
+
+        # 2. dirs: 2775 (setgid + g+rwx) — novos arquivos herdam grupo do parent
+        find /app $$FIND_PRUNE -type d -print0 2>/dev/null | xargs -0 -r chmod 2775 2>/dev/null || true
+
+        # 3. files: 664 (g+rw)
+        find /app $$FIND_PRUNE -type f -print0 2>/dev/null | xargs -0 -r chmod 664 2>/dev/null || true
+
+        # 4. ACL default + ACL atual para grupo www-data — herdado em criacoes futuras
+        find /app $$FIND_PRUNE -type d -print0 2>/dev/null | xargs -0 -r setfacl -d -m g:33:rwx 2>/dev/null || true
+        find /app $$FIND_PRUNE -print0 2>/dev/null | xargs -0 -r setfacl -m g:33:rwx 2>/dev/null || true
+
+        # 5. preservar +x em scripts shell
+        find /app $$FIND_PRUNE -type f -name '*.sh' -print0 2>/dev/null | xargs -0 -r chmod 0775 2>/dev/null || true
+
+        # 6. storage e bootstrap/cache: owner 33 (Laravel sessions/cache exigem ownership)
+        chown -R 33:33 /app/storage /app/bootstrap/cache 2>/dev/null || true
+
+        # 7. limpar bootstrap/cache stale (Licao #23 — evita config cacheado com .env errado)
+        rm -f /app/bootstrap/cache/config.php /app/bootstrap/cache/routes-v7.php /app/bootstrap/cache/events.php
+
+        echo "[init-perms] ok"
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: php84-poprua-cras
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+      - KILL
+      - NET_BIND_SERVICE
+    ports:
+      # 9086 -> 9000 (PHP-FPM/FastCGI) — Apache do host faz proxy_fcgi:127.0.0.1:9086
+      # NAO usar 9086:8080 (nginx HTTP), senao o Apache responde 503 ao tentar FastCGI
+      - "${APP_PORT:-9086}:9000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    working_dir: /var/www/html/joomla_sufis/ginfi/poprua-cras
+    volumes:
+      # Path absoluto IDENTICO em host e container — alinha com /opt/docker/poprua-cras/docker-compose.yml (prod)
+      # e elimina necessidade de -w em docker exec. Ver SKILL.md poprua-etl troubleshooting.
+      - .:/var/www/html/joomla_sufis/ginfi/poprua-cras
+      - /var/backups/poprua-cras:/var/backups/poprua-cras
+    environment:
+      APP_BASE_DIR: /var/www/html/joomla_sufis/ginfi/poprua-cras
+      PHP_MEMORY_LIMIT: "256M"
+      PHP_MAX_EXECUTION_TIME: "300"
+      PHP_UPLOAD_MAX_FILE_SIZE: "64M"
+      PHP_POST_MAX_SIZE: "64M"
+    depends_on:
+      init-perms:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+    networks: [poprua-cras, poprua-geo_external]
+
+  db:
+    image: postgis/postgis:17-3.5@sha256:ab50fc06b59a918708dae16cc6594fd4342f6557a938720fac323172eff4390c
+    container_name: pg17-poprua-cras
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    ports:
+      - "${DB_EXTERNAL_PORT:-5434}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "${DB_DATABASE:-poprua_cras}"
+      POSTGRES_USER: "${DB_USERNAME:-poprua_cras}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?Defina DB_PASSWORD no .env}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-poprua_cras} -d ${DB_DATABASE:-poprua_cras}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks: [poprua-cras, poprua-geo_external]
+
+  redis:
+    image: redis:7-alpine@sha256:8b81dd37ff027bec4e516d41acfbe9fe2460070dc6d4a4570a2ac5b9d59df065
+    container_name: redis-poprua-cras
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add:
+      - SETGID
+      - SETUID
+    env_file: .env
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    networks: [poprua-cras]
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: queue-poprua-cras
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+      - KILL
+    command: php artisan queue:work redis --sleep=3 --tries=3 --timeout=90 --queue=default
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "queue:work"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    working_dir: /var/www/html/joomla_sufis/ginfi/poprua-cras
+    environment:
+      APP_BASE_DIR: /var/www/html/joomla_sufis/ginfi/poprua-cras
+    volumes:
+      - .:/var/www/html/joomla_sufis/ginfi/poprua-cras
+    depends_on:
+      init-perms:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+    networks: [poprua-cras, poprua-geo_external]
+
+  # SSH sidecar — entrada `ssh sufis-poprua-cras` (porta 2226) para acessar
+  # o ambiente. Sobe Claude Code dentro. Estado em /opt/docker/poprua-cras/
+  # (ssh-data com authorized_keys, claude-data com config persistida).
+  ssh:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ssh
+    container_name: ssh-poprua-cras
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "0.0.0.0:2226:22"
+    volumes:
+      - .:/var/www/html/joomla_sufis/ginfi/poprua-cras
+      - /opt/docker/poprua-cras/claude-data:/root/.claude
+      - /opt/docker/poprua-cras/ssh-data:/root/.ssh
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+    networks: [poprua-cras]
+
+volumes:
+  pgdata:
+
+networks:
+  poprua-cras:
+    driver: bridge
+  poprua-geo_external:
+    external: true
+    name: poprua-geo_poprua-geo

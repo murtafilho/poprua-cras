@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    paths:
+        - app
+        - database
+        - routes
+
+    level: 6
+
+    ignoreErrors:
+        - '#Call to an undefined method Spatie\\Image\\Drivers\\ImageDriver::performOnCollections#'
+
+    excludePaths:
+        - ./*/*/FileToIgnore.php

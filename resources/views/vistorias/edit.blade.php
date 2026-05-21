@@ -1,0 +1,687 @@
+@extends('layouts.app')
+
+@section('title', 'Editar Vistoria')
+
+@section('header')
+    <div class="flex items-center gap-3 flex-1">
+        <a href="{{ route('vistorias.show', $vistoria) }}" class="btn btn-ghost btn-icon" style="margin-left: -8px;">
+            <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <span class="mobile-header-title flex-1 text-center">Editar Vistoria</span>
+        <div style="width: 44px;"></div>
+    </div>
+@endsection
+
+@section('content')
+    <div class="form-page">
+        <form id="vistoria-form" action="{{ route('vistorias.update', $vistoria) }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate>
+            @csrf
+            @method('PUT')
+
+            <!-- Progress Stepper -->
+            <div class="progress-stepper" id="progress-stepper">
+                <div class="stepper-item active" data-step="0" onclick="goToStep(0)">
+                    <div class="stepper-circle">1</div>
+                    <span class="stepper-label">Dados</span>
+                </div>
+                <div class="stepper-item" data-step="1" onclick="goToStep(1)">
+                    <div class="stepper-circle">2</div>
+                    <span class="stepper-label">Caract.</span>
+                </div>
+                <div class="stepper-item" data-step="2" onclick="goToStep(2)">
+                    <div class="stepper-circle">3</div>
+                    <span class="stepper-label">Relatorio</span>
+                </div>
+                <div class="stepper-item" data-step="3" onclick="goToStep(3)">
+                    <div class="stepper-circle">4</div>
+                    <span class="stepper-label">Encam.</span>
+                </div>
+                <div class="stepper-item" data-step="4" onclick="goToStep(4)">
+                    <div class="stepper-circle">5</div>
+                    <span class="stepper-label">Fotos</span>
+                </div>
+                <div class="stepper-item" data-step="5" onclick="goToStep(5)">
+                    <div class="stepper-circle">6</div>
+                    <span class="stepper-label">Revisar</span>
+                </div>
+            </div>
+            <div class="step-indicator">
+                <span id="step-indicator">Etapa <span class="step-indicator-text">1</span> de <span class="step-indicator-text">6</span></span>
+            </div>
+
+            <!-- Conteudo das Abas -->
+            <div class="form-content">
+                <!-- Aba 1: Dados Basicos -->
+                <div class="tab-content" data-tab="0">
+                    <!-- Localizacao -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="form-section-title">Localizacao</h3>
+                            <div id="ponto-atual">
+                                @if($vistoria->ponto && $vistoria->ponto->enderecoAtualizado)
+                                    <p style="font-size: var(--text-sm);">
+                                        <span style="font-weight: var(--font-medium);">
+                                            {{ $vistoria->ponto->enderecoAtualizado->SIGLA_TIPO_LOGRADOURO }}
+                                            {{ $vistoria->ponto->enderecoAtualizado->NOME_LOGRADOURO }},
+                                            {{ $vistoria->ponto->enderecoAtualizado->NUMERO_IMOVEL ?? $vistoria->ponto->numero }}
+                                        </span>
+                                    </p>
+                                    <p class="text-muted" style="font-size: var(--text-xs);">
+                                        {{ $vistoria->ponto->enderecoAtualizado->NOME_BAIRRO_OFICIAL }} - {{ $vistoria->ponto->enderecoAtualizado->NOME_REGIONAL }}
+                                    </p>
+                                @endif
+                                @if($vistoria->ponto && $vistoria->ponto->lat && $vistoria->ponto->lng)
+                                    <p class="text-muted" style="font-size: var(--text-xs); margin-top: var(--space-1);">
+                                        Lat: {{ number_format($vistoria->ponto->lat, 6) }} | Lng: {{ number_format($vistoria->ponto->lng, 6) }}
+                                    </p>
+                                @endif
+                            </div>
+                            <input type="hidden" name="ponto_id" id="ponto_id_input" value="{{ $vistoria->ponto_id }}">
+                            <div style="margin-top: var(--space-2);">
+                                <button type="button" onclick="document.getElementById('alterar-ponto-section').classList.toggle('hidden')"
+                                        class="btn btn-secondary btn-sm">
+                                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    </svg>
+                                    Alterar Ponto
+                                </button>
+                            </div>
+                            <div id="alterar-ponto-section" class="hidden" style="margin-top: var(--space-3);">
+                                <div class="form-group">
+                                    <label class="form-label">Buscar ponto por endereco</label>
+                                    <input type="text" id="busca-ponto" placeholder="Digite o logradouro..." class="form-input"
+                                           autocomplete="off">
+                                    <div id="resultados-ponto" class="hidden" style="margin-top: var(--space-2); max-height: 200px; overflow-y: auto; border: 1px solid var(--border-primary); border-radius: var(--radius-md);"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dados da Zeladoria -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="form-section-title">Dados da Zeladoria</h3>
+
+                            <div class="form-group">
+                                <label class="form-label required">Data/Hora da Abordagem</label>
+                                <input type="datetime-local" name="data_abordagem"
+                                       value="{{ $vistoria->data_abordagem ? $vistoria->data_abordagem->format('Y-m-d\TH:i') : '' }}"
+                                       required class="form-input">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Tipo de Abordagem</label>
+                                <select name="tipo_abordagem_id" id="tipo_abordagem_id" required class="form-input form-select">
+                                    <option value="">Selecione...</option>
+                                    @foreach($tiposAbordagem as $tipo)
+                                        <option value="{{ $tipo->id }}" data-tipo="{{ $tipo->tipo }}" {{ $vistoria->tipo_abordagem_id == $tipo->id ? 'selected' : '' }}>
+                                            {{ $tipo->tipo }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div id="zeladoria-campos" class="hidden">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Data Prevista da Zeladoria</label>
+                                        <input type="datetime-local" name="data_prevista_zeladoria"
+                                               value="{{ old('data_prevista_zeladoria', $vistoria->data_prevista_zeladoria?->format('Y-m-d\TH:i')) }}"
+                                               class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Periodo</label>
+                                        <select name="periodo_zeladoria" class="form-input form-select">
+                                            <option value="">Selecione...</option>
+                                            <option value="manha" {{ $vistoria->periodo_zeladoria === 'manha' ? 'selected' : '' }}>Manha</option>
+                                            <option value="tarde" {{ $vistoria->periodo_zeladoria === 'tarde' ? 'selected' : '' }}>Tarde</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Participantes da Equipe (usuários do sistema) -->
+                    @if(isset($usuariosEquipe) && $usuariosEquipe->count() > 0)
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h3 class="form-section-title">Participantes</h3>
+                                <p class="form-hint" style="margin-bottom: var(--space-3);">
+                                    Marque os colegas que participaram desta vistoria.
+                                </p>
+
+                                @php
+                                    $participanteIds = $vistoria->participantes->pluck('id')->toArray();
+                                @endphp
+
+                                <div class="flex flex-col gap-1">
+                                    @foreach($usuariosEquipe as $u)
+                                        <label class="checkbox-option" style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm);">
+                                            <input type="checkbox" name="participantes[]" value="{{ $u->id }}"
+                                                   {{ in_array($u->id, old('participantes', $participanteIds)) ? 'checked' : '' }} class="form-checkbox">
+                                            <span>{{ $u->name }}@if($u->email) <span class="text-muted" style="font-size: var(--text-xs);">— {{ $u->email }}</span>@endif</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Aba 2: Perfil da Ocorrencia -->
+                <div class="tab-content hidden" data-tab="1">
+                    <!-- Quantidades -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="form-group">
+                                    <label class="form-label">Qtd. Pessoas</label>
+                                    <input type="number" name="quantidade_pessoas" min="0" placeholder="0"
+                                           value="{{ $vistoria->quantidade_pessoas ?: '' }}" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Qtd. Kg</label>
+                                    <input type="number" name="qtd_kg" min="0" placeholder="0"
+                                           value="{{ $vistoria->qtd_kg ?: '' }}" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nomes das Pessoas -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <label class="form-label">Nomes das Pessoas</label>
+                            <p class="form-hint">Um nome por linha</p>
+                            <div class="input-with-voice">
+                                <textarea name="nomes_pessoas" id="nomes_pessoas" rows="3" placeholder="Digite um nome por linha..." class="form-input form-textarea">{{ $vistoria->nomes_pessoas }}</textarea>
+                                <button type="button" onclick="startVoiceInput('nomes_pessoas')" class="voice-btn">
+                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Abrigos -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="form-section-title">Abrigos</h3>
+
+                            <div class="form-group">
+                                <label class="form-label">Qtd. Abrigos Provisorios</label>
+                                <input type="number" name="qtd_abrigos_provisorios" id="qtd_abrigos" min="0" placeholder="0"
+                                       value="{{ $vistoria->qtd_abrigos_provisorios ?: '' }}"
+                                       onchange="atualizarCamposAbrigos()" class="form-input">
+                            </div>
+
+                            <div id="abrigos-container" class="{{ ($vistoria->qtd_abrigos_provisorios ?? 0) > 0 ? '' : 'hidden' }}">
+                                <label class="form-label">Tipos de Abrigo Desmontado</label>
+                                <div id="abrigos-list" class="flex flex-col gap-2"></div>
+                            </div>
+
+                            <div id="tipo-abrigo-unico" class="form-group {{ ($vistoria->qtd_abrigos_provisorios ?? 0) > 0 ? 'hidden' : '' }}">
+                                <label class="form-label">Tipo de Abrigo Desmontado</label>
+                                <select name="tipo_abrigo_desmontado_id" class="form-input form-select">
+                                    <option value="">Nenhum</option>
+                                    @foreach($tiposAbrigo as $tipo)
+                                        <option value="{{ $tipo->id }}" {{ $vistoria->tipo_abrigo_desmontado_id == $tipo->id ? 'selected' : '' }}>
+                                            {{ $tipo->tipo_abrigo }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fatores de Complexidade -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="form-section-title">Fatores de Complexidade</h3>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="resistencia" value="1" {{ $vistoria->resistencia ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Resistencia</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="num_reduzido" value="1" {{ $vistoria->num_reduzido ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Num. Reduzido</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="casal" id="checkbox_casal" value="1" {{ $vistoria->casal ? 'checked' : '' }} onchange="toggleQtdCasais()" class="form-checkbox">
+                                    <span>Casal</span>
+                                </label>
+                                <div id="qtd_casais_container" class="{{ $vistoria->casal ? '' : 'hidden' }}">
+                                    <input type="number" name="qtd_casais" id="qtd_casais" min="1"
+                                           value="{{ $vistoria->qtd_casais ?? 1 }}" placeholder="Qtd." class="form-input form-input-sm">
+                                </div>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="catador_reciclados" value="1" {{ $vistoria->catador_reciclados ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Catador</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="fixacao_antiga" value="1" {{ $vistoria->fixacao_antiga ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Fixacao Antiga</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="excesso_objetos" value="1" {{ $vistoria->excesso_objetos ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Excesso Objetos</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="trafico_ilicitos" value="1" {{ $vistoria->trafico_ilicitos ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Trafico/Ilicitos</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="crianca_adolescente" value="1" {{ $vistoria->crianca_adolescente ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Crianca/Adolesc.</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="idosos" value="1" {{ $vistoria->idosos ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Idosos</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="gestante" value="1" {{ $vistoria->gestante ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Gestante</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="lgbtqiapn" value="1" {{ $vistoria->lgbtqiapn ? 'checked' : '' }} class="form-checkbox">
+                                    <span>LGBTQIAPN+</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="deficiente" value="1" {{ $vistoria->deficiente ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Deficiente</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="agrupamento_quimico" value="1" {{ $vistoria->agrupamento_quimico ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Agrup. Quimico</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="saude_mental" value="1" {{ $vistoria->saude_mental ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Saude Mental</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="cena_uso_caracterizada" value="1" {{ $vistoria->cena_uso_caracterizada ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Cena de Uso</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="animais" id="checkbox_animais" value="1" {{ $vistoria->animais ? 'checked' : '' }} onchange="toggleQtdAnimais()" class="form-checkbox">
+                                    <span>Animais</span>
+                                </label>
+                                <div id="qtd_animais_container" class="{{ $vistoria->animais ? '' : 'hidden' }}">
+                                    <input type="number" name="qtd_animais" id="qtd_animais" min="1"
+                                           value="{{ $vistoria->qtd_animais ?? 1 }}" placeholder="Qtd." class="form-input form-input-sm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba 3: Relatorio da Acao -->
+                <div class="tab-content hidden" data-tab="2">
+                    <!-- Resultado da Acao -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label required">Resultado da Acao</label>
+                                <select name="resultado_acao_id" required class="form-input form-select">
+                                    <option value="">Selecione...</option>
+                                    @foreach($resultadosAcao as $resultado)
+                                        <option value="{{ $resultado->id }}" {{ $vistoria->resultado_acao_id == $resultado->id ? 'selected' : '' }}>
+                                            {{ $resultado->resultado }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="form-section-title">Acoes Realizadas</h3>
+
+                            <!-- Conducao pelas Forcas de Seguranca -->
+                            <div class="form-group">
+                                <label class="form-label">Conducao pelas Forcas de Seguranca</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="conducao_forcas_seguranca" value="1" {{ $vistoria->conducao_forcas_seguranca ? 'checked' : '' }} onchange="toggleConducaoObs()" class="form-radio">
+                                        <span>Sim</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="conducao_forcas_seguranca" value="0" {{ !$vistoria->conducao_forcas_seguranca ? 'checked' : '' }} onchange="toggleConducaoObs()" class="form-radio">
+                                        <span>Nao</span>
+                                    </label>
+                                </div>
+                                <div id="conducao_obs_container" class="mt-2 {{ $vistoria->conducao_forcas_seguranca ? '' : 'hidden' }}">
+                                    <textarea name="conducao_forcas_observacao" id="conducao_forcas_observacao" rows="2" placeholder="Observacao sobre a conducao..." class="form-input form-textarea">{{ $vistoria->conducao_forcas_observacao }}</textarea>
+                                </div>
+                            </div>
+
+                            <!-- Apreensao Fiscal -->
+                            <div class="form-group">
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="apreensao_fiscal" value="1" {{ $vistoria->apreensao_fiscal ? 'checked' : '' }} class="form-checkbox">
+                                    <span>Apreensao Fiscal</span>
+                                </label>
+                            </div>
+
+                            <!-- Auto de Fiscalizacao Aplicado -->
+                            <div class="form-group">
+                                <label class="form-label">Auto de Fiscalizacao Aplicado</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="1" {{ $vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} onchange="toggleAutoNumero()" class="form-radio">
+                                        <span>Sim</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="0" {{ !$vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} onchange="toggleAutoNumero()" class="form-radio">
+                                        <span>Nao</span>
+                                    </label>
+                                </div>
+                                <div id="auto_numero_container" class="mt-2 {{ $vistoria->auto_fiscalizacao_aplicado ? '' : 'hidden' }}">
+                                    <input type="text" name="auto_fiscalizacao_numero" id="auto_fiscalizacao_numero"
+                                           value="{{ $vistoria->auto_fiscalizacao_numero }}"
+                                           placeholder="Numero do Auto de Fiscalizacao" class="form-input">
+                                </div>
+                            </div>
+
+                            <!-- Lavratura -->
+                            <div class="form-group">
+                                <label class="form-label">Houve Lavratura</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="houve_lavratura" value="1" {{ $vistoria->houve_lavratura ? 'checked' : '' }} onchange="toggleProtocolo()" class="form-radio">
+                                        <span>Sim</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="houve_lavratura" value="0" {{ !$vistoria->houve_lavratura ? 'checked' : '' }} onchange="toggleProtocolo()" class="form-radio">
+                                        <span>Nao</span>
+                                    </label>
+                                </div>
+                                <div id="tipo_protocolo_container" class="mt-2 {{ $vistoria->houve_lavratura ? '' : 'hidden' }}">
+                                    <label class="form-label">Tipo de Protocolo</label>
+                                    <select name="tipo_protocolo" class="form-input form-select">
+                                        <option value="">Selecione...</option>
+                                        <option value="chuva" {{ $vistoria->tipo_protocolo === 'chuva' ? 'selected' : '' }}>Chuva</option>
+                                        <option value="frio" {{ $vistoria->tipo_protocolo === 'frio' ? 'selected' : '' }}>Frio</option>
+                                        <option value="normal" {{ $vistoria->tipo_protocolo === 'normal' ? 'selected' : '' }}>Normal</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Encaminhamentos -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="form-section-title">Encaminhamentos</h3>
+
+                            @for($i = 1; $i <= 4; $i++)
+                                <div class="form-group">
+                                    <label class="form-label">Encaminhamento {{ $i }}</label>
+                                    <select name="e{{ $i }}_id" class="form-input form-select">
+                                        <option value="">Nenhum</option>
+                                        @foreach($encaminhamentos as $enc)
+                                            <option value="{{ $enc->id }}" {{ $vistoria->{'e'.$i.'_id'} == $enc->id ? 'selected' : '' }}>
+                                                {{ $enc->encaminhamento }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
+
+                    <!-- Relatorio Descritivo -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <label class="form-label">Relatorio Descritivo da Acao</label>
+                            <div class="input-with-voice">
+                                <textarea name="observacao" id="observacao" rows="8" placeholder="Descreva detalhadamente a acao realizada..." class="form-input form-textarea" style="min-height: 200px;">{{ $vistoria->observacao }}</textarea>
+                                <button type="button" onclick="startVoiceInput('observacao')" class="voice-btn">
+                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba 4: Encaminhamentos -->
+                <div class="tab-content hidden" data-tab="3">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="form-section-title">Encaminhamentos</h3>
+                            <p class="text-muted mb-4" style="font-size: var(--text-sm);">
+                                Selecione os encaminhamentos realizados durante esta vistoria (opcional).
+                            </p>
+                            <div class="flex flex-col gap-3">
+                                <div class="form-group">
+                                    <label class="form-label">Encaminhamento 1</label>
+                                    <select name="e1_id" class="form-input form-select">
+                                        <option value="">Nenhum</option>
+                                        @foreach($encaminhamentos as $encaminhamento)
+                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e1_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Encaminhamento 2</label>
+                                    <select name="e2_id" class="form-input form-select">
+                                        <option value="">Nenhum</option>
+                                        @foreach($encaminhamentos as $encaminhamento)
+                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e2_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Encaminhamento 3</label>
+                                    <select name="e3_id" class="form-input form-select">
+                                        <option value="">Nenhum</option>
+                                        @foreach($encaminhamentos as $encaminhamento)
+                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e3_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Encaminhamento 4</label>
+                                    <select name="e4_id" class="form-input form-select">
+                                        <option value="">Nenhum</option>
+                                        @foreach($encaminhamentos as $encaminhamento)
+                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e4_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Encaminhamento 5</label>
+                                    <select name="e5_id" class="form-input form-select">
+                                        <option value="">Nenhum</option>
+                                        @foreach($encaminhamentos as $encaminhamento)
+                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e5_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Encaminhamento 6</label>
+                                    <select name="e6_id" class="form-input form-select">
+                                        <option value="">Nenhum</option>
+                                        @foreach($encaminhamentos as $encaminhamento)
+                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e6_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba 5: Fotos -->
+                <div class="tab-content hidden" data-tab="4">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <label class="form-label mb-3">Fotos da Vistoria</label>
+
+                            @php $fotosExistentes = $vistoria->getMedia('fotos'); @endphp
+                            @if($fotosExistentes->count() > 0)
+                                <div class="mb-4">
+                                    <p class="text-muted mb-2" style="font-size: var(--text-xs);">Fotos existentes — clique no cadeado para tornar pública (aparecerá no relatório do processo):</p>
+                                    <div class="photos-grid" id="fotos-existentes">
+                                        @foreach($fotosExistentes as $foto)
+                                            @php $fotoPublica = (bool) $foto->getCustomProperty('publica', false); @endphp
+                                            <div class="photo-preview {{ $fotoPublica ? 'foto-publica' : '' }}" id="foto-existente-{{ $foto->id }}" data-vistoria-id="{{ $vistoria->id }}">
+                                                <img src="{{ $foto->getUrl('thumb') }}" alt="Foto" loading="lazy">
+                                                <button type="button" onclick="togglePublicaFoto({{ $foto->id }})" class="photo-publica-btn" data-publica="{{ $fotoPublica ? '1' : '0' }}" title="{{ $fotoPublica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app' }}">
+                                                    @if($fotoPublica)
+                                                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    @else
+                                                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>
+                                                    @endif
+                                                </button>
+                                                <button type="button" onclick="marcarRemoverFoto({{ $foto->id }})" class="photo-remove-btn">
+                                                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <style>
+                                    .photo-publica-btn {
+                                        position: absolute;
+                                        bottom: 6px;
+                                        right: 6px;
+                                        width: 28px;
+                                        height: 28px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        border-radius: 50%;
+                                        border: none;
+                                        background: rgba(17, 18, 20, 0.78);
+                                        color: var(--text-secondary, #a1a9b4);
+                                        cursor: pointer;
+                                        transition: all 120ms;
+                                    }
+                                    .photo-publica-btn[data-publica="1"] {
+                                        background: var(--accent-primary, #2dd4bf);
+                                        color: var(--text-inverse, #111214);
+                                    }
+                                    .photo-publica-btn:hover { transform: scale(1.08); }
+                                    .photo-preview.foto-publica {
+                                        outline: 2px solid var(--accent-primary, #2dd4bf);
+                                        outline-offset: 1px;
+                                        border-radius: 6px;
+                                    }
+                                </style>
+                                <script>
+                                    async function togglePublicaFoto(mediaId) {
+                                        const wrapper = document.getElementById(`foto-existente-${mediaId}`);
+                                        if (!wrapper) return;
+                                        const vistoriaId = wrapper.dataset.vistoriaId;
+                                        const btn = wrapper.querySelector('.photo-publica-btn');
+                                        btn.disabled = true;
+                                        try {
+                                            const resp = await fetch(`/ginfi/poprua-cras/public/api/vistorias/${vistoriaId}/fotos/${mediaId}/toggle-publica`, {
+                                                method: 'POST',
+                                                headers: {
+                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                                    'Accept': 'application/json',
+                                                },
+                                                credentials: 'same-origin',
+                                            });
+                                            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                                            const data = await resp.json();
+                                            const publica = data.publica;
+                                            btn.dataset.publica = publica ? '1' : '0';
+                                            btn.title = publica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app';
+                                            wrapper.classList.toggle('foto-publica', publica);
+                                            btn.innerHTML = publica
+                                                ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+                                                : '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>';
+                                        } catch (e) {
+                                            console.error('Falha ao alternar pública:', e);
+                                            alert('Não foi possível atualizar. Tente novamente.');
+                                        } finally {
+                                            btn.disabled = false;
+                                        }
+                                    }
+                                </script>
+                            @endif
+
+                            <input type="file" id="camera-input-back" accept="image/*" capture="environment" class="hidden">
+
+                            <div class="flex flex-col gap-2">
+                                <button type="button" onclick="openCamera()" class="btn btn-primary btn-block">
+                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    Tirar Foto
+                                </button>
+                            </div>
+
+                            <div id="fotos-preview" class="photos-grid mt-4"></div>
+
+                            <p class="text-muted mt-3 text-center" style="font-size: var(--text-xs);">
+                                <span id="foto-count">0</span> nova(s) foto(s) selecionada(s)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba 6: Revisar e Finalizar -->
+                <div class="tab-content hidden" data-tab="5">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h3 class="form-section-title">
+                                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Revisao da Zeladoria
+                            </h3>
+                            <p class="text-muted mb-4" style="font-size: var(--text-sm);">Verifique os dados antes de salvar.</p>
+
+                            <div id="review-checklist" class="review-checklist"></div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-body" style="text-align: center;">
+                            <div id="review-status" class="mb-4"></div>
+                            <button type="submit" id="btn-submit" class="btn btn-primary btn-block btn-lg">
+                                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Salvar Alteracoes
+                            </button>
+                            <button type="button" id="btn-finalizar"
+                                    class="btn btn-success btn-block btn-lg mt-2"
+                                    onclick="if(confirm('Deseja salvar e finalizar esta zeladoria? Apos a finalizacao, nao sera possivel editar.')) { document.getElementById('finalizar-apos-salvar').value='1'; document.getElementById('btn-submit').click(); }">
+                                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Salvar e Finalizar
+                            </button>
+                            <a href="{{ route('vistorias.show', $vistoria) }}" class="btn btn-ghost btn-block mt-2">Cancelar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inputs para fotos a remover -->
+            <div id="fotos-remover-inputs"></div>
+            <input type="hidden" id="finalizar-apos-salvar" name="finalizar_apos_salvar" value="0">
+        </form>
+    </div>
+
+    <script>window.VISTORIA_TIPOS_ABRIGO = @json($tiposAbrigo); window.VISTORIA_ABRIGOS_SELECIONADOS = @json($vistoria->abrigos_tipos ?? []); window.VISTORIA_ID = {{ $vistoria->id }};</script>
+@endsection
+
+@push('scripts')
+@vite('resources/js/vistoria-edit.js')
+@endpush

@@ -1,0 +1,19 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "php",
+            "args": [
+                "artisan",
+                "boost:mcp"
+            ]
+        },
+        "leaflet": {
+            "command": "node",
+            "args": ["tools/leaflet-mcp-server/build/index.js"]
+        },
+        "openstreetmap": {
+            "command": "uvx",
+            "args": ["--from", "osm-mcp-server", "osm-mcp-server"]
+        }
+    }
+}

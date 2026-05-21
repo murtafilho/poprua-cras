@@ -1,0 +1,41 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.env.testing
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
+Thumbs.db
+*:Zone.Identifier
+gp_sql.sql
+.claude/audits/
+
+# Dumps de banco (nunca versionar — podem conter dados sensiveis)
+*.dump
+*.sql.gz
+
+# Uploads/media do Spatie MediaLibrary (gerados em runtime)
+/storage/media-library/
+
+# Relatorios e logs do ETL
+/etl/reports/
+/etl/*.log
+# manifest.yaml NAO e mais versionado (one-shot via migrate.sql)
+/etl/manifest.yaml

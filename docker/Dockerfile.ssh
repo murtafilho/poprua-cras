@@ -1,0 +1,24 @@
+FROM debian:bookworm-slim
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        openssh-server \
+        bash \
+        ca-certificates \
+        curl \
+        git \
+        sudo \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /run/sshd \
+    && ssh-keygen -A \
+    && sed -i "s/#PermitRootLogin.*/PermitRootLogin prohibit-password/" /etc/ssh/sshd_config \
+    && sed -i "s/#PasswordAuthentication.*/PasswordAuthentication no/" /etc/ssh/sshd_config
+
+# Claude Code
+RUN curl -fsSL https://claude.ai/install.sh | bash \
+    && echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> /root/.bashrc
+
+ENV PATH="/root/.local/bin:${PATH}"
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D", "-e"]
