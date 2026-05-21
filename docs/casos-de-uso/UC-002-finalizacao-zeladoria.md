@@ -1,6 +1,6 @@
-# UC-002 — Finalizacao de Zeladoria e Habilitacao de Imagens para Relatorio Publico
+# UC-002 — Finalização de Zeladoria e Habilitação de Imagens para Relatório Público
 
-**Versao:** 1.0
+**Versão:** 1.0
 **Data:** 2026-05-21
 **Status:** Implementado
 
@@ -8,28 +8,28 @@
 
 ## Objetivo
 
-Descrever o ciclo de vida completo de uma zeladoria apos sua criacao, com foco nos fluxos de **finalizacao**, **habilitacao de fotografias para relatorio publico** e **geracao do relatorio impresso** (formato A4) que compoe o processo administrativo.
+Descrever o ciclo de vida completo de uma zeladoria após sua criação, com foco nos fluxos de **finalização**, **habilitação de fotografias para relatório público** e **geração do relatório impresso** (formato A4) que compõe o processo administrativo.
 
 ---
 
 ## Atores
 
-| Ator | Descricao |
+| Ator | Descrição |
 |------|-----------|
-| **Profissional de campo** (owner) | Autor da zeladoria. Unico que pode editar e finalizar enquanto a zeladoria esta aberta. |
-| **Administrador** | Usuario com permissoes administrativas. Pode reativar zeladoria finalizada, cancelar zeladoria finalizada e — via permissao `reativar vistorias` — devolver a zeladoria ao estado aberto para que o owner a edite novamente. |
-| **Qualquer usuario autenticado** | Pode visualizar zeladorias, acessar o relatorio e adicionar complementacao a zeladorias finalizadas. |
+| **Profissional de campo** (owner) | Autor da zeladoria. Único que pode editar e finalizar enquanto a zeladoria está aberta. |
+| **Administrador** | Usuário com permissões administrativas. Pode reativar zeladoria finalizada, cancelar zeladoria finalizada e — via permissão `reativar vistorias` — devolver a zeladoria ao estado aberto para que o owner a edite novamente. |
+| **Qualquer usuário autenticado** | Pode visualizar zeladorias, acessar o relatório e adicionar complementação a zeladorias finalizadas. |
 
 ---
 
-## Pre-condicoes
+## Pré-condições
 
-1. O usuario esta autenticado no sistema.
+1. O usuário está autenticado no sistema.
 2. Existe pelo menos uma zeladoria cadastrada.
 
 ---
 
-## Maquina de Estados
+## Máquina de Estados
 
 ```
                    owner                  admin
@@ -44,80 +44,80 @@ Descrever o ciclo de vida completo de uma zeladoria apos sua criacao, com foco n
                               [ABERTA]
 ```
 
-- **ABERTA** — editavel pelo owner; fotos podem ser adicionadas, removidas e marcadas como publicas.
-- **FINALIZADA** — bloqueada para edicao de conteudo; permite complementacao textual, geracao de relatorio e habilitacao/desabilitacao de fotos para o relatorio publico.
-- **CANCELADA** — estado terminal; nenhuma acao e permitida alem de visualizacao.
+- **ABERTA** — editável pelo owner; fotos podem ser adicionadas, removidas e marcadas como públicas.
+- **FINALIZADA** — bloqueada para edição de conteúdo; permite complementação textual e geração de relatório.
+- **CANCELADA** — estado terminal; nenhuma ação é permitida além de visualização.
 
 ---
 
 ## Fluxo Principal — Finalizar Zeladoria
 
-| Passo | Ator | Acao | Resultado |
+| Passo | Ator | Ação | Resultado |
 |-------|------|------|-----------|
-| 1 | Owner | Acessa a pagina de detalhes da zeladoria (`vistorias.show`). | Sistema exibe todos os dados, participantes, moradores, fotos e o botao "Finalizar Zeladoria". |
-| 2 | Owner | Clica em "Finalizar Zeladoria" e confirma no dialogo de confirmacao. | Sistema grava: `finalizada = true`, `finalizada_em = agora`, `finalizada_por = usuario logado`. |
-| 3 | — | — | O botao "Editar" desaparece. Aparecem os botoes "Relatorio", "Complementar" e, se o usuario tiver permissao, "Reativar para Edicao". |
-| 4 | — | — | A zeladoria fica protegida contra alteracao de conteudo (Policy `update` retorna `false`). |
+| 1 | Owner | Acessa a página de detalhes da zeladoria (`vistorias.show`). | Sistema exibe todos os dados, participantes, moradores, fotos e o botão "Finalizar Zeladoria". |
+| 2 | Owner | Clica em "Finalizar Zeladoria" e confirma no diálogo de confirmação. | Sistema grava: `finalizada = true`, `finalizada_em = agora`, `finalizada_por = usuário logado`. |
+| 3 | — | — | O botão "Editar" desaparece. Aparecem os botões "Relatório", "Complementar" e, se o usuário tiver permissão, "Reativar para Edição". |
+| 4 | — | — | A zeladoria fica protegida contra alteração de conteúdo (Policy `update` retorna `false`). |
 
-**Variante 4a — Salvar e Finalizar (via formulario de edicao):**
+**Variante 4a — Salvar e Finalizar (via formulário de edição):**
 
-| Passo | Ator | Acao | Resultado |
+| Passo | Ator | Ação | Resultado |
 |-------|------|------|-----------|
-| 4a.1 | Owner | No formulario de edicao, marca o checkbox "Finalizar apos salvar" e clica em "Salvar". | Sistema salva todas as alteracoes e, em seguida, finaliza a zeladoria na mesma requisicao. |
+| 4a.1 | Owner | No formulário de edição, marca o checkbox "Finalizar após salvar" e clica em "Salvar". | Sistema salva todas as alterações e, em seguida, finaliza a zeladoria na mesma requisição. |
 
 ---
 
-## Fluxo Alternativo A — Habilitar Imagens para Relatorio Publico
+## Fluxo Alternativo A — Habilitar Imagens para Relatório Público
 
-Este fluxo **deve ser executado antes da finalizacao**. A API `toggle-publica` exige autorizacao de edicao (`Policy::update`), que e negada quando a zeladoria esta finalizada. Portanto, o owner deve marcar as fotos como publicas enquanto a zeladoria esta aberta.
+Este fluxo **deve ser executado antes da finalização**. A API `toggle-publica` exige autorização de edição (`Policy::update`), que é negada quando a zeladoria está finalizada. Portanto, o owner deve marcar as fotos como públicas enquanto a zeladoria está aberta.
 
-| Passo | Ator | Acao | Resultado |
+| Passo | Ator | Ação | Resultado |
 |-------|------|------|-----------|
-| 1 | Owner | Acessa o formulario de edicao da zeladoria (aba "Fotos"). | Sistema exibe as fotos ja cadastradas em grid, cada uma com um icone indicando seu estado: cadeado (privada) ou olho aberto (publica). |
-| 2 | Owner | Clica no icone de visibilidade de uma foto. | Sistema envia requisicao `POST /api/vistorias/{id}/fotos/{mediaId}/toggle-publica` e alterna a propriedade `publica` da foto. O icone atualiza em tempo real. |
+| 1 | Owner | Acessa o formulário de edição da zeladoria (aba "Fotos"). | Sistema exibe as fotos já cadastradas em grid, cada uma com um ícone indicando seu estado: cadeado (privada) ou olho aberto (pública). |
+| 2 | Owner | Clica no ícone de visibilidade de uma foto. | Sistema envia requisição `POST /api/vistorias/{id}/fotos/{mediaId}/toggle-publica` e alterna a propriedade `publica` da foto. O ícone atualiza em tempo real. |
 | 3 | Owner | Repete o passo 2 para quantas fotos desejar. | Cada foto fica marcada individualmente. |
-| 4 | Owner | Apos marcar todas as fotos desejadas, finaliza a zeladoria (Fluxo Principal). | As fotos marcadas como publicas serao as unicas exibidas no relatorio impresso (A4). |
+| 4 | Owner | Após marcar todas as fotos desejadas, finaliza a zeladoria (Fluxo Principal). | As fotos marcadas como públicas serão as únicas exibidas no relatório impresso (A4). |
 
-**Nota:** a alternancia da visibilidade e uma operacao atomica via API — nao depende de salvar o formulario.
+**Nota:** a alternância da visibilidade é uma operação atômica via API — não depende de salvar o formulário.
 
-**Caso precise ajustar fotos apos finalizacao:** o administrador deve reativar a zeladoria (Fluxo D), o owner ajusta a visibilidade das fotos e finaliza novamente.
+**Caso precise ajustar fotos após finalização:** o administrador deve reativar a zeladoria (Fluxo D), o owner ajusta a visibilidade das fotos e finaliza novamente.
 
 **Significado dos estados de visibilidade:**
 
-| Estado | Icone | Comportamento |
+| Estado | Ícone | Comportamento |
 |--------|-------|---------------|
-| **Privada** | Cadeado | Visivel apenas na aplicacao (detalhes e formulario). Nao aparece no relatorio impresso. |
-| **Publica** | Olho aberto | Visivel na aplicacao **e** no relatorio impresso que compoe o processo administrativo. |
+| **Privada** | Cadeado | Visível apenas na aplicação (detalhes e formulário). Não aparece no relatório impresso. |
+| **Pública** | Olho aberto | Visível na aplicação **e** no relatório impresso que compõe o processo administrativo. |
 
 ---
 
-## Fluxo Alternativo B — Gerar Relatorio para Processo Administrativo
+## Fluxo Alternativo B — Gerar Relatório para Processo Administrativo
 
-| Passo | Ator | Acao | Resultado |
+| Passo | Ator | Ação | Resultado |
 |-------|------|------|-----------|
-| 1 | Qualquer usuario | Acessa a pagina de detalhes da zeladoria e clica em "Relatorio". | Sistema exibe o relatorio em tela (`vistorias.report`) com todos os dados e todas as fotos. |
-| 2 | Usuario | Clica em "Imprimir" (ou acessa diretamente `vistorias.report.print`). | Sistema gera a versao A4 do relatorio, filtrando as fotos para exibir **somente as marcadas como publicas** (`publica = true`). |
-| 3 | — | — | O relatorio impresso inclui: cabecalho institucional, dados completos da zeladoria, fotos publicas, hash de verificacao (SHA-256) e rodape com numero do relatorio e paginacao. |
-| 4 | Usuario | Imprime ou salva como PDF. | O documento esta pronto para anexacao ao processo administrativo. |
+| 1 | Qualquer usuário | Acessa a página de detalhes da zeladoria e clica em "Relatório". | Sistema exibe o relatório em tela (`vistorias.report`) com todos os dados e todas as fotos. |
+| 2 | Usuário | Clica em "Imprimir" (ou acessa diretamente `vistorias.report.print`). | Sistema gera a versão A4 do relatório, filtrando as fotos para exibir **somente as marcadas como públicas** (`publica = true`). |
+| 3 | — | — | O relatório impresso inclui: cabeçalho institucional, dados completos da zeladoria, fotos públicas, hash de verificação (SHA-256) e rodapé com número do relatório e paginação. |
+| 4 | Usuário | Imprime ou salva como PDF. | O documento está pronto para anexação ao processo administrativo. |
 
-**Regra:** o relatorio pode ser gerado a qualquer momento, mas so deve ser utilizado para compor processo apos a finalizacao da zeladoria, garantindo que os dados estao consolidados.
+**Regra:** o relatório pode ser gerado a qualquer momento, mas só deve ser utilizado para compor processo após a finalização da zeladoria, garantindo que os dados estão consolidados.
 
 ---
 
 ## Fluxo Alternativo C — Complementar Zeladoria Finalizada
 
-Permite adicionar informacoes textuais a uma zeladoria ja finalizada sem reabrir para edicao completa.
+Permite adicionar informações textuais a uma zeladoria já finalizada sem reabrir para edição completa.
 
-| Passo | Ator | Acao | Resultado |
+| Passo | Ator | Ação | Resultado |
 |-------|------|------|-----------|
-| 1 | Qualquer usuario | Na pagina de detalhes de uma zeladoria finalizada, preenche o campo "Complementacao" (minimo 10 caracteres) e clica em "Enviar". | Sistema valida a justificativa. |
-| 2 | — | — | O texto e **apensado** ao campo `observacao` existente, precedido por separador com data/hora e nome do usuario. |
-| 3 | — | — | A zeladoria permanece finalizada. O complemento fica visivel nos detalhes e no relatorio. |
+| 1 | Qualquer usuário | Na página de detalhes de uma zeladoria finalizada, preenche o campo "Complementação" (mínimo 10 caracteres) e clica em "Enviar". | Sistema valida a justificativa. |
+| 2 | — | — | O texto é **apensado** ao campo `observacao` existente, precedido por separador com data/hora e nome do usuário. |
+| 3 | — | — | A zeladoria permanece finalizada. O complemento fica visível nos detalhes e no relatório. |
 
 **Formato do apensamento:**
 
 ```
---- Complementacao em DD/MM/AAAA HH:MM por Nome do Usuario ---
+--- Complementação em DD/MM/AAAA HH:MM por Nome do Usuário ---
 Justificativa: [texto digitado]
 ```
 
@@ -125,74 +125,74 @@ Justificativa: [texto digitado]
 
 ## Fluxo Alternativo D — Reativar Zeladoria Finalizada
 
-Unica situacao prevista em que um nao-owner interage com a zeladoria em capacidade administrativa. O administrador **nao edita** o conteudo — apenas desbloqueia para que o owner volte a editar.
+Única situação prevista em que um não-owner interage com a zeladoria em capacidade administrativa. O administrador **não edita** o conteúdo — apenas desbloqueia para que o owner volte a editar.
 
-| Passo | Ator | Acao | Resultado |
+| Passo | Ator | Ação | Resultado |
 |-------|------|------|-----------|
-| 1 | Administrador | Na pagina de detalhes de uma zeladoria finalizada, clica em "Reativar para Edicao". | Sistema verifica que o usuario possui permissao `reativar vistorias`. |
+| 1 | Administrador | Na página de detalhes de uma zeladoria finalizada, clica em "Reativar para Edição". | Sistema verifica que o usuário possui permissão `reativar vistorias`. |
 | 2 | — | — | Sistema grava: `finalizada = false`, `finalizada_em = null`, `finalizada_por = null`. |
-| 3 | — | — | A zeladoria volta ao estado ABERTA. O botao "Editar" reaparece — mas somente o **owner original** pode utiliza-lo (Policy `update` exige `user_id === usuario logado`). |
+| 3 | — | — | A zeladoria volta ao estado ABERTA. O botão "Editar" reaparece — mas somente o **owner original** pode utilizá-lo (Policy `update` exige `user_id === usuário logado`). |
 
-**Importante:** a reativacao nao altera a autoria. Apos a reativacao, o administrador nao pode editar o conteudo — apenas o autor original pode.
+**Importante:** a reativação não altera a autoria. Após a reativação, o administrador não pode editar o conteúdo — apenas o autor original pode.
 
 ---
 
 ## Fluxo Alternativo E — Cancelar Zeladoria
 
-| Passo | Ator | Acao | Resultado |
+| Passo | Ator | Ação | Resultado |
 |-------|------|------|-----------|
-| 1a | Owner | Cancela uma zeladoria **aberta**. | Sistema grava: `cancelada = true`, `cancelada_em = agora`, `cancelada_por = usuario logado`. |
-| 1b | Administrador | Cancela uma zeladoria **finalizada** (requer permissao `cancelar vistorias`). | Mesmo efeito do 1a. |
-| 2 | — | — | Estado terminal. Nao e possivel editar, reativar ou finalizar. O registro e mantido para auditoria. |
+| 1a | Owner | Cancela uma zeladoria **aberta**. | Sistema grava: `cancelada = true`, `cancelada_em = agora`, `cancelada_por = usuário logado`. |
+| 1b | Administrador | Cancela uma zeladoria **finalizada** (requer permissão `cancelar vistorias`). | Mesmo efeito do 1a. |
+| 2 | — | — | Estado terminal. Não é possível editar, reativar ou finalizar. O registro é mantido para auditoria. |
 
-**Importante:** apos a finalizacao, o owner **nao pode** cancelar a zeladoria. A Policy `cancelar` retorna `false` para o owner quando `finalizada = true`. Somente um administrador com permissao `cancelar vistorias` pode cancelar uma zeladoria finalizada.
+**Importante:** após a finalização, o owner **não pode** cancelar a zeladoria. A Policy `cancelar` retorna `false` para o owner quando `finalizada = true`. Somente um administrador com permissão `cancelar vistorias` pode cancelar uma zeladoria finalizada.
 
 ---
 
-## Resumo das Regras de Negocio
+## Resumo das Regras de Negócio
 
 | # | Regra |
 |---|-------|
 | RN1 | Somente o owner pode editar e finalizar uma zeladoria aberta. |
-| RN2 | Finalizar grava `finalizada = true` com timestamp e identificacao de quem finalizou. |
-| RN3 | Zeladoria finalizada nao pode ser editada — a Policy `update` retorna `false` quando `finalizada = true`. |
-| RN4 | O owner pode finalizar diretamente (botao "Finalizar") ou via checkbox "Finalizar apos salvar" no formulario de edicao. |
-| RN5 | Cada foto possui a propriedade `publica` (default `false`). Apenas fotos com `publica = true` aparecem no relatorio impresso (A4). |
-| RN6 | A alternancia de visibilidade da foto exige autorizacao de edicao (`Policy::update`) — portanto so e possivel enquanto a zeladoria esta aberta. O owner deve marcar as fotos desejadas antes de finalizar. Para ajustar apos finalizacao, e necessario reativar (Fluxo D). |
-| RN7 | O relatorio impresso (formato A4) inclui hash de verificacao para integridade documental. |
-| RN8 | Complementacao textual pode ser adicionada a zeladorias finalizadas por qualquer usuario autenticado, sem reabrir para edicao. |
-| RN9 | Reativacao (FINALIZADA → ABERTA) e exclusiva de administradores com permissao `reativar vistorias`. Apos reativacao, somente o owner original pode editar. |
-| RN10 | Cancelamento e estado terminal e irreversivel. Owner so pode cancelar zeladorias **abertas** — apos a finalizacao, perde essa capacidade. Somente o administrador (com permissao `cancelar vistorias`) pode cancelar zeladorias finalizadas. |
-| RN11 | Todas as transicoes de estado (finalizacao, reativacao, cancelamento) registram timestamp e usuario responsavel para trilha de auditoria. |
+| RN2 | Finalizar grava `finalizada = true` com timestamp e identificação de quem finalizou. |
+| RN3 | Zeladoria finalizada não pode ser editada — a Policy `update` retorna `false` quando `finalizada = true`. |
+| RN4 | O owner pode finalizar diretamente (botão "Finalizar") ou via checkbox "Finalizar após salvar" no formulário de edição. |
+| RN5 | Cada foto possui a propriedade `publica` (default `false`). Apenas fotos com `publica = true` aparecem no relatório impresso (A4). |
+| RN6 | A alternância de visibilidade da foto exige autorização de edição (`Policy::update`) — portanto só é possível enquanto a zeladoria está aberta. O owner deve marcar as fotos desejadas antes de finalizar. Para ajustar após finalização, é necessário reativar (Fluxo D). |
+| RN7 | O relatório impresso (formato A4) inclui hash de verificação para integridade documental. |
+| RN8 | Complementação textual pode ser adicionada a zeladorias finalizadas por qualquer usuário autenticado, sem reabrir para edição. |
+| RN9 | Reativação (FINALIZADA → ABERTA) é exclusiva de administradores com permissão `reativar vistorias`. Após reativação, somente o owner original pode editar. |
+| RN10 | Cancelamento é estado terminal e irreversível. Owner só pode cancelar zeladorias **abertas** — após a finalização, perde essa capacidade. Somente o administrador (com permissão `cancelar vistorias`) pode cancelar zeladorias finalizadas. |
+| RN11 | Todas as transições de estado (finalização, reativação, cancelamento) registram timestamp e usuário responsável para trilha de auditoria. |
 
 ---
 
-## Matriz de Permissoes por Estado
+## Matriz de Permissões por Estado
 
-| Acao | ABERTA | FINALIZADA | CANCELADA |
+| Ação | ABERTA | FINALIZADA | CANCELADA |
 |------|--------|------------|-----------|
 | Visualizar | Todos | Todos | Todos |
-| Editar conteudo | Owner | Ninguem | Ninguem |
+| Editar conteúdo | Owner | Ninguém | Ninguém |
 | Finalizar | Owner | — | — |
 | Reativar | — | Admin (`reativar vistorias`) | — |
-| Cancelar | Owner | Somente Admin (`cancelar vistorias`); owner nao pode | — |
+| Cancelar | Owner | Somente Admin (`cancelar vistorias`); owner não pode | — |
 | Complementar | — | Todos | — |
-| Toggle foto publica | Owner | Ninguem (requer reativacao) | Ninguem |
-| Gerar relatorio | Todos | Todos | Todos |
-| Imprimir relatorio A4 | Todos | Todos | Todos |
+| Toggle foto pública | Owner | Ninguém (requer reativação) | Ninguém |
+| Gerar relatório | Todos | Todos | Todos |
+| Imprimir relatório A4 | Todos | Todos | Todos |
 
 ---
 
-## Glossario
+## Glossário
 
 | Termo | Significado |
 |-------|-------------|
-| **Zeladoria** | Registro de uma visita/abordagem feita em campo (sinonimo de "vistoria" no sistema). |
-| **Finalizar** | Bloquear a zeladoria para edicao, consolidando os dados para geracao de relatorio. |
+| **Zeladoria** | Registro de uma visita/abordagem feita em campo (sinônimo de "vistoria" no sistema). |
+| **Finalizar** | Bloquear a zeladoria para edição, consolidando os dados para geração de relatório. |
 | **Reativar** | Desbloquear zeladoria finalizada, devolvendo-a ao estado aberto para que o owner a edite. |
-| **Complementar** | Adicionar nota textual a zeladoria finalizada sem reabrir para edicao completa. |
-| **Foto publica** | Fotografia marcada para inclusao no relatorio impresso que compoe o processo administrativo. |
-| **Foto privada** | Fotografia visivel apenas na aplicacao, omitida do relatorio impresso. |
-| **Relatorio impresso** | Documento em formato A4 contendo os dados da zeladoria e somente as fotos publicas, destinado a compor processo administrativo. |
-| **Hash de verificacao** | Codigo SHA-256 incluido no relatorio impresso para comprovacao de integridade do documento. |
-| **Owner** | Autor original da zeladoria (`user_id`). Unico com permissao para editar o conteudo. |
+| **Complementar** | Adicionar nota textual a zeladoria finalizada sem reabrir para edição completa. |
+| **Foto pública** | Fotografia marcada para inclusão no relatório impresso que compõe o processo administrativo. |
+| **Foto privada** | Fotografia visível apenas na aplicação, omitida do relatório impresso. |
+| **Relatório impresso** | Documento em formato A4 contendo os dados da zeladoria e somente as fotos públicas, destinado a compor processo administrativo. |
+| **Hash de verificação** | Código SHA-256 incluído no relatório impresso para comprovação de integridade do documento. |
+| **Owner** | Autor original da zeladoria (`user_id`). Único com permissão para editar o conteúdo. |
