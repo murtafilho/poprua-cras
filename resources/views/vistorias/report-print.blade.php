@@ -41,7 +41,6 @@
             $vistoria->encaminhamento4, $vistoria->encaminhamento5, $vistoria->encaminhamento6,
         ])->filter();
 
-        // A4 / processo: somente fotos marcadas como públicas
         $fotos = $vistoria->getMedia('fotos')->filter(fn($m) => (bool) $m->getCustomProperty('publica', false))->values();
 
         $temFiscalizacao = $vistoria->conducao_forcas_seguranca || $vistoria->apreensao_fiscal
@@ -66,44 +65,43 @@
     @endphp
 
     <style>
-        /* ============================================================
-           Layout A4 compacto — base ABNT NBR 14724 com densidade otimizada
-           Arial 11pt · espaçamento 1,2 · margens 2cm
-           ============================================================ */
         @page {
             size: A4;
             margin: 2cm;
 
             @bottom-left {
                 content: "Relatório de Zeladoria nº {{ $vistoria->id }}";
-                font-family: Arial, Helvetica, sans-serif;
-                font-size: 9pt;
-                color: #555;
+                font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 8pt;
+                color: #9ca3af;
             }
             @bottom-right {
-                content: counter(page) " de " counter(pages);
-                font-family: Arial, Helvetica, sans-serif;
-                font-size: 9pt;
-                color: #555;
+                content: counter(page) " / " counter(pages);
+                font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 8pt;
+                color: #9ca3af;
             }
         }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 11pt;
-            line-height: 1.25;
-            color: #000;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #1f2937;
             background: #fff;
+            -webkit-font-smoothing: antialiased;
         }
 
         .sheet {
-            max-width: 17cm; /* área útil = 21cm - 2cm - 2cm */
+            max-width: 17cm;
             margin: 0 auto;
         }
 
-        /* Action bar (não imprime) */
+        /* Barra de ações (não imprime) */
         .no-print {
             position: fixed;
             top: 20px;
@@ -113,125 +111,151 @@
             gap: 8px;
         }
         .no-print a, .no-print button {
-            padding: 8px 16px;
-            border: 1px solid #999;
+            padding: 8px 20px;
+            border: 1px solid #d1d5db;
             background: #fff;
-            color: #000;
-            font-family: Arial, sans-serif;
-            font-size: 11pt;
+            color: #374151;
+            font-family: inherit;
+            font-size: 10pt;
             cursor: pointer;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 6px;
+            transition: all .15s;
         }
-        .no-print button { background: #000; color: #fff; border-color: #000; }
+        .no-print a:hover { background: #f9fafb; }
+        .no-print button {
+            background: #111827;
+            color: #fff;
+            border-color: #111827;
+        }
+        .no-print button:hover { background: #1f2937; }
 
         /* ===== CABEÇALHO ===== */
         .head {
             text-align: center;
-            margin-bottom: 12pt;
+            padding-bottom: 14pt;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 14pt;
         }
         .head .orgao {
-            font-size: 10pt;
-            font-weight: bold;
-            line-height: 1.3;
+            font-size: 9pt;
+            font-weight: 600;
+            line-height: 1.4;
             text-transform: uppercase;
-        }
-        .head .divider {
-            margin-top: 8pt;
-            margin-bottom: 8pt;
-            height: 1px;
-            background: #000;
+            color: #6b7280;
+            letter-spacing: 0.5px;
         }
         .head .titulo {
-            font-size: 13pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            line-height: 1.2;
+            margin-top: 10pt;
+            font-size: 14pt;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.2px;
         }
         .head .subtitulo {
             margin-top: 3pt;
-            font-size: 10pt;
-            color: #333;
+            font-size: 9pt;
+            color: #9ca3af;
         }
 
         /* ===== PROTOCOLO ===== */
         .protocolo {
-            margin-top: 12pt;
-            margin-bottom: 14pt;
-            font-size: 10pt;
+            margin-bottom: 16pt;
+            font-size: 9pt;
+            color: #6b7280;
             display: flex;
             gap: 24pt;
         }
         .protocolo .linha {
             display: inline-block;
             min-width: 5cm;
-            border-bottom: 1px solid #000;
-            margin-left: 6px;
+            border-bottom: 1px solid #d1d5db;
+            margin-left: 4px;
         }
         .protocolo .linha-curta { min-width: 2cm; }
 
-        /* ===== SEÇÕES PRIMÁRIAS ===== */
+        /* ===== SEÇÕES ===== */
         section.bloco {
-            margin-top: 12pt;
+            margin-bottom: 16pt;
             page-break-inside: avoid;
         }
         section.bloco h2 {
-            font-size: 11pt;
-            font-weight: bold;
+            font-size: 10pt;
+            font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 6pt;
-            line-height: 1.3;
+            letter-spacing: 0.4px;
+            color: #374151;
+            padding-bottom: 4pt;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 8pt;
         }
         section.bloco h2 .num {
             display: inline-block;
             min-width: 16pt;
-        }
-        section.bloco .body {
-            padding-left: 0;
+            color: #9ca3af;
+            font-weight: 600;
         }
 
-        /* ===== CAMPOS LABEL/VALOR ===== */
-        dl.campos {
-            display: grid;
-            grid-template-columns: 6cm 1fr;
-            row-gap: 2pt;
-            column-gap: 10pt;
+        /* ===== TABELAS DE DADOS ===== */
+        table.dados {
+            width: 100%;
+            border-collapse: collapse;
         }
-        dl.campos dt {
-            font-weight: bold;
+        table.dados tr {
+            border-bottom: 1px solid #f3f4f6;
         }
-        dl.campos dt::after { content: ":"; }
-        dl.campos dd {
-            margin-left: 0;
+        table.dados tr:last-child {
+            border-bottom: none;
         }
-        dl.campos dd.vazio {
-            color: #666;
+        table.dados th {
+            text-align: left;
+            font-weight: 500;
+            color: #6b7280;
+            padding: 4pt 10pt 4pt 0;
+            width: 5.5cm;
+            vertical-align: top;
+            font-size: 9.5pt;
+        }
+        table.dados td {
+            padding: 4pt 0;
+            color: #1f2937;
+            vertical-align: top;
+        }
+        table.dados td.vazio {
+            color: #9ca3af;
             font-style: italic;
         }
 
-        /* ===== FATORES (lista em 3 colunas compactas) ===== */
-        ul.fatores {
+        /* ===== FATORES (chips) ===== */
+        .fatores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6pt;
             list-style: none;
-            columns: 3;
-            column-gap: 16pt;
         }
-        ul.fatores li {
-            padding: 1pt 0;
+        .fatores li {
+            font-size: 9pt;
+            padding: 2pt 8pt;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 3pt;
+            color: #374151;
+        }
+
+        /* ===== RESULTADO DESTAQUE ===== */
+        .resultado-destaque {
             font-size: 10.5pt;
-            break-inside: avoid;
-            -webkit-column-break-inside: avoid;
-        }
-        ul.fatores li::before {
-            content: "☑ ";
-            font-weight: bold;
+            font-weight: 600;
+            color: #1f2937;
+            padding: 6pt 0;
         }
 
         /* ===== TEXTO LIVRE ===== */
         .texto-livre {
-            text-indent: 0.8cm;
             text-align: justify;
             white-space: pre-wrap;
-            line-height: 1.3;
+            line-height: 1.55;
+            color: #374151;
         }
 
         /* ===== LISTAS ===== */
@@ -239,71 +263,76 @@
             padding-left: 1cm;
         }
         ol.lista li, ul.lista li {
-            padding: 0;
+            padding: 2pt 0;
+            color: #374151;
         }
 
-        /* ===== FOTOS (4 colunas, mais baixas) ===== */
+        /* ===== FOTOS ===== */
         .fotos {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6pt;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8pt;
         }
         .fotos figure {
             page-break-inside: avoid;
         }
         .fotos img {
             width: 100%;
-            height: 3.4cm;
+            height: 4cm;
             object-fit: cover;
             display: block;
-            border: 1px solid #ccc;
+            border: 1px solid #e5e7eb;
+            border-radius: 4pt;
         }
         .fotos figcaption {
-            margin-top: 2pt;
-            font-size: 9pt;
+            margin-top: 3pt;
+            font-size: 8pt;
             text-align: center;
-            color: #333;
+            color: #9ca3af;
         }
 
         /* ===== ASSINATURA ===== */
         .assinaturas {
-            margin-top: 28pt;
+            margin-top: 32pt;
             display: flex;
             justify-content: center;
             page-break-inside: avoid;
         }
         .assinaturas .slot {
             text-align: center;
-            font-size: 10pt;
             min-width: 8.5cm;
         }
         .assinaturas .linha-ass {
-            border-bottom: 1px solid #000;
+            border-bottom: 1px solid #d1d5db;
             height: 1.8cm;
-            margin-bottom: 3pt;
+            margin-bottom: 4pt;
         }
         .assinaturas .papel {
-            font-weight: bold;
+            font-weight: 600;
             text-transform: uppercase;
-            font-size: 9.5pt;
+            font-size: 9pt;
+            color: #374151;
+            letter-spacing: 0.3px;
         }
         .assinaturas .ident {
-            color: #333;
-            margin-top: 1pt;
-            font-size: 9.5pt;
+            color: #6b7280;
+            margin-top: 2pt;
+            font-size: 9pt;
         }
 
         /* ===== VERIFICAÇÃO ===== */
         .verificacao {
-            margin-top: 18pt;
-            padding-top: 6pt;
-            border-top: 1px solid #000;
-            font-size: 9pt;
-            line-height: 1.3;
+            margin-top: 20pt;
+            padding-top: 8pt;
+            border-top: 1px solid #e5e7eb;
+            font-size: 8pt;
+            line-height: 1.5;
+            color: #9ca3af;
         }
         .verificacao .codigo {
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-weight: 600;
+            color: #6b7280;
             letter-spacing: 0.5px;
         }
 
@@ -328,7 +357,6 @@
                 Subsecretaria de Fiscalização — SUFIS<br>
                 Serviço de Zeladoria Urbana
             </div>
-            <div class="divider"></div>
             <div class="titulo">
                 Relatório de Zeladoria nº {{ $vistoria->id }}/{{ \Carbon\Carbon::parse($vistoria->data_abordagem ?? $vistoria->created_at)->format('Y') }}
             </div>
@@ -347,27 +375,34 @@
         <section class="bloco">
             <h2><span class="num">{{ $secs['id'] }}.</span> Identificação</h2>
             <div class="body">
-                <dl class="campos">
-                    <dt>Registro</dt>
-                    <dd>{{ $vistoria->id }}</dd>
-
-                    <dt>Data e hora da abordagem</dt>
-                    <dd>{{ $vistoria->data_abordagem ? \Carbon\Carbon::parse($vistoria->data_abordagem)->format('d/m/Y') . ' às ' . \Carbon\Carbon::parse($vistoria->data_abordagem)->format('H:i') : '—' }}</dd>
-
-                    <dt>Tipo de abordagem</dt>
-                    <dd>{{ $vistoria->tipoAbordagem->tipo ?? '—' }}</dd>
-
-                    <dt>Registrada por</dt>
-                    <dd>{{ $vistoria->user->name ?? '—' }}{{ isset($vistoria->user->email) ? ' ('.$vistoria->user->email.')' : '' }}</dd>
-
-                    <dt>Registro criado em</dt>
-                    <dd>{{ $vistoria->created_at ? \Carbon\Carbon::parse($vistoria->created_at)->format('d/m/Y \à\s H:i') : '—' }}</dd>
-
+                <table class="dados">
+                    <tr>
+                        <th>Registro</th>
+                        <td>{{ $vistoria->id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Data e hora da abordagem</th>
+                        <td>{{ $vistoria->data_abordagem ? \Carbon\Carbon::parse($vistoria->data_abordagem)->format('d/m/Y') . ' às ' . \Carbon\Carbon::parse($vistoria->data_abordagem)->format('H:i') : '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Tipo de abordagem</th>
+                        <td>{{ $vistoria->tipoAbordagem->tipo ?? '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Registrada por</th>
+                        <td>{{ $vistoria->user->name ?? '—' }}{{ isset($vistoria->user->email) ? ' ('.$vistoria->user->email.')' : '' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Registro criado em</th>
+                        <td>{{ $vistoria->created_at ? \Carbon\Carbon::parse($vistoria->created_at)->format('d/m/Y \à\s H:i') : '—' }}</td>
+                    </tr>
                     @if($vistoria->updated_at && $vistoria->updated_at != $vistoria->created_at)
-                        <dt>Última atualização</dt>
-                        <dd>{{ \Carbon\Carbon::parse($vistoria->updated_at)->format('d/m/Y \à\s H:i') }}</dd>
+                    <tr>
+                        <th>Última atualização</th>
+                        <td>{{ \Carbon\Carbon::parse($vistoria->updated_at)->format('d/m/Y \à\s H:i') }}</td>
+                    </tr>
                     @endif
-                </dl>
+                </table>
             </div>
         </section>
 
@@ -375,28 +410,34 @@
         <section class="bloco">
             <h2><span class="num">{{ $secs['loc'] }}.</span> Localização</h2>
             <div class="body">
-                <dl class="campos">
-                    <dt>Endereço</dt>
-                    @if(filled($logradouro) || filled($numero))
-                        <dd>{{ trim($logradouro) }}{{ filled($numero) ? ', '.$numero : '' }}</dd>
-                    @else
-                        <dd class="vazio">não informado</dd>
-                    @endif
-
-                    <dt>Bairro</dt>
-                    <dd>{{ $bairro ?? '—' }}</dd>
-
-                    <dt>Regional</dt>
-                    <dd>{{ $regional ?? '—' }}</dd>
-
+                <table class="dados">
+                    <tr>
+                        <th>Endereço</th>
+                        @if(filled($logradouro) || filled($numero))
+                            <td>{{ trim($logradouro) }}{{ filled($numero) ? ', '.$numero : '' }}</td>
+                        @else
+                            <td class="vazio">não informado</td>
+                        @endif
+                    </tr>
+                    <tr>
+                        <th>Bairro</th>
+                        <td>{{ $bairro ?? '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Regional</th>
+                        <td>{{ $regional ?? '—' }}</td>
+                    </tr>
                     @if($ponto?->lat && $ponto?->lng)
-                        <dt>Coordenadas (lat, long)</dt>
-                        <dd>{{ $ponto->lat }}, {{ $ponto->lng }}</dd>
+                    <tr>
+                        <th>Coordenadas (lat, long)</th>
+                        <td>{{ $ponto->lat }}, {{ $ponto->lng }}</td>
+                    </tr>
                     @endif
-
-                    <dt>Ponto de concentração</dt>
-                    <dd>{{ $ponto?->id ? '#'.$ponto->id : '—' }}</dd>
-                </dl>
+                    <tr>
+                        <th>Ponto de concentração</th>
+                        <td>{{ $ponto?->id ? '#'.$ponto->id : '—' }}</td>
+                    </tr>
+                </table>
             </div>
         </section>
 
@@ -405,7 +446,7 @@
         <section class="bloco">
             <h2><span class="num">{{ $secs['res'] }}.</span> Resultado da ação</h2>
             <div class="body">
-                {{ $vistoria->resultadoAcao->resultado }}
+                <div class="resultado-destaque">{{ $vistoria->resultadoAcao->resultado }}</div>
             </div>
         </section>
         @endif
@@ -415,21 +456,26 @@
         <section class="bloco">
             <h2><span class="num">{{ $secs['cnt'] }}.</span> Contagem e perfil quantitativo</h2>
             <div class="body">
-                <dl class="campos">
-                    <dt>Pessoas abordadas</dt>
-                    <dd>{{ $vistoria->quantidade_pessoas ?? 0 }}</dd>
-
-                    <dt>Casais</dt>
-                    <dd>{{ $vistoria->qtd_casais ?? 0 }}</dd>
-
-                    <dt>Animais presentes</dt>
-                    <dd>{{ $vistoria->animais ? 'Sim ('.($vistoria->qtd_animais ?? 0).')' : 'Não' }}</dd>
-
+                <table class="dados">
+                    <tr>
+                        <th>Pessoas abordadas</th>
+                        <td>{{ $vistoria->quantidade_pessoas ?? 0 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Casais</th>
+                        <td>{{ $vistoria->qtd_casais ?? 0 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Animais presentes</th>
+                        <td>{{ $vistoria->animais ? 'Sim ('.($vistoria->qtd_animais ?? 0).')' : 'Não' }}</td>
+                    </tr>
                     @if(filled($vistoria->movimento_migratorio))
-                        <dt>Movimento migratório</dt>
-                        <dd>{{ $vistoria->movimento_migratorio }}</dd>
+                    <tr>
+                        <th>Movimento migratório</th>
+                        <td>{{ $vistoria->movimento_migratorio }}</td>
+                    </tr>
                     @endif
-                </dl>
+                </table>
             </div>
         </section>
         @endif
@@ -453,20 +499,24 @@
         <section class="bloco">
             <h2><span class="num">{{ $secs['abr'] }}.</span> Abrigos provisórios</h2>
             <div class="body">
-                <dl class="campos">
-                    <dt>Quantidade</dt>
-                    <dd>{{ $vistoria->qtd_abrigos_provisorios ?? 0 }}</dd>
-
+                <table class="dados">
+                    <tr>
+                        <th>Quantidade</th>
+                        <td>{{ $vistoria->qtd_abrigos_provisorios ?? 0 }}</td>
+                    </tr>
                     @if(count($tiposAbrigoSelecionados) > 0)
-                        <dt>Tipos observados</dt>
-                        <dd>{{ implode(', ', $tiposAbrigoSelecionados) }}</dd>
+                    <tr>
+                        <th>Tipos observados</th>
+                        <td>{{ implode(', ', $tiposAbrigoSelecionados) }}</td>
+                    </tr>
                     @endif
-
                     @if($vistoria->tipoAbrigoDesmontado)
-                        <dt>Tipo desmontado</dt>
-                        <dd>{{ $vistoria->tipoAbrigoDesmontado->tipo_abrigo }}</dd>
+                    <tr>
+                        <th>Tipo desmontado</th>
+                        <td>{{ $vistoria->tipoAbrigoDesmontado->tipo_abrigo }}</td>
+                    </tr>
                     @endif
-                </dl>
+                </table>
             </div>
         </section>
         @endif
@@ -476,35 +526,38 @@
         <section class="bloco">
             <h2><span class="num">{{ $secs['fis'] }}.</span> Ações fiscalizatórias e materiais</h2>
             <div class="body">
-                <dl class="campos">
-                    <dt>Condução por forças de segurança</dt>
-                    <dd>
-                        {{ $vistoria->conducao_forcas_seguranca ? 'Sim' : 'Não' }}@if($vistoria->conducao_forcas_seguranca && filled($vistoria->conducao_forcas_observacao)) — {{ $vistoria->conducao_forcas_observacao }}@endif
-                    </dd>
-
-                    <dt>Apreensão fiscal</dt>
-                    <dd>{{ $vistoria->apreensao_fiscal ? 'Sim' : 'Não' }}</dd>
-
-                    <dt>Auto de fiscalização</dt>
-                    <dd>
-                        {{ $vistoria->auto_fiscalizacao_aplicado ? 'Aplicado' : 'Não aplicado' }}@if($vistoria->auto_fiscalizacao_aplicado && filled($vistoria->auto_fiscalizacao_numero)) — nº {{ $vistoria->auto_fiscalizacao_numero }}@endif
-                    </dd>
-
+                <table class="dados">
+                    <tr>
+                        <th>Condução por forças de segurança</th>
+                        <td>{{ $vistoria->conducao_forcas_seguranca ? 'Sim' : 'Não' }}@if($vistoria->conducao_forcas_seguranca && filled($vistoria->conducao_forcas_observacao)) — {{ $vistoria->conducao_forcas_observacao }}@endif</td>
+                    </tr>
+                    <tr>
+                        <th>Apreensão fiscal</th>
+                        <td>{{ $vistoria->apreensao_fiscal ? 'Sim' : 'Não' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Auto de fiscalização</th>
+                        <td>{{ $vistoria->auto_fiscalizacao_aplicado ? 'Aplicado' : 'Não aplicado' }}@if($vistoria->auto_fiscalizacao_aplicado && filled($vistoria->auto_fiscalizacao_numero)) — nº {{ $vistoria->auto_fiscalizacao_numero }}@endif</td>
+                    </tr>
                     @if(filled($vistoria->material_apreendido))
-                        <dt>Material apreendido</dt>
-                        <dd>{{ $vistoria->material_apreendido }}</dd>
+                    <tr>
+                        <th>Material apreendido</th>
+                        <td>{{ $vistoria->material_apreendido }}</td>
+                    </tr>
                     @endif
-
                     @if(filled($vistoria->material_descartado))
-                        <dt>Material descartado</dt>
-                        <dd>{{ $vistoria->material_descartado }}</dd>
+                    <tr>
+                        <th>Material descartado</th>
+                        <td>{{ $vistoria->material_descartado }}</td>
+                    </tr>
                     @endif
-
                     @if(($vistoria->qtd_kg ?? 0) > 0)
-                        <dt>Material recolhido</dt>
-                        <dd>{{ $vistoria->qtd_kg }} kg</dd>
+                    <tr>
+                        <th>Material recolhido</th>
+                        <td>{{ $vistoria->qtd_kg }} kg</td>
+                    </tr>
                     @endif
-                </dl>
+                </table>
             </div>
         </section>
         @endif
@@ -529,16 +582,16 @@
             <h2><span class="num">{{ $secs['pes'] }}.</span> Pessoas identificadas</h2>
             <div class="body">
                 @if(filled($vistoria->nomes_pessoas))
-                    <p style="margin-bottom: 6pt;"><strong>{{ $secs['pes'] }}.1 Nomes citados durante a abordagem</strong></p>
+                    <p style="margin-bottom: 6pt; font-weight: 600; color: #374151;">{{ $secs['pes'] }}.1 Nomes citados durante a abordagem</p>
                     <div class="texto-livre" style="margin-bottom: 12pt;">{{ $vistoria->nomes_pessoas }}</div>
                 @endif
 
                 @if($vistoria->moradoresEntrada->count() > 0)
-                    <p style="margin-bottom: 6pt;"><strong>{{ $secs['pes'] }}.{{ filled($vistoria->nomes_pessoas) ? '2' : '1' }} Moradores cadastrados ({{ $vistoria->moradoresEntrada->count() }})</strong></p>
+                    <p style="margin-bottom: 6pt; font-weight: 600; color: #374151;">{{ $secs['pes'] }}.{{ filled($vistoria->nomes_pessoas) ? '2' : '1' }} Moradores cadastrados ({{ $vistoria->moradoresEntrada->count() }})</p>
                     <ul class="lista">
                         @foreach($vistoria->moradoresEntrada as $hist)
                             @if($hist->morador)
-                                <li>{{ $hist->morador->nome_social }}@if(filled($hist->morador->apelido)) — “{{ $hist->morador->apelido }}”@endif</li>
+                                <li>{{ $hist->morador->nome_social }}@if(filled($hist->morador->apelido)) — "{{ $hist->morador->apelido }}"@endif</li>
                             @endif
                         @endforeach
                     </ul>

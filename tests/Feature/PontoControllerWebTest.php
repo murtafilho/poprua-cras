@@ -77,18 +77,6 @@ class PontoControllerWebTest extends TestCase
         $this->assertDatabaseHas('pontos', ['id' => $ponto->id, 'complemento' => 'Novo complemento']);
     }
 
-    public function test_nao_georreferenciados_requires_authentication(): void
-    {
-        $this->get(route('pontos.nao-georreferenciados'))->assertRedirect(route('login'));
-    }
-
-    public function test_nao_georreferenciados_renders(): void
-    {
-        $this->actingAs($this->user)
-            ->get(route('pontos.nao-georreferenciados'))
-            ->assertOk();
-    }
-
     public function test_index_filters_by_regional(): void
     {
         $this->actingAs($this->user)

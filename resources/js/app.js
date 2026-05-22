@@ -154,7 +154,9 @@ document.addEventListener('DOMContentLoaded', function() {
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains('pendentes')) {
-                    db.createObjectStore('pendentes', { keyPath: 'id', autoIncrement: true });
+                    const store = db.createObjectStore('pendentes', { keyPath: 'id', autoIncrement: true });
+                    store.createIndex('status', 'status', { unique: false });
+                    store.createIndex('vistoriaId', 'vistoriaId', { unique: false });
                 }
             };
             req.onsuccess = (e) => resolve(e.target.result);
@@ -162,15 +164,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function isTempRecord(foto) {
+        const vid = foto.vistoria_id || foto.vistoriaId;
+        return typeof vid === 'string' && vid.startsWith('temp_');
+    }
+
+    async function cleanupOrphanedRecords(db) {
+        const ONE_HOUR = 60 * 60 * 1000;
+        const tx = db.transaction('pendentes', 'readwrite');
+        const store = tx.objectStore('pendentes');
+        const req = store.getAll();
+        req.onsuccess = () => {
+            for (const foto of req.result) {
+                if (!isTempRecord(foto)) continue;
+                const createdAt = foto.created_at ? new Date(foto.created_at).getTime()
+                    : foto.createdAt || 0;
+                if (Date.now() - createdAt > ONE_HOUR) {
+                    store.delete(foto.id);
+                }
+            }
+        };
+    }
+
+    async function getSyncableFotos() {
+        const db = await openFotosDB();
+        return new Promise((resolve) => {
+            const tx = db.transaction('pendentes', 'readonly');
+            const req = tx.objectStore('pendentes').getAll();
+            req.onsuccess = () => resolve(req.result.filter(f => !isTempRecord(f)));
+            req.onerror = () => resolve([]);
+        });
+    }
+
     async function countPendingPhotos() {
         try {
-            const db = await openFotosDB();
-            return new Promise((resolve) => {
-                const tx = db.transaction('pendentes', 'readonly');
-                const req = tx.objectStore('pendentes').count();
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => resolve(0);
-            });
+            const fotos = await getSyncableFotos();
+            return fotos.length;
         } catch { return 0; }
     }
 
@@ -184,53 +213,50 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.syncAllPendingPhotos = async function() {
+        const fotos = await getSyncableFotos();
+
+        if (fotos.length === 0) {
+            showToast('Nenhuma foto pendente para sincronizar.', 'info');
+            return;
+        }
+
+        if (!confirm(`Enviar ${fotos.length} foto(s) pendente(s)?`)) return;
+
         const db = await openFotosDB();
-        const tx = db.transaction('pendentes', 'readonly');
-        const req = tx.objectStore('pendentes').getAll();
+        let enviadas = 0;
+        let erros = 0;
 
-        req.onsuccess = async () => {
-            const fotos = req.result;
-            if (fotos.length === 0) {
-                showToast('Nenhuma foto pendente para sincronizar.', 'info');
-                return;
-            }
+        for (const foto of fotos) {
+            try {
+                const blob = new Blob([foto.data], { type: foto.type });
+                const file = new File([blob], foto.name, { type: foto.type });
+                const formData = new FormData();
+                formData.append('vistoria_id', foto.vistoria_id);
+                formData.append('foto', file);
 
-            if (!confirm(`Enviar ${fotos.length} foto(s) pendente(s)?`)) return;
+                const resp = await fetch(`${APP_BASE}/api/vistorias/fotos`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                    body: formData
+                });
 
-            let enviadas = 0;
-            let erros = 0;
-
-            for (const foto of fotos) {
-                try {
-                    const blob = new Blob([foto.data], { type: foto.type });
-                    const file = new File([blob], foto.name, { type: foto.type });
-                    const formData = new FormData();
-                    formData.append('vistoria_id', foto.vistoria_id);
-                    formData.append('foto', file);
-
-                    const resp = await fetch(`${APP_BASE}/api/vistorias/fotos`, {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': csrfToken },
-                        body: formData
-                    });
-
-                    if (resp.ok) {
-                        const delTx = db.transaction('pendentes', 'readwrite');
-                        delTx.objectStore('pendentes').delete(foto.id);
-                        await new Promise(r => { delTx.oncomplete = r; });
-                        enviadas++;
-                    } else {
-                        erros++;
-                    }
-                } catch {
+                if (resp.ok) {
+                    const delTx = db.transaction('pendentes', 'readwrite');
+                    delTx.objectStore('pendentes').delete(foto.id);
+                    await new Promise(r => { delTx.oncomplete = r; });
+                    enviadas++;
+                } else {
                     erros++;
                 }
+            } catch {
+                erros++;
             }
+        }
 
-            await updateSyncBadge();
-            showToast(`${enviadas} foto(s) enviada(s)` + (erros > 0 ? `, ${erros} erro(s)` : ''), erros > 0 ? 'warning' : 'success');
-        };
+        await updateSyncBadge();
+        showToast(`${enviadas} foto(s) enviada(s)` + (erros > 0 ? `, ${erros} erro(s)` : ''), erros > 0 ? 'warning' : 'success');
     };
 
+    openFotosDB().then(db => cleanupOrphanedRecords(db)).catch(() => {});
     updateSyncBadge();
 });

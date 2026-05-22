@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Vistoria;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class VistoriaFeatureTest extends TestCase
@@ -26,6 +27,10 @@ class VistoriaFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Limpar cache de permissoes do Spatie e criar permissao exigida pelo VistoriaService::getFormSelectData()
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        Permission::create(['name' => 'participar de equipes vistoria']);
 
         $this->user = User::factory()->create();
 

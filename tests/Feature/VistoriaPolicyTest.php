@@ -43,6 +43,7 @@ class VistoriaPolicyTest extends TestCase
         Permission::create(['name' => 'excluir vistorias']);
         Permission::create(['name' => 'reativar vistorias']);
         Permission::create(['name' => 'cancelar vistorias']);
+        Permission::create(['name' => 'participar de equipes vistoria']);
         $adminRole->givePermissionTo(['editar qualquer vistoria', 'excluir vistorias', 'reativar vistorias', 'cancelar vistorias']);
 
         $this->admin = User::factory()->create();
