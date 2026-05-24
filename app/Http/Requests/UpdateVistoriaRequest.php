@@ -19,7 +19,9 @@ class UpdateVistoriaRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $v) {
-            $ids = collect($this->input('participantes', []))->filter()->unique()->values()->all();
+            /** @var array<int, mixed> $participantes */
+            $participantes = $this->input('participantes', []);
+            $ids = collect($participantes)->filter()->unique()->values()->all();
             if (empty($ids)) {
                 return;
             }

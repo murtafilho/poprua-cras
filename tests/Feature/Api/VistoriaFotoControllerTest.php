@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class VistoriaFotoControllerTest extends TestCase
@@ -43,7 +44,7 @@ class VistoriaFotoControllerTest extends TestCase
         ]);
 
         // Set up Spatie permissions for admin
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $adminRole = Role::create(['name' => 'admin']);
         Permission::create(['name' => 'editar qualquer vistoria']);

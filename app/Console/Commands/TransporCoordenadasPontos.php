@@ -109,6 +109,8 @@ class TransporCoordenadasPontos extends Command
 
     /**
      * Tenta vincular por proximidade geográfica (coordenadas).
+     *
+     * @return array<string, mixed>|null
      */
     private function vincularPorCoordenada(object $ponto, float $raio): ?array
     {
@@ -167,6 +169,8 @@ class TransporCoordenadasPontos extends Command
 
     /**
      * Fallback: tenta vincular pelo endereço alfanumérico do MySQL legado.
+     *
+     * @return array<string, mixed>|null
      */
     private function vincularPorAlfanumerico(object $ponto): ?array
     {
@@ -243,6 +247,8 @@ class TransporCoordenadasPontos extends Command
 
     /**
      * Salva o vínculo no PostgreSQL.
+     *
+     * @param  array<string, mixed>  $resultado
      */
     private function salvarVinculo(int $pontoId, array $resultado): void
     {

@@ -156,6 +156,8 @@ class MoradorService
 
     /**
      * Busca moradores por nome ou apelido (para detectar migração)
+     *
+     * @return Collection<int, Morador>
      */
     public function buscarPorNome(string $termo, ?int $excluirPontoId = null): Collection
     {
@@ -179,6 +181,8 @@ class MoradorService
 
     /**
      * Retorna histórico completo de um morador
+     *
+     * @return Collection<int, MoradorHistorico>
      */
     public function getHistorico(Morador $morador): Collection
     {
@@ -189,6 +193,8 @@ class MoradorService
 
     /**
      * Retorna moradores de um ponto com histórico
+     *
+     * @return Collection<int, Morador>
      */
     public function getMoradoresDoPonto(Ponto $ponto): Collection
     {

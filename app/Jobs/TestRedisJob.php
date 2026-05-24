@@ -13,7 +13,7 @@ class TestRedisJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $message;
+    public string $message;
 
     /**
      * Create a new job instance.

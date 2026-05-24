@@ -1,13 +1,14 @@
-// Impedir saída acidental sem confirmação
+// Impedir saída acidental sem confirmação (só quando há alterações)
 let formSubmitting = false;
+let formDirty = false;
 window.addEventListener('beforeunload', function(e) {
-    if (formSubmitting) return;
+    if (formSubmitting || !formDirty) return;
     e.preventDefault();
     e.returnValue = '';
 });
 
 let currentTab = 0;
-const totalTabs = 7;
+const totalTabs = 5;
 let visitedSteps = new Set([0]);
 let recognition = null;
 let activeInput = null;
@@ -15,7 +16,7 @@ let fotosSelecionadas = [];
 let novosMoradores = [];
 const tiposAbrigo = window.VISTORIA_TIPOS_ABRIGO;
 
-const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Encam.', 'Moradores', 'Fotos', 'Revisar'];
+const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Moradores', 'Revisar'];
 const checkmarkSVG = '<svg class="stepper-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
 
 
@@ -61,7 +62,7 @@ function showTab(index) {
     });
 
     // Ao entrar na aba de revisao, montar checklist
-    if (index === 6) {
+    if (index === 4) {
         buildReviewChecklist();
     }
 
@@ -116,7 +117,7 @@ function buildReviewChecklist() {
         },
         {
             label: 'Fotos anexadas',
-            step: 5,
+            step: 3,
             check: () => fotosSelecionadas.length > 0,
             optional: true
         }
@@ -388,6 +389,7 @@ function processPhotoFile(file) {
             const compressed = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() });
             const preview = canvas.toDataURL('image/jpeg', 0.5);
             fotosSelecionadas.push({ file: compressed, preview, id: Date.now() + Math.random() });
+            formDirty = true;
             renderFotosPreview();
             salvarFotoLocal(compressed);
         }, 'image/jpeg', QUALITY);
@@ -477,6 +479,7 @@ function removerFoto(index) {
     const foto = fotosSelecionadas[index];
     if (foto) removerFotoLocal(foto.file.name);
     fotosSelecionadas.splice(index, 1);
+    formDirty = true;
     renderFotosPreview();
 }
 
@@ -656,6 +659,7 @@ function salvarMorador() {
         novosMoradores.push(morador);
     }
 
+    formDirty = true;
     renderNovosMoradores();
     fecharModalMorador();
 }
@@ -663,6 +667,7 @@ function salvarMorador() {
 function removerMorador(index) {
     if (confirm('Remover este morador?')) {
         novosMoradores.splice(index, 1);
+        formDirty = true;
         renderNovosMoradores();
     }
 }
@@ -791,6 +796,7 @@ function limparRascunho() {
 
 const restored = restaurarRascunho();
 if (restored) {
+    formDirty = true;
     const banner = document.createElement('div');
     banner.style.cssText = 'padding: 8px 16px; background: var(--bg-warning-subtle, rgba(234,179,8,0.15)); border-radius: var(--radius-md); font-size: var(--text-xs); color: var(--text-primary); margin-bottom: var(--space-3); display: flex; align-items: center; justify-content: space-between;';
     banner.innerHTML = `
@@ -816,10 +822,12 @@ if (formEl) {
 
     let saveTimeout;
     formEl.addEventListener('change', () => {
+        formDirty = true;
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(salvarRascunho, 1000);
     });
     formEl.addEventListener('input', () => {
+        formDirty = true;
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(salvarRascunho, 2000);
     });

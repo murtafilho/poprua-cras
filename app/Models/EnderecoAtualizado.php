@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\EnderecoAtualizadoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/** @extends \Illuminate\Database\Eloquent\Model<EnderecoAtualizado> */
 class EnderecoAtualizado extends Model
 {
+    /** @use HasFactory<EnderecoAtualizadoFactory> */
     use HasFactory;
 
     protected $table = 'endereco_atualizados';
@@ -24,6 +25,8 @@ class EnderecoAtualizado extends Model
 
     /**
      * Pontos vinculados a este endereço.
+     *
+     * @return HasMany<Ponto, $this>
      */
     public function pontos(): HasMany
     {

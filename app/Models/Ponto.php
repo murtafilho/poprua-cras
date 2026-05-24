@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\PontoFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,10 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
-/** @extends \Illuminate\Database\Eloquent\Model<Ponto> */
 class Ponto extends Model
 {
+    /** @use HasFactory<PontoFactory> */
     use HasFactory, SoftDeletes;
 
     public const COMPLEXIDADE_SQL = '(COALESCE(v.resistencia::int, 0) + COALESCE(v.num_reduzido::int, 0) + COALESCE(v.casal::int, 0) + COALESCE(v.catador_reciclados::int, 0) + COALESCE(v.fixacao_antiga::int, 0) + COALESCE(v.excesso_objetos::int, 0) + COALESCE(v.trafico_ilicitos::int, 0) + COALESCE(v.crianca_adolescente::int, 0) + COALESCE(v.idosos::int, 0) + COALESCE(v.gestante::int, 0) + COALESCE(v.lgbtqiapn::int, 0) + COALESCE(v.cena_uso_caracterizada::int, 0) + COALESCE(v.deficiente::int, 0) + COALESCE(v.agrupamento_quimico::int, 0) + COALESCE(v.saude_mental::int, 0) + COALESCE(v.animais::int, 0))';
@@ -67,6 +69,9 @@ class Ponto extends Model
 
     /**
      * Scope: pontos dentro de uma bounding box geográfica
+     *
+     * @param  Builder<Ponto>  $query
+     * @return Builder<Ponto>
      */
     public function scopeInBounds(Builder $query, float $north, float $south, float $east, float $west): Builder
     {
@@ -75,6 +80,9 @@ class Ponto extends Model
 
     /**
      * Scope: pontos georreferenciados (com coordenadas válidas)
+     *
+     * @param  Builder<Ponto>  $query
+     * @return Builder<Ponto>
      */
     public function scopeGeorreferenciado(Builder $query): Builder
     {
@@ -86,6 +94,9 @@ class Ponto extends Model
 
     /**
      * Scope: pontos não georreferenciados (sem coordenadas válidas)
+     *
+     * @param  Builder<Ponto>  $query
+     * @return Builder<Ponto>
      */
     public function scopeNaoGeorreferenciado(Builder $query): Builder
     {
@@ -99,6 +110,9 @@ class Ponto extends Model
 
     /**
      * Scope: pontos com endereço vinculado
+     *
+     * @param  Builder<Ponto>  $query
+     * @return Builder<Ponto>
      */
     public function scopeComEndereco(Builder $query): Builder
     {
@@ -107,6 +121,9 @@ class Ponto extends Model
 
     /**
      * Scope: filtro por regional
+     *
+     * @param  Builder<Ponto>  $query
+     * @return Builder<Ponto>
      */
     public function scopeRegional(Builder $query, string $regional): Builder
     {
@@ -117,6 +134,9 @@ class Ponto extends Model
 
     /**
      * Scope: filtro por bairro
+     *
+     * @param  Builder<Ponto>  $query
+     * @return Builder<Ponto>
      */
     public function scopeBairro(Builder $query, string $bairro): Builder
     {
@@ -127,6 +147,9 @@ class Ponto extends Model
 
     /**
      * Scope: filtro por logradouro
+     *
+     * @param  Builder<Ponto>  $query
+     * @return Builder<Ponto>
      */
     public function scopeLogradouro(Builder $query, string $logradouro): Builder
     {
@@ -204,6 +227,38 @@ class Ponto extends Model
             + (int) $vistoria->agrupamento_quimico
             + (int) $vistoria->saude_mental
             + (int) $vistoria->animais;
+    }
+
+    /**
+     * Scope: pontos próximos a uma coordenada (dentro de $distancia metros)
+     *
+     * @param  Builder<Ponto>  $query
+     * @return Builder<Ponto>
+     */
+    public function scopeNearby(Builder $query, float $lat, float $lng, float $distancia = 50): Builder
+    {
+        return $query
+            ->whereRaw(
+                'ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) < ?',
+                [$lng, $lat, $distancia]
+            )
+            ->orderByRaw(
+                'ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography)',
+                [$lng, $lat]
+            );
+    }
+
+    /**
+     * Atualiza a coluna geom (PostGIS) a partir de lat/lng.
+     */
+    public function updateGeom(): void
+    {
+        if ($this->lat && $this->lng) {
+            DB::statement(
+                'UPDATE pontos SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE id = ?',
+                [$this->lng, $this->lat, $this->id]
+            );
+        }
     }
 
     /**

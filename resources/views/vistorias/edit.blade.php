@@ -22,33 +22,29 @@
 
             <!-- Progress Stepper -->
             <div class="progress-stepper" id="progress-stepper">
-                <div class="stepper-item active" data-step="0" onclick="goToStep(0)">
+                <div class="stepper-item active" data-step="0" x-on:click="goToStep(0)">
                     <div class="stepper-circle">1</div>
                     <span class="stepper-label">Dados</span>
                 </div>
-                <div class="stepper-item" data-step="1" onclick="goToStep(1)">
+                <div class="stepper-item" data-step="1" x-on:click="goToStep(1)">
                     <div class="stepper-circle">2</div>
                     <span class="stepper-label">Caract.</span>
                 </div>
-                <div class="stepper-item" data-step="2" onclick="goToStep(2)">
+                <div class="stepper-item" data-step="2" x-on:click="goToStep(2)">
                     <div class="stepper-circle">3</div>
                     <span class="stepper-label">Relatorio</span>
                 </div>
-                <div class="stepper-item" data-step="3" onclick="goToStep(3)">
+                <div class="stepper-item" data-step="3" x-on:click="goToStep(3)">
                     <div class="stepper-circle">4</div>
-                    <span class="stepper-label">Encam.</span>
-                </div>
-                <div class="stepper-item" data-step="4" onclick="goToStep(4)">
-                    <div class="stepper-circle">5</div>
                     <span class="stepper-label">Fotos</span>
                 </div>
-                <div class="stepper-item" data-step="5" onclick="goToStep(5)">
-                    <div class="stepper-circle">6</div>
+                <div class="stepper-item" data-step="4" x-on:click="goToStep(4)">
+                    <div class="stepper-circle">5</div>
                     <span class="stepper-label">Revisar</span>
                 </div>
             </div>
             <div class="step-indicator">
-                <span id="step-indicator">Etapa <span class="step-indicator-text">1</span> de <span class="step-indicator-text">6</span></span>
+                <span id="step-indicator">Etapa <span class="step-indicator-text">1</span> de <span class="step-indicator-text">5</span></span>
             </div>
 
             <!-- Conteudo das Abas -->
@@ -80,7 +76,7 @@
                             </div>
                             <input type="hidden" name="ponto_id" id="ponto_id_input" value="{{ $vistoria->ponto_id }}">
                             <div style="margin-top: var(--space-2);">
-                                <button type="button" onclick="document.getElementById('alterar-ponto-section').classList.toggle('hidden')"
+                                <button type="button" x-on:click="document.getElementById('alterar-ponto-section').classList.toggle('hidden')"
                                         class="btn btn-secondary btn-sm">
                                     <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -197,7 +193,7 @@
                             <p class="form-hint">Um nome por linha</p>
                             <div class="input-with-voice">
                                 <textarea name="nomes_pessoas" id="nomes_pessoas" rows="3" placeholder="Digite um nome por linha..." class="form-input form-textarea">{{ $vistoria->nomes_pessoas }}</textarea>
-                                <button type="button" onclick="startVoiceInput('nomes_pessoas')" class="voice-btn">
+                                <button type="button" x-on:click="startVoiceInput('nomes_pessoas')" class="voice-btn">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                                     </svg>
@@ -215,7 +211,7 @@
                                 <label class="form-label">Qtd. Abrigos Provisorios</label>
                                 <input type="number" name="qtd_abrigos_provisorios" id="qtd_abrigos" min="0" placeholder="0"
                                        value="{{ $vistoria->qtd_abrigos_provisorios ?: '' }}"
-                                       onchange="atualizarCamposAbrigos()" class="form-input">
+                                       x-on:change="atualizarCamposAbrigos()" class="form-input">
                             </div>
 
                             <div id="abrigos-container" class="{{ ($vistoria->qtd_abrigos_provisorios ?? 0) > 0 ? '' : 'hidden' }}">
@@ -251,7 +247,7 @@
                                     <span>Num. Reduzido</span>
                                 </label>
                                 <label class="checkbox-card">
-                                    <input type="checkbox" name="casal" id="checkbox_casal" value="1" {{ $vistoria->casal ? 'checked' : '' }} onchange="toggleQtdCasais()" class="form-checkbox">
+                                    <input type="checkbox" name="casal" id="checkbox_casal" value="1" {{ $vistoria->casal ? 'checked' : '' }} x-on:change="toggleQtdCasais()" class="form-checkbox">
                                     <span>Casal</span>
                                 </label>
                                 <div id="qtd_casais_container" class="{{ $vistoria->casal ? '' : 'hidden' }}">
@@ -307,7 +303,7 @@
                                     <span>Cena de Uso</span>
                                 </label>
                                 <label class="checkbox-card">
-                                    <input type="checkbox" name="animais" id="checkbox_animais" value="1" {{ $vistoria->animais ? 'checked' : '' }} onchange="toggleQtdAnimais()" class="form-checkbox">
+                                    <input type="checkbox" name="animais" id="checkbox_animais" value="1" {{ $vistoria->animais ? 'checked' : '' }} x-on:change="toggleQtdAnimais()" class="form-checkbox">
                                     <span>Animais</span>
                                 </label>
                                 <div id="qtd_animais_container" class="{{ $vistoria->animais ? '' : 'hidden' }}">
@@ -347,11 +343,11 @@
                                 <label class="form-label">Conducao pelas Forcas de Seguranca</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
-                                        <input type="radio" name="conducao_forcas_seguranca" value="1" {{ $vistoria->conducao_forcas_seguranca ? 'checked' : '' }} onchange="toggleConducaoObs()" class="form-radio">
+                                        <input type="radio" name="conducao_forcas_seguranca" value="1" {{ $vistoria->conducao_forcas_seguranca ? 'checked' : '' }} x-on:change="toggleConducaoObs()" class="form-radio">
                                         <span>Sim</span>
                                     </label>
                                     <label class="radio-option">
-                                        <input type="radio" name="conducao_forcas_seguranca" value="0" {{ !$vistoria->conducao_forcas_seguranca ? 'checked' : '' }} onchange="toggleConducaoObs()" class="form-radio">
+                                        <input type="radio" name="conducao_forcas_seguranca" value="0" {{ !$vistoria->conducao_forcas_seguranca ? 'checked' : '' }} x-on:change="toggleConducaoObs()" class="form-radio">
                                         <span>Nao</span>
                                     </label>
                                 </div>
@@ -373,11 +369,11 @@
                                 <label class="form-label">Auto de Fiscalizacao Aplicado</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
-                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="1" {{ $vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} onchange="toggleAutoNumero()" class="form-radio">
+                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="1" {{ $vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} x-on:change="toggleAutoNumero()" class="form-radio">
                                         <span>Sim</span>
                                     </label>
                                     <label class="radio-option">
-                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="0" {{ !$vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} onchange="toggleAutoNumero()" class="form-radio">
+                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="0" {{ !$vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} x-on:change="toggleAutoNumero()" class="form-radio">
                                         <span>Nao</span>
                                     </label>
                                 </div>
@@ -393,11 +389,11 @@
                                 <label class="form-label">Houve Lavratura</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
-                                        <input type="radio" name="houve_lavratura" value="1" {{ $vistoria->houve_lavratura ? 'checked' : '' }} onchange="toggleProtocolo()" class="form-radio">
+                                        <input type="radio" name="houve_lavratura" value="1" {{ $vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()" class="form-radio">
                                         <span>Sim</span>
                                     </label>
                                     <label class="radio-option">
-                                        <input type="radio" name="houve_lavratura" value="0" {{ !$vistoria->houve_lavratura ? 'checked' : '' }} onchange="toggleProtocolo()" class="form-radio">
+                                        <input type="radio" name="houve_lavratura" value="0" {{ !$vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()" class="form-radio">
                                         <span>Nao</span>
                                     </label>
                                 </div>
@@ -418,20 +414,24 @@
                     <div class="card mb-4">
                         <div class="card-body">
                             <h3 class="form-section-title">Encaminhamentos</h3>
-
-                            @for($i = 1; $i <= 4; $i++)
-                                <div class="form-group">
-                                    <label class="form-label">Encaminhamento {{ $i }}</label>
-                                    <select name="e{{ $i }}_id" class="form-input form-select">
-                                        <option value="">Nenhum</option>
-                                        @foreach($encaminhamentos as $enc)
-                                            <option value="{{ $enc->id }}" {{ $vistoria->{'e'.$i.'_id'} == $enc->id ? 'selected' : '' }}>
-                                                {{ $enc->encaminhamento }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            @endfor
+                            <p class="text-muted mb-4" style="font-size: var(--text-sm);">
+                                Selecione os encaminhamentos realizados durante esta vistoria (opcional).
+                            </p>
+                            <div class="flex flex-col gap-3">
+                                @for($i = 1; $i <= 6; $i++)
+                                    <div class="form-group">
+                                        <label class="form-label">Encaminhamento {{ $i }}</label>
+                                        <select name="e{{ $i }}_id" class="form-input form-select">
+                                            <option value="">Nenhum</option>
+                                            @foreach($encaminhamentos as $enc)
+                                                <option value="{{ $enc->id }}" {{ $vistoria->{'e'.$i.'_id'} == $enc->id ? 'selected' : '' }}>
+                                                    {{ $enc->encaminhamento }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endfor
+                            </div>
                         </div>
                     </div>
 
@@ -441,7 +441,7 @@
                             <label class="form-label">Relatorio Descritivo da Acao</label>
                             <div class="input-with-voice">
                                 <textarea name="observacao" id="observacao" rows="8" placeholder="Descreva detalhadamente a acao realizada..." class="form-input form-textarea" style="min-height: 200px;">{{ $vistoria->observacao }}</textarea>
-                                <button type="button" onclick="startVoiceInput('observacao')" class="voice-btn">
+                                <button type="button" x-on:click="startVoiceInput('observacao')" class="voice-btn">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                                     </svg>
@@ -451,76 +451,8 @@
                     </div>
                 </div>
 
-                <!-- Aba 4: Encaminhamentos -->
+                <!-- Aba 4: Fotos -->
                 <div class="tab-content hidden" data-tab="3">
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h3 class="form-section-title">Encaminhamentos</h3>
-                            <p class="text-muted mb-4" style="font-size: var(--text-sm);">
-                                Selecione os encaminhamentos realizados durante esta vistoria (opcional).
-                            </p>
-                            <div class="flex flex-col gap-3">
-                                <div class="form-group">
-                                    <label class="form-label">Encaminhamento 1</label>
-                                    <select name="e1_id" class="form-input form-select">
-                                        <option value="">Nenhum</option>
-                                        @foreach($encaminhamentos as $encaminhamento)
-                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e1_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Encaminhamento 2</label>
-                                    <select name="e2_id" class="form-input form-select">
-                                        <option value="">Nenhum</option>
-                                        @foreach($encaminhamentos as $encaminhamento)
-                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e2_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Encaminhamento 3</label>
-                                    <select name="e3_id" class="form-input form-select">
-                                        <option value="">Nenhum</option>
-                                        @foreach($encaminhamentos as $encaminhamento)
-                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e3_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Encaminhamento 4</label>
-                                    <select name="e4_id" class="form-input form-select">
-                                        <option value="">Nenhum</option>
-                                        @foreach($encaminhamentos as $encaminhamento)
-                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e4_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Encaminhamento 5</label>
-                                    <select name="e5_id" class="form-input form-select">
-                                        <option value="">Nenhum</option>
-                                        @foreach($encaminhamentos as $encaminhamento)
-                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e5_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Encaminhamento 6</label>
-                                    <select name="e6_id" class="form-input form-select">
-                                        <option value="">Nenhum</option>
-                                        @foreach($encaminhamentos as $encaminhamento)
-                                            <option value="{{ $encaminhamento->id }}" {{ $vistoria->e6_id == $encaminhamento->id ? 'selected' : '' }}>{{ $encaminhamento->encaminhamento }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Aba 5: Fotos -->
-                <div class="tab-content hidden" data-tab="4">
                     <div class="card mb-4">
                         <div class="card-body">
                             <label class="form-label mb-3">Fotos da Vistoria</label>
@@ -534,14 +466,14 @@
                                             @php $fotoPublica = (bool) $foto->getCustomProperty('publica', false); @endphp
                                             <div class="photo-preview {{ $fotoPublica ? 'foto-publica' : '' }}" id="foto-existente-{{ $foto->id }}" data-vistoria-id="{{ $vistoria->id }}">
                                                 <img src="{{ $foto->getUrl('thumb') }}" alt="Foto" loading="lazy">
-                                                <button type="button" onclick="togglePublicaFoto({{ $foto->id }})" class="photo-publica-btn" data-publica="{{ $fotoPublica ? '1' : '0' }}" title="{{ $fotoPublica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app' }}">
+                                                <button type="button" x-on:click="togglePublicaFoto({{ $foto->id }})" class="photo-publica-btn" data-publica="{{ $fotoPublica ? '1' : '0' }}" title="{{ $fotoPublica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app' }}">
                                                     @if($fotoPublica)
                                                         <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                                     @else
                                                         <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>
                                                     @endif
                                                 </button>
-                                                <button type="button" onclick="marcarRemoverFoto({{ $foto->id }})" class="photo-remove-btn">
+                                                <button type="button" x-on:click="marcarRemoverFoto({{ $foto->id }})" class="photo-remove-btn">
                                                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                                     </svg>
@@ -614,15 +546,34 @@
                             @endif
 
                             <input type="file" id="camera-input-back" accept="image/*" capture="environment" class="hidden">
+                            <input type="file" id="gallery-input" accept="image/*" multiple class="hidden">
 
-                            <div class="flex flex-col gap-2">
-                                <button type="button" onclick="openCamera()" class="btn btn-primary btn-block">
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" x-on:click="openCamera()" class="btn btn-primary btn-block">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
                                     Tirar Foto
                                 </button>
+                                <button type="button" x-on:click="document.getElementById('gallery-input').click()" class="btn btn-secondary btn-block">
+                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Anexar Arquivo
+                                </button>
+                            </div>
+
+                            {{-- Drop-zone desktop (clique-em-anexar-arquivo continua funcionando; isto adiciona arrastar) --}}
+                            <div id="fotos-drop-zone"
+                                 class="mt-3 text-center hidden md:block"
+                                 style="border: 2px dashed var(--border-color, #d0d7de); border-radius: 8px; padding: var(--space-4); cursor: pointer; transition: background 0.15s, border-color 0.15s;">
+                                <svg style="width: 28px; height: 28px; color: var(--text-muted); margin-bottom: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <p style="font-size: var(--text-sm); color: var(--text-muted); margin: 0;">
+                                    Arraste fotos aqui ou clique para escolher
+                                </p>
                             </div>
 
                             <div id="fotos-preview" class="photos-grid mt-4"></div>
@@ -634,8 +585,8 @@
                     </div>
                 </div>
 
-                <!-- Aba 6: Revisar e Finalizar -->
-                <div class="tab-content hidden" data-tab="5">
+                <!-- Aba 5: Revisar e Finalizar -->
+                <div class="tab-content hidden" data-tab="4">
                     <div class="card mb-4">
                         <div class="card-body">
                             <h3 class="form-section-title">
@@ -661,7 +612,7 @@
                             </button>
                             <button type="button" id="btn-finalizar"
                                     class="btn btn-success btn-block btn-lg mt-2"
-                                    onclick="if(confirm('Deseja salvar e finalizar esta zeladoria? Apos a finalizacao, nao sera possivel editar.')) { document.getElementById('finalizar-apos-salvar').value='1'; document.getElementById('btn-submit').click(); }">
+                                    x-on:click="if(confirm('Deseja salvar e finalizar esta zeladoria? Apos a finalizacao, nao sera possivel editar.')) { document.getElementById('finalizar-apos-salvar').value='1'; document.getElementById('btn-submit').click(); }">
                                 <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>

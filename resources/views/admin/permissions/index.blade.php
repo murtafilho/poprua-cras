@@ -80,7 +80,7 @@
                                 @endif
                             </td>
                             <td class="text-right">
-                                <form action="{{ route('admin.permissions.destroy', $permission) }}" method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta permissao?')">
+                                <form action="{{ route('admin.permissions.destroy', $permission) }}" method="POST" style="display: inline;" x-on:submit="if (!confirm('Tem certeza que deseja excluir esta permissao?')) $event.preventDefault()">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-ghost btn-sm text-danger">

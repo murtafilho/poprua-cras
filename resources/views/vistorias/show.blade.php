@@ -9,7 +9,7 @@
         </svg>
     </a>
     <span class="mobile-header-title" style="flex: 1; text-align: center;">Detalhes da Zeladoria</span>
-    <div style="display: flex; gap: var(--space-1);">
+    <div style="display: flex; gap: var(--space-1); align-items: center;">
         @if($vistoria->ponto && $vistoria->ponto->lat && $vistoria->ponto->lng)
             <a href="{{ route('mapa.index', ['lat' => $vistoria->ponto->lat, 'lng' => $vistoria->ponto->lng, 'zoom' => 19]) }}" class="btn btn-ghost btn-icon" title="Ver no mapa">
                 <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -485,8 +485,11 @@
 
                 <div class="photo-grid" id="fotos-grid">
                     @foreach($fotos as $index => $foto)
-                        <div class="photo-item" onclick="openSlideshow({{ $index }})" style="cursor: pointer;">
-                            <img src="{{ $foto->hasGeneratedConversion('thumb') ? $foto->getUrl('thumb') : $foto->getUrl() }}" alt="Foto da vistoria" loading="lazy" onerror="this.src='{{ $foto->getUrl() }}'">
+                        <div class="photo-item" x-on:click="openSlideshow({{ $index }})" style="cursor: pointer;">
+                            <img src="{{ $foto->hasGeneratedConversion('thumb') ? $foto->getUrl('thumb') : $foto->getUrl() }}" alt="Foto da vistoria" loading="lazy" x-on:error="$el.src='{{ $foto->getUrl() }}'">
+                            @if($foto->getCustomProperty('legenda'))
+                                <div style="font-size: 11px; color: var(--text-secondary); padding: 4px 6px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $foto->getCustomProperty('legenda') }}</div>
+                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -494,7 +497,7 @@
                 {{-- Slideshow Modal --}}
                 <div id="slideshow-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.92); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
                     {{-- Fechar --}}
-                    <button onclick="closeSlideshow()" style="position:absolute; top:16px; right:16px; background:none; border:none; color:#fff; cursor:pointer; z-index:10001; padding:8px;">
+                    <button x-on:click="closeSlideshow()" style="position:absolute; top:16px; right:16px; background:none; border:none; color:#fff; cursor:pointer; z-index:10001; padding:8px; min-width:44px; min-height:44px;">
                         <svg style="width:28px; height:28px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -504,7 +507,7 @@
                     <div id="slide-counter" style="position:absolute; top:20px; left:50%; transform:translateX(-50%); color:#fff; font-size:14px; z-index:10001;"></div>
 
                     {{-- Seta esquerda --}}
-                    <button id="slide-prev" onclick="slideMove(-1)" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:#fff; cursor:pointer; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; z-index:10001; transition: background 0.2s;" onmouseenter="this.style.background='rgba(255,255,255,0.3)'" onmouseleave="this.style.background='rgba(255,255,255,0.15)'">
+                    <button id="slide-prev" x-on:click="slideMove(-1)" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:#fff; cursor:pointer; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; z-index:10001; transition: background 0.2s;" x-on:mouseenter="$el.style.background='rgba(255,255,255,0.3)'" x-on:mouseleave="$el.style.background='rgba(255,255,255,0.15)'">
                         <svg style="width:24px; height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                         </svg>
@@ -514,7 +517,7 @@
                     <img id="slide-image" src="" alt="Foto" style="max-width:90vw; max-height:85vh; object-fit:contain; border-radius:4px; user-select:none;">
 
                     {{-- Seta direita --}}
-                    <button id="slide-next" onclick="slideMove(1)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:#fff; cursor:pointer; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; z-index:10001; transition: background 0.2s;" onmouseenter="this.style.background='rgba(255,255,255,0.3)'" onmouseleave="this.style.background='rgba(255,255,255,0.15)'">
+                    <button id="slide-next" x-on:click="slideMove(1)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:#fff; cursor:pointer; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; z-index:10001; transition: background 0.2s;" x-on:mouseenter="$el.style.background='rgba(255,255,255,0.3)'" x-on:mouseleave="$el.style.background='rgba(255,255,255,0.15)'">
                         <svg style="width:24px; height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -556,7 +559,7 @@
         @if(!$vistoria->finalizada)
             @can('update', $vistoria)
                 <form action="{{ route('vistorias.finalizar', $vistoria) }}" method="POST" style="margin-bottom: var(--space-3);"
-                      onsubmit="return confirm('Deseja finalizar esta zeladoria? Apos a finalizacao, nao sera possivel editar.')">
+                      x-on:submit="if(!confirm('Deseja finalizar esta zeladoria? Apos a finalizacao, nao sera possivel editar.')) $event.preventDefault()">
                     @csrf
                     <button type="submit" class="btn btn-primary w-full">
                         <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -569,7 +572,7 @@
         @else
             @can('reativar', $vistoria)
                 <form action="{{ route('vistorias.reativar', $vistoria) }}" method="POST" style="margin-bottom: var(--space-3);"
-                      onsubmit="return confirm('Deseja reativar esta zeladoria para que o responsavel possa retomar a edicao?')">
+                      x-on:submit="if(!confirm('Deseja reativar esta zeladoria para que o responsavel possa retomar a edicao?')) $event.preventDefault()">
                     @csrf
                     <button type="submit" class="btn btn-secondary w-full">
                         <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -601,7 +604,7 @@
         {{-- Botao Cancelar --}}
         @can('cancelar', $vistoria)
             <form action="{{ route('vistorias.cancelar', $vistoria) }}" method="POST" style="margin-bottom: var(--space-3);"
-                  onsubmit="return confirm('Deseja cancelar esta zeladoria? Esta acao nao podera ser desfeita.')">
+                  x-on:submit="if(!confirm('Deseja cancelar esta zeladoria? Esta acao nao podera ser desfeita.')) $event.preventDefault()">
                 @csrf
                 <button type="submit" class="btn btn-danger w-full">
                     <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">

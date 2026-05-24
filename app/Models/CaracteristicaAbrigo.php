@@ -16,6 +16,7 @@ class CaracteristicaAbrigo extends Model
         'caracteristica_abrigo',
     ];
 
+    /** @return HasMany<Ponto, $this> */
     public function pontos(): HasMany
     {
         return $this->hasMany(Ponto::class, 'caracteristica_abrigo_id');

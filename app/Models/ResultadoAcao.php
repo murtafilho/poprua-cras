@@ -14,6 +14,7 @@ class ResultadoAcao extends Model
 
     protected $fillable = ['resultado'];
 
+    /** @return HasMany<Vistoria, $this> */
     public function vistorias(): HasMany
     {
         return $this->hasMany(Vistoria::class, 'resultado_acao_id');

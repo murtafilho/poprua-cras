@@ -14,6 +14,7 @@ class TipoAbordagem extends Model
 
     protected $fillable = ['tipo'];
 
+    /** @return HasMany<Vistoria, $this> */
     public function vistorias(): HasMany
     {
         return $this->hasMany(Vistoria::class, 'tipo_abordagem_id');

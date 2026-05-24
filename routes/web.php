@@ -2,14 +2,15 @@
 
 use App\Http\Controllers\Admin\InfraestruturaController;
 use App\Http\Controllers\Admin\MatrizPermissoesController;
-use App\Http\Controllers\Admin\MembroEquipeController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\Sprint11Controller;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MapaController;
+use App\Http\Controllers\MinhaEquipeController;
 use App\Http\Controllers\MoradorController;
+use App\Http\Controllers\PontoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VistoriaController;
 use Illuminate\Support\Facades\Route;
@@ -31,14 +32,14 @@ Route::middleware('auth')->group(function () {
 
     // Mapa e Vistorias
     Route::get('/mapa', [MapaController::class, 'index'])->name('mapa.index');
-    Route::get('/pontos', [\App\Http\Controllers\PontoController::class, 'index'])->name('pontos.index');
-    Route::get('/pontos/{id}', [\App\Http\Controllers\PontoController::class, 'show'])->whereNumber('id')->name('pontos.show');
-    Route::get('/pontos/{ponto}/edit', [\App\Http\Controllers\PontoController::class, 'edit'])->name('pontos.edit');
-    Route::put('/pontos/{ponto}', [\App\Http\Controllers\PontoController::class, 'update'])->name('pontos.update');
+    Route::get('/pontos', [PontoController::class, 'index'])->name('pontos.index');
+    Route::get('/pontos/{id}', [PontoController::class, 'show'])->whereNumber('id')->name('pontos.show');
+    Route::get('/pontos/{ponto}/edit', [PontoController::class, 'edit'])->name('pontos.edit');
+    Route::put('/pontos/{ponto}', [PontoController::class, 'update'])->name('pontos.update');
     Route::get('/pontos/{ponto}/vistorias/create', [VistoriaController::class, 'createForPonto'])->name('pontos.vistorias.create');
     Route::get('/minhas-vistorias', [VistoriaController::class, 'minhas'])->name('vistorias.minhas');
-    Route::get('/minha-equipe', [\App\Http\Controllers\MinhaEquipeController::class, 'index'])->name('minha-equipe.index');
-    Route::put('/minha-equipe', [\App\Http\Controllers\MinhaEquipeController::class, 'update'])->name('minha-equipe.update');
+    Route::get('/minha-equipe', [MinhaEquipeController::class, 'index'])->name('minha-equipe.index');
+    Route::put('/minha-equipe', [MinhaEquipeController::class, 'update'])->name('minha-equipe.update');
     Route::get('/vistorias', [VistoriaController::class, 'index'])->name('vistorias.index');
     Route::get('/vistorias/create', [VistoriaController::class, 'create'])->name('vistorias.create');
     Route::get('/vistorias/roteiro', [VistoriaController::class, 'exportarRoteiro'])->name('vistorias.roteiro');
@@ -65,7 +66,6 @@ Route::middleware('auth')->group(function () {
         Route::get('users/create', [UserRoleController::class, 'create'])->name('users.create');
         Route::post('users', [UserRoleController::class, 'store'])->name('users.store');
         Route::put('users/{user}/roles', [UserRoleController::class, 'updateRoles'])->name('users.roles.update');
-        Route::resource('membros-equipe', MembroEquipeController::class)->except(['show']);
         Route::get('infraestrutura', InfraestruturaController::class)->name('infraestrutura');
         Route::get('sprint-11', Sprint11Controller::class)->name('sprint-11');
         Route::get('matriz-permissoes', MatrizPermissoesController::class)->name('matriz-permissoes');

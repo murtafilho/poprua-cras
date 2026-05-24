@@ -345,7 +345,7 @@
 <body>
     <div class="no-print">
         <a href="{{ route('vistorias.show', $vistoria) }}">Voltar</a>
-        <button onclick="window.print()">Imprimir / Salvar PDF</button>
+        <button x-on:click="window.print()">Imprimir / Salvar PDF</button>
     </div>
 
     <div class="sheet">
@@ -619,7 +619,7 @@
                     @foreach($fotos as $i => $foto)
                         <figure>
                             <img src="{{ $foto->getUrl('preview') }}" alt="Foto {{ $i + 1 }}">
-                            <figcaption>Foto {{ $i + 1 }} de {{ $fotos->count() }}</figcaption>
+                            <figcaption>Foto {{ $i + 1 }} de {{ $fotos->count() }}@if($foto->getCustomProperty('legenda')) — {{ $foto->getCustomProperty('legenda') }}@endif</figcaption>
                         </figure>
                     @endforeach
                 </div>

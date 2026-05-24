@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateMinhaEquipeRequest;
 use App\Models\User;
 use App\Models\Vistoria;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class MinhaEquipeController extends Controller
@@ -39,17 +41,14 @@ class MinhaEquipeController extends Controller
     /**
      * Substitui (sync) a equipe do usuário autenticado.
      */
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateMinhaEquipeRequest $request): RedirectResponse
     {
-        Gate::authorize('create', Vistoria::class);
-
-        $validated = $request->validate([
-            'membros' => 'nullable|array',
-            'membros.*' => 'integer|exists:users,id',
-        ]);
+        $validated = $request->validated();
 
         $me = $request->user();
-        $ids = collect($validated['membros'] ?? [])
+        /** @var array<int, int> $membros */
+        $membros = $validated['membros'] ?? [];
+        $ids = collect($membros)
             ->filter(fn ($id) => (int) $id !== (int) $me->id)
             ->unique()
             ->values()
@@ -58,6 +57,6 @@ class MinhaEquipeController extends Controller
         $me->team()->sync($ids);
 
         return redirect()->route('minha-equipe.index')
-            ->with('success', 'Sua equipe foi atualizada — '.count($ids).' '.\Illuminate\Support\Str::plural('membro', count($ids)).'.');
+            ->with('success', 'Sua equipe foi atualizada — '.count($ids).' '.Str::plural('membro', count($ids)).'.');
     }
 }

@@ -6,20 +6,21 @@ use App\Http\Requests\StoreVistoriaRequest;
 use App\Http\Requests\UpdateVistoriaRequest;
 use App\Models\Ponto;
 use App\Models\Vistoria;
-use App\Services\EnderecoService;
 use App\Services\MoradorService;
 use App\Services\PontoService;
 use App\Services\VistoriaService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class VistoriaController extends Controller
 {
     public function __construct(
-        private EnderecoService $enderecoService,
         private MoradorService $moradorService,
         private PontoService $pontoService,
         private VistoriaService $vistoriaService
@@ -145,6 +146,7 @@ class VistoriaController extends Controller
         $vistoria->update($fields);
 
         // Sincronizar participantes da equipe
+        /** @var array<int, int> $participantesIds */
         $participantesIds = $validated['participantes'] ?? [];
         $vistoria->participantes()->sync($participantesIds);
 
@@ -301,8 +303,7 @@ class VistoriaController extends Controller
             }])
                 ->whereNotNull('lat')
                 ->whereNotNull('lng')
-                ->whereRaw('ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) < 50', [$lng, $lat])
-                ->orderByRaw('ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography)', [$lng, $lat])
+                ->nearby((float) $lat, (float) $lng, 50)
                 ->first();
         }
 
@@ -396,13 +397,17 @@ class VistoriaController extends Controller
             'supervisor' => 'nullable|integer|exists:users,id',
             'data_prevista_inicio' => 'nullable|date',
             'data_prevista_fim' => 'nullable|date|after_or_equal:data_prevista_inicio',
+            'tipo_abordagem' => 'nullable|integer|exists:tipo_abordagem,id',
+            'situacao_comunicado' => 'nullable|in:com_comunicado,sem_comunicado,aguardando_retorno',
+            'retorno_previsto' => 'nullable|in:vencidos,proximos_7,proximos_30',
             'per_page' => 'nullable|integer|min:1|max:100',
         ]);
 
         $vistorias = $this->vistoriaService->listarComFiltros(
             $request->only(['endereco', 'numero_endereco', 'logradouro', 'numero', 'bairro',
                 'regional', 'resultado', 'data_inicio', 'data_fim', 'supervisor',
-                'data_prevista_inicio', 'data_prevista_fim']),
+                'data_prevista_inicio', 'data_prevista_fim',
+                'tipo_abordagem', 'situacao_comunicado', 'retorno_previsto']),
             min((int) $request->input('per_page', 5), 100)
         );
 
@@ -412,24 +417,34 @@ class VistoriaController extends Controller
         ));
     }
 
-    public function exportarRoteiro(Request $request): View
+    public function exportarRoteiro(Request $request): View|Response
     {
         $request->validate([
             'data_prevista_inicio' => 'required|date',
             'data_prevista_fim' => 'nullable|date|after_or_equal:data_prevista_inicio',
             'supervisor' => 'nullable|integer|exists:users,id',
             'regional' => 'nullable|string|max:50',
+            'format' => 'nullable|string|in:pdf',
         ]);
 
         $vistorias = $this->vistoriaService->listarRoteiro(
             $request->only(['data_prevista_inicio', 'data_prevista_fim', 'supervisor', 'regional'])
         );
 
-        return view('vistorias.roteiro', [
+        $viewData = [
             'vistorias' => $vistorias,
             'dataInicio' => $request->input('data_prevista_inicio'),
             'dataFim' => $request->input('data_prevista_fim'),
-        ]);
+        ];
+
+        if ($request->get('format') === 'pdf') {
+            $pdf = Pdf::loadView('vistorias.roteiro', $viewData)
+                ->setPaper('a4', 'landscape');
+
+            return $pdf->download('roteiro-zeladoria-'.now()->format('Y-m-d').'.pdf');
+        }
+
+        return view('vistorias.roteiro', $viewData);
     }
 
     public function store(StoreVistoriaRequest $request): RedirectResponse
@@ -456,6 +471,7 @@ class VistoriaController extends Controller
         $vistoria = Vistoria::create($fields);
 
         // Sincronizar participantes da equipe
+        /** @var array<int, int> $participantesIds */
         $participantesIds = $validated['participantes'] ?? [];
         if (! empty($participantesIds)) {
             $vistoria->participantes()->sync($participantesIds);
@@ -515,6 +531,7 @@ class VistoriaController extends Controller
     }
 
     /**
+     * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
     private function extractVistoriaFields(Request $request, array $validated): array
@@ -528,7 +545,7 @@ class VistoriaController extends Controller
         }
 
         return [
-            'data_abordagem' => \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $validated['data_abordagem']),
+            'data_abordagem' => Carbon::createFromFormat('Y-m-d\TH:i', $validated['data_abordagem']),
             'tipo_abordagem_id' => $validated['tipo_abordagem_id'],
             'quantidade_pessoas' => $validated['quantidade_pessoas'] ?? 0,
             'nomes_pessoas' => $validated['nomes_pessoas'] ?? '',
@@ -578,6 +595,9 @@ class VistoriaController extends Controller
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getFilterData(): array
     {
         return $this->vistoriaService->getFilterData();

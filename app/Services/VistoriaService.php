@@ -69,6 +69,7 @@ class VistoriaService
      * Listagem paginada das vistorias do usuário logado.
      *
      * @param  array<string, mixed>  $filtros
+     * @return LengthAwarePaginator<int, \stdClass>
      */
     public function listarMinhas(int $userId, array $filtros, int $perPage): LengthAwarePaginator
     {
@@ -105,6 +106,7 @@ class VistoriaService
      * Listagem paginada com todos os filtros (admin / index).
      *
      * @param  array<string, mixed>  $filtros
+     * @return LengthAwarePaginator<int, \stdClass>
      */
     public function listarComFiltros(array $filtros, int $perPage): LengthAwarePaginator
     {
@@ -162,12 +164,23 @@ class VistoriaService
         if (! empty($filtros['data_prevista_fim'])) {
             $query->whereDate('v.data_prevista_zeladoria', '<=', $filtros['data_prevista_fim']);
         }
+        if (! empty($filtros['tipo_abordagem'])) {
+            $query->where('v.tipo_abordagem_id', $filtros['tipo_abordagem']);
+        }
+        if (! empty($filtros['situacao_comunicado'])) {
+            $this->applySituacaoComunicadoFilter($query, $filtros['situacao_comunicado']);
+        }
+        if (! empty($filtros['retorno_previsto'])) {
+            $this->applyRetornoPrevisto($query, $filtros['retorno_previsto']);
+        }
 
         return $query->orderBy('v.data_abordagem', 'desc')->paginate($perPage);
     }
 
     /**
      * Autocomplete de logradouros que possuem vistorias.
+     *
+     * @return Collection<int, \stdClass>
      */
     public function buscarLogradourosSugeridos(string $termo, ?int $numero): Collection
     {
@@ -210,6 +223,7 @@ class VistoriaService
      * Roteiro de zeladorias com data prevista.
      *
      * @param  array<string, mixed>  $filtros
+     * @return Collection<int, \stdClass>
      */
     public function listarRoteiro(array $filtros): Collection
     {
@@ -248,7 +262,7 @@ class VistoriaService
     /**
      * Dados de filtro para a listagem com cache de 1h.
      *
-     * @return array{bairros: Collection, regionais: Collection, resultados: Collection, supervisores: Collection}
+     * @return array{bairros: Collection<int, string>, regionais: Collection<int, string>, resultados: Collection<int, \stdClass>, supervisores: Collection<int, \stdClass>}
      */
     public function getFilterData(): array
     {
@@ -263,7 +277,52 @@ class VistoriaService
                 ->orderBy('id')->get()),
             'supervisores' => Cache::remember('filtro:supervisores', 3600, fn () => DB::table('users')
                 ->select('id', 'name')->orderBy('name')->get()),
+            'tiposAbordagem' => Cache::remember('filtro:tipos_abordagem', 3600, fn () => DB::table('tipo_abordagem')
+                ->orderBy('id')->get()),
         ];
+    }
+
+    private function applySituacaoComunicadoFilter(Builder $query, string $situacao): void
+    {
+        $hoje = now()->toDateString();
+
+        match ($situacao) {
+            'com_comunicado' => $query
+                ->where('ta.tipo', 'ilike', '%comunica%')
+                ->whereNotNull('v.data_prevista_zeladoria'),
+
+            'sem_comunicado' => $query
+                ->where(function (Builder $q) {
+                    $q->where('ta.tipo', 'not ilike', '%comunica%')
+                        ->orWhereNull('ta.tipo');
+                }),
+
+            'aguardando_retorno' => $query
+                ->where('ta.tipo', 'ilike', '%comunica%')
+                ->whereNotNull('v.data_prevista_zeladoria')
+                ->where('v.finalizada', true)
+                ->whereDate('v.data_prevista_zeladoria', '>=', $hoje),
+
+            default => null,
+        };
+    }
+
+    private function applyRetornoPrevisto(Builder $query, string $retorno): void
+    {
+        $hoje = now()->toDateString();
+
+        $query->whereNotNull('v.data_prevista_zeladoria');
+
+        match ($retorno) {
+            'vencidos' => $query->whereDate('v.data_prevista_zeladoria', '<', $hoje),
+            'proximos_7' => $query
+                ->whereDate('v.data_prevista_zeladoria', '>=', $hoje)
+                ->whereDate('v.data_prevista_zeladoria', '<=', now()->addDays(7)->toDateString()),
+            'proximos_30' => $query
+                ->whereDate('v.data_prevista_zeladoria', '>=', $hoje)
+                ->whereDate('v.data_prevista_zeladoria', '<=', now()->addDays(30)->toDateString()),
+            default => null,
+        };
     }
 
     private function buildBaseListQuery(): Builder

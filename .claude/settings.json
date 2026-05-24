@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vendor/bin/phpstan *)",
+      "Bash(./vendor/bin/phpstan *)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "mcp__plugin_playwright_playwright__browser_close",
+      "mcp__plugin_playwright_playwright__browser_resize",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_playwright_playwright__browser_handle_dialog",
+      "mcp__plugin_playwright_playwright__browser_tabs",
+      "mcp__laravel-boost__database-schema",
+      "mcp__laravel-boost__search-docs",
+      "mcp__laravel-boost__application-info",
+      "mcp__laravel-boost__list-routes",
+      "mcp__laravel-boost__read-log-entries",
+      "mcp__laravel-boost__get-config",
+      "mcp__laravel-boost__list-available-config-keys",
+      "mcp__laravel-boost__list-available-env-vars",
+      "mcp__laravel-boost__database-connections",
+      "mcp__laravel-boost__browser-logs",
+      "mcp__laravel-boost__last-error",
+      "mcp__laravel-boost__list-artisan-commands"
+    ]
+  }
+}

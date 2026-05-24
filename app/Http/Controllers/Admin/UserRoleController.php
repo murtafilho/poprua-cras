@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRoleRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
@@ -28,14 +28,9 @@ class UserRoleController extends Controller
         return view('admin.users.create', compact('roles'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::min(8)],
-            'role' => ['nullable', 'exists:roles,name'],
-        ]);
+        $validated = $request->validated();
 
         $user = User::create([
             'name' => $validated['name'],
@@ -43,7 +38,7 @@ class UserRoleController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        if ($validated['role']) {
+        if ($validated['role'] ?? null) {
             $user->assignRole($validated['role']);
         }
 
@@ -51,11 +46,9 @@ class UserRoleController extends Controller
             ->with('success', "Usuário {$user->name} cadastrado com sucesso.");
     }
 
-    public function updateRoles(Request $request, User $user): RedirectResponse
+    public function updateRoles(UpdateUserRoleRequest $request, User $user): RedirectResponse
     {
-        $validated = $request->validate([
-            'role' => ['nullable', 'exists:roles,name'],
-        ]);
+        $validated = $request->validated();
 
         $user->syncRoles($validated['role'] ? [$validated['role']] : []);
 

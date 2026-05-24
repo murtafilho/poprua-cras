@@ -9,6 +9,7 @@ use App\Models\Ponto;
 use App\Services\MoradorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\View\View;
 
 class MoradorController extends Controller
@@ -128,7 +129,7 @@ class MoradorController extends Controller
     }
 
     /**
-     * @return array<int, \Illuminate\Http\UploadedFile>
+     * @return array<int, UploadedFile>
      */
     private function extrairFotos(Request $request): array
     {
@@ -146,7 +147,7 @@ class MoradorController extends Controller
     }
 
     /**
-     * @param  array<int, \Illuminate\Http\UploadedFile>  $fotos
+     * @param  array<int, UploadedFile>  $fotos
      */
     private function anexarFotos(Morador $morador, array $fotos, ?int $userId): void
     {

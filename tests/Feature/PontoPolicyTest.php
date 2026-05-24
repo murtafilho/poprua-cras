@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class PontoPolicyTest extends TestCase
@@ -19,7 +20,7 @@ class PontoPolicyTest extends TestCase
         parent::setUp();
         DB::table('tipo_abordagem')->insert(['tipo' => 'Rotina']);
         DB::table('resultados_acoes')->insert(['resultado' => 'Orientação']);
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
     public function test_any_authenticated_user_can_view_pontos(): void

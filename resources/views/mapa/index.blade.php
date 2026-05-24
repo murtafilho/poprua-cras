@@ -168,11 +168,11 @@
 
     <!-- Modal Relatorio -->
     <div id="relatorio-modal" class="relatorio-modal hidden">
-        <div class="relatorio-modal-overlay" onclick="fecharRelatorio()"></div>
+        <div class="relatorio-modal-overlay" x-on:click="fecharRelatorio()"></div>
         <div class="relatorio-modal-content">
             <div class="relatorio-modal-header">
                 <span class="relatorio-modal-title">Relatorio da Vistoria</span>
-                <button type="button" class="relatorio-modal-close" onclick="fecharRelatorio()">
+                <button type="button" class="relatorio-modal-close" x-on:click="fecharRelatorio()">
                     <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>

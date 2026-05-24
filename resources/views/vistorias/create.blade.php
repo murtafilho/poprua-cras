@@ -26,37 +26,29 @@
 
             <!-- Progress Stepper -->
             <div class="progress-stepper" id="progress-stepper" role="tablist" aria-label="Etapas da vistoria">
-                <div class="stepper-item active" data-step="0" onclick="goToStep(0)">
+                <div class="stepper-item active" data-step="0" x-on:click="goToStep(0)">
                     <div class="stepper-circle">1</div>
                     <span class="stepper-label">Dados</span>
                 </div>
-                <div class="stepper-item" data-step="1" onclick="goToStep(1)">
+                <div class="stepper-item" data-step="1" x-on:click="goToStep(1)">
                     <div class="stepper-circle">2</div>
                     <span class="stepper-label">Caract.</span>
                 </div>
-                <div class="stepper-item" data-step="2" onclick="goToStep(2)">
+                <div class="stepper-item" data-step="2" x-on:click="goToStep(2)">
                     <div class="stepper-circle">3</div>
                     <span class="stepper-label">Relatorio</span>
                 </div>
-                <div class="stepper-item" data-step="3" onclick="goToStep(3)">
+                <div class="stepper-item" data-step="3" x-on:click="goToStep(3)">
                     <div class="stepper-circle">4</div>
-                    <span class="stepper-label">Encam.</span>
-                </div>
-                <div class="stepper-item" data-step="4" onclick="goToStep(4)">
-                    <div class="stepper-circle">5</div>
                     <span class="stepper-label">Moradores</span>
                 </div>
-                <div class="stepper-item" data-step="5" onclick="goToStep(5)">
-                    <div class="stepper-circle">6</div>
-                    <span class="stepper-label">Fotos</span>
-                </div>
-                <div class="stepper-item" data-step="6" onclick="goToStep(6)">
-                    <div class="stepper-circle">7</div>
+                <div class="stepper-item" data-step="4" x-on:click="goToStep(4)">
+                    <div class="stepper-circle">5</div>
                     <span class="stepper-label">Revisar</span>
                 </div>
             </div>
             <div class="step-indicator">
-                <span id="step-indicator">Etapa <span class="step-indicator-text">1</span> de <span class="step-indicator-text">7</span></span>
+                <span id="step-indicator">Etapa <span class="step-indicator-text">1</span> de <span class="step-indicator-text">5</span></span>
             </div>
 
             <!-- Conteudo das Abas -->
@@ -191,7 +183,7 @@
                             <p class="form-hint">Um nome por linha</p>
                             <div class="input-with-voice">
                                 <textarea name="nomes_pessoas" id="nomes_pessoas" rows="3" placeholder="Digite um nome por linha..." class="form-input form-textarea"></textarea>
-                                <button type="button" onclick="startVoiceInput('nomes_pessoas')" class="voice-btn">
+                                <button type="button" x-on:click="startVoiceInput('nomes_pessoas')" class="voice-btn">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                                     </svg>
@@ -207,7 +199,7 @@
 
                             <div class="form-group">
                                 <label class="form-label">Qtd. Abrigos Provisorios</label>
-                                <input type="number" name="qtd_abrigos_provisorios" id="qtd_abrigos" min="0" placeholder="0" onchange="atualizarCamposAbrigos()" class="form-input">
+                                <input type="number" name="qtd_abrigos_provisorios" id="qtd_abrigos" min="0" placeholder="0" x-on:change="atualizarCamposAbrigos()" class="form-input">
                             </div>
 
                             <div id="abrigos-container" class="hidden">
@@ -247,12 +239,12 @@
                                     <span>Num. Reduzido</span>
                                 </label>
                                 <label class="checkbox-card checkbox-card-expandable">
-                                    <input type="checkbox" name="casal" id="checkbox_casal" value="1" onchange="toggleQtdCasais()" class="form-checkbox">
+                                    <input type="checkbox" name="casal" id="checkbox_casal" value="1" x-on:change="toggleQtdCasais()" class="form-checkbox">
                                     <svg class="checkbox-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                                     </svg>
                                     <span>Casal</span>
-                                    <input type="number" name="qtd_casais" id="qtd_casais" min="1" value="1" placeholder="Qtd" class="form-input form-input-sm checkbox-qty-input hidden" onclick="event.stopPropagation()">
+                                    <input type="number" name="qtd_casais" id="qtd_casais" min="1" value="1" placeholder="Qtd" class="form-input form-input-sm checkbox-qty-input hidden" x-on:click.stop>
                                 </label>
                                 <label class="checkbox-card">
                                     <input type="checkbox" name="catador_reciclados" value="1" class="form-checkbox">
@@ -340,19 +332,19 @@
                                     <span>Cena de Uso</span>
                                 </label>
                                 <label class="checkbox-card checkbox-card-expandable">
-                                    <input type="checkbox" name="animais" id="checkbox_animais" value="1" onchange="toggleQtdAnimais()" class="form-checkbox">
+                                    <input type="checkbox" name="animais" id="checkbox_animais" value="1" x-on:change="toggleQtdAnimais()" class="form-checkbox">
                                     <svg class="checkbox-icon" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M4.5 9.5a2.5 2.5 0 115 0 2.5 2.5 0 01-5 0zm9 0a2.5 2.5 0 115 0 2.5 2.5 0 01-5 0zm-7.5 6a2 2 0 114 0 2 2 0 01-4 0zm7 0a2 2 0 114 0 2 2 0 01-4 0zm-3.5 2.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V16h-5v2z"/>
                                     </svg>
                                     <span>Animais</span>
-                                    <input type="number" name="qtd_animais" id="qtd_animais" min="1" value="1" placeholder="Qtd" class="form-input form-input-sm checkbox-qty-input hidden" onclick="event.stopPropagation()">
+                                    <input type="number" name="qtd_animais" id="qtd_animais" min="1" value="1" placeholder="Qtd" class="form-input form-input-sm checkbox-qty-input hidden" x-on:click.stop>
                                 </label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Aba 3: Relatorio da Acao -->
+                <!-- Aba 3: Relatorio, Acoes e Encaminhamentos -->
                 <div class="tab-content hidden" data-tab="2">
                     <!-- Resultado da Acao -->
                     <div class="card mb-4">
@@ -380,11 +372,11 @@
                                 <label class="form-label">Conducao pelas Forcas de Seguranca</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
-                                        <input type="radio" name="conducao_forcas_seguranca" value="1" onchange="toggleConducaoObs()" class="form-radio">
+                                        <input type="radio" name="conducao_forcas_seguranca" value="1" x-on:change="toggleConducaoObs()" class="form-radio">
                                         <span>Sim</span>
                                     </label>
                                     <label class="radio-option">
-                                        <input type="radio" name="conducao_forcas_seguranca" value="0" checked onchange="toggleConducaoObs()" class="form-radio">
+                                        <input type="radio" name="conducao_forcas_seguranca" value="0" checked x-on:change="toggleConducaoObs()" class="form-radio">
                                         <span>Nao</span>
                                     </label>
                                 </div>
@@ -406,11 +398,11 @@
                                 <label class="form-label">Auto de Fiscalizacao Aplicado</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
-                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="1" onchange="toggleAutoNumero()" class="form-radio">
+                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="1" x-on:change="toggleAutoNumero()" class="form-radio">
                                         <span>Sim</span>
                                     </label>
                                     <label class="radio-option">
-                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="0" checked onchange="toggleAutoNumero()" class="form-radio">
+                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="0" checked x-on:change="toggleAutoNumero()" class="form-radio">
                                         <span>Nao</span>
                                     </label>
                                 </div>
@@ -424,11 +416,11 @@
                                 <label class="form-label">Houve Lavratura</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
-                                        <input type="radio" name="houve_lavratura" value="1" onchange="toggleProtocolo()" class="form-radio">
+                                        <input type="radio" name="houve_lavratura" value="1" x-on:change="toggleProtocolo()" class="form-radio">
                                         <span>Sim</span>
                                     </label>
                                     <label class="radio-option">
-                                        <input type="radio" name="houve_lavratura" value="0" checked onchange="toggleProtocolo()" class="form-radio">
+                                        <input type="radio" name="houve_lavratura" value="0" checked x-on:change="toggleProtocolo()" class="form-radio">
                                         <span>Nao</span>
                                     </label>
                                 </div>
@@ -445,24 +437,7 @@
                         </div>
                     </div>
 
-                    <!-- Relatorio Descritivo -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <label class="form-label">Relatorio Descritivo da Acao</label>
-                            <div class="input-with-voice">
-                                <textarea name="observacao" id="observacao" rows="8" placeholder="Descreva detalhadamente a acao realizada..." class="form-input form-textarea" style="min-height: 200px;"></textarea>
-                                <button type="button" onclick="startVoiceInput('observacao')" class="voice-btn">
-                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Aba 4: Encaminhamentos -->
-                <div class="tab-content hidden" data-tab="3">
+                    <!-- Encaminhamentos -->
                     <div class="card mb-4">
                         <div class="card-body">
                             <h3 class="form-section-title">Encaminhamentos</h3>
@@ -527,15 +502,30 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Relatorio Descritivo -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <label class="form-label">Relatorio Descritivo da Acao</label>
+                            <div class="input-with-voice">
+                                <textarea name="observacao" id="observacao" rows="8" placeholder="Descreva detalhadamente a acao realizada..." class="form-input form-textarea" style="min-height: 200px;"></textarea>
+                                <button type="button" x-on:click="startVoiceInput('observacao')" class="voice-btn">
+                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Aba 5: Moradores -->
-                <div class="tab-content hidden" data-tab="4">
+                <!-- Aba 4: Moradores e Fotos -->
+                <div class="tab-content hidden" data-tab="3">
                     <div class="card mb-4">
                         <div class="card-body">
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="form-section-title" style="margin-bottom: 0;">Moradores do Ponto</h3>
-                                <button type="button" onclick="abrirModalMorador()" class="btn btn-primary btn-sm">
+                                <button type="button" x-on:click="abrirModalMorador()" class="btn btn-primary btn-sm">
                                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                     </svg>
@@ -589,10 +579,7 @@
                             </p>
                         </div>
                     </div>
-                </div>
 
-                <!-- Aba 6: Fotos -->
-                <div class="tab-content hidden" data-tab="5">
                     <div class="card mb-4">
                         <div class="card-body">
                             <label class="form-label mb-3">Fotos da Vistoria</label>
@@ -601,14 +588,14 @@
                             <input type="file" id="gallery-input" accept="image/*" multiple class="hidden">
 
                             <div class="grid grid-cols-2 gap-2">
-                                <button type="button" onclick="openCamera('back')" class="btn btn-primary btn-block">
+                                <button type="button" x-on:click="openCamera('back')" class="btn btn-primary btn-block">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
                                     Tirar Foto
                                 </button>
-                                <button type="button" onclick="document.getElementById('gallery-input').click()" class="btn btn-secondary btn-block">
+                                <button type="button" x-on:click="document.getElementById('gallery-input').click()" class="btn btn-secondary btn-block">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
@@ -637,8 +624,8 @@
                     </div>
                 </div>
 
-                <!-- Aba 7: Revisar e Finalizar -->
-                <div class="tab-content hidden" data-tab="6">
+                <!-- Aba 5: Revisar e Finalizar -->
+                <div class="tab-content hidden" data-tab="4">
                     <div class="card mb-4">
                         <div class="card-body">
                             <h3 class="form-section-title">
@@ -673,11 +660,11 @@
     <script>window.VISTORIA_TIPOS_ABRIGO = @json($tiposAbrigo);</script>
 
     <!-- Modal Adicionar/Editar Morador -->
-    <div id="modal-morador" class="modal-overlay hidden" onclick="if(event.target === this) fecharModalMorador()">
-        <div class="modal modal-bottom" onclick="event.stopPropagation()">
+    <div id="modal-morador" class="modal-overlay hidden" x-on:click.self="fecharModalMorador()">
+        <div class="modal modal-bottom" x-on:click.stop>
             <div class="modal-header">
                 <h3 id="modal-morador-titulo" class="modal-title">Novo Morador</h3>
-                <button type="button" onclick="fecharModalMorador()" class="btn btn-ghost btn-icon btn-sm">
+                <button type="button" x-on:click="fecharModalMorador()" class="btn btn-ghost btn-icon btn-sm">
                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -726,8 +713,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" onclick="salvarMorador()" class="btn btn-primary flex-1">Salvar</button>
-                <button type="button" onclick="fecharModalMorador()" class="btn btn-secondary flex-1">Cancelar</button>
+                <button type="button" x-on:click="salvarMorador()" class="btn btn-primary flex-1">Salvar</button>
+                <button type="button" x-on:click="fecharModalMorador()" class="btn btn-secondary flex-1">Cancelar</button>
             </div>
         </div>
     </div>

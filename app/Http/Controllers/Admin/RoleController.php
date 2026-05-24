@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Support\RoleDisplay;
+use App\Http\Requests\Admin\StoreRoleRequest;
+use App\Http\Requests\Admin\UpdateRoleRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -24,14 +24,9 @@ class RoleController extends Controller
         return view('admin.roles.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreRoleRequest $request): RedirectResponse
     {
-        $request->merge(['name' => RoleDisplay::normalize((string) $request->input('name', ''))]);
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', 'unique:roles,name'],
-            'description' => ['nullable', 'string', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         Role::create([
             'name' => $validated['name'],
@@ -51,16 +46,9 @@ class RoleController extends Controller
         return view('admin.roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
 
-    public function update(Request $request, Role $role): RedirectResponse
+    public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
-        $request->merge(['name' => RoleDisplay::normalize((string) $request->input('name', ''))]);
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', 'unique:roles,name,'.$role->id],
-            'description' => ['nullable', 'string', 'max:255'],
-            'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['exists:permissions,id'],
-        ]);
+        $validated = $request->validated();
 
         $role->update([
             'name' => $validated['name'],

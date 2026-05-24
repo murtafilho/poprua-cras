@@ -54,7 +54,7 @@
                             <input type="hidden" name="endereco_atualizado_id" id="endereco_atualizado_id" value="{{ old('endereco_atualizado_id') }}">
                             <div id="endereco-selecionado" class="hidden" style="margin-top: var(--space-2); padding: var(--space-2); background: rgba(139, 92, 246, 0.1); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between;">
                                 <span id="endereco-selecionado-texto" style="font-size: var(--text-sm);"></span>
-                                <button type="button" onclick="limparEndereco()" class="btn btn-ghost btn-sm" style="color: var(--status-danger);">
+                                <button type="button" x-on:click="limparEndereco()" class="btn btn-ghost btn-sm" style="color: var(--status-danger);">
                                     <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>

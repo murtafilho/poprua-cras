@@ -1,15 +1,16 @@
 const APP_BASE = document.querySelector('meta[name="app-base"]')?.content || '';
 
-// Impedir saída acidental sem confirmação
+// Impedir saída acidental sem confirmação (só quando há alterações)
 let formSubmitting = false;
+let formDirty = false;
 window.addEventListener('beforeunload', function(e) {
-    if (formSubmitting) return;
+    if (formSubmitting || !formDirty) return;
     e.preventDefault();
     e.returnValue = '';
 });
 
 let currentTab = 0;
-const totalTabs = 6;
+const totalTabs = 5;
 let visitedSteps = new Set([0]);
 let recognition = null;
 let activeInput = null;
@@ -18,7 +19,7 @@ let fotosParaRemover = [];
 const tiposAbrigo = window.VISTORIA_TIPOS_ABRIGO;
 const abrigosTiposSelecionados = window.VISTORIA_ABRIGOS_SELECIONADOS;
 
-const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Encam.', 'Fotos', 'Revisar'];
+const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Fotos', 'Revisar'];
 const checkmarkSVG = '<svg class="stepper-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -112,7 +113,7 @@ function buildReviewChecklist() {
         },
         {
             label: 'Novas fotos anexadas',
-            step: 4,
+            step: 3,
             check: () => fotosSelecionadas.length > 0,
             optional: true
         }
@@ -267,6 +268,7 @@ function atualizarCamposAbrigos() {
 function marcarRemoverFoto(fotoId) {
     if (confirm('Remover esta foto?')) {
         fotosParaRemover.push(fotoId);
+        formDirty = true;
         document.getElementById('foto-existente-' + fotoId).style.display = 'none';
         atualizarInputsRemocao();
     }
@@ -328,6 +330,7 @@ function processPhotoFile(file) {
             const compressed = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() });
             const preview = canvas.toDataURL('image/jpeg', 0.5);
             fotosSelecionadas.push({ file: compressed, preview, id: Date.now() + Math.random() });
+            formDirty = true;
             renderFotosPreview();
             salvarFotoLocal(compressed);
         }, 'image/jpeg', QUALITY);
@@ -339,6 +342,49 @@ document.getElementById('camera-input-back').addEventListener('change', function
     if (e.target.files[0]) processPhotoFile(e.target.files[0]);
     e.target.value = '';
 });
+
+const galleryInput = document.getElementById('gallery-input');
+if (galleryInput) {
+    galleryInput.addEventListener('change', function(e) {
+        Array.from(e.target.files).forEach(file => processPhotoFile(file));
+        e.target.value = '';
+    });
+}
+
+// Drop-zone desktop: arrastar arquivos do explorer pra dentro do form.
+const fotosDropZone = document.getElementById('fotos-drop-zone');
+if (fotosDropZone && galleryInput) {
+    fotosDropZone.addEventListener('click', () => galleryInput.click());
+
+    ['dragenter', 'dragover'].forEach(ev => {
+        fotosDropZone.addEventListener(ev, e => {
+            e.preventDefault();
+            e.stopPropagation();
+            fotosDropZone.style.background = 'var(--bg-hover, rgba(31, 111, 235, 0.05))';
+            fotosDropZone.style.borderColor = 'var(--accent-primary, #1f6feb)';
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(ev => {
+        fotosDropZone.addEventListener(ev, e => {
+            e.preventDefault();
+            e.stopPropagation();
+            fotosDropZone.style.background = '';
+            fotosDropZone.style.borderColor = '';
+        });
+    });
+
+    fotosDropZone.addEventListener('drop', e => {
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        if (files.length === 0) {
+            if (typeof window.showToast === 'function') {
+                window.showToast('Arraste apenas arquivos de imagem.', 'warning');
+            }
+            return;
+        }
+        files.forEach(processPhotoFile);
+    });
+}
 
 
 function renderFotosPreview() {
@@ -354,16 +400,26 @@ function renderFotosPreview() {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
+            <input type="text" name="legendas_fotos[]" placeholder="Legenda..." value="${foto.legenda || ''}"
+                   onchange="atualizarLegenda(${index}, this.value)"
+                   style="width: 100%; font-size: 11px; padding: 4px 6px; margin-top: 4px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary);">
         `;
         container.appendChild(div);
     });
     document.getElementById('foto-count').textContent = fotosSelecionadas.length;
 }
 
+function atualizarLegenda(index, legenda) {
+    if (fotosSelecionadas[index]) {
+        fotosSelecionadas[index].legenda = legenda;
+    }
+}
+
 function removerFoto(index) {
     const foto = fotosSelecionadas[index];
     if (foto) removerFotoLocal(foto.file.name);
     fotosSelecionadas.splice(index, 1);
+    formDirty = true;
     renderFotosPreview();
 }
 
@@ -424,10 +480,15 @@ async function removerFotoLocal(fileName) {
     }
 }
 
-document.getElementById('vistoria-form').addEventListener('submit', function(e) {
+const formEl = document.getElementById('vistoria-form');
+formEl.addEventListener('submit', function(e) {
     formSubmitting = true;
     // Fotos já estão no IndexedDB — form submete sem elas
 });
+
+// Rastrear alterações no formulário para o dirty check
+formEl.addEventListener('change', () => { formDirty = true; });
+formEl.addEventListener('input', () => { formDirty = true; });
 
 function startVoiceInput(inputId) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -488,6 +549,7 @@ window.toggleAutoNumero = toggleAutoNumero;
 window.toggleProtocolo = toggleProtocolo;
 window.toggleZeladoriaCampos = toggleZeladoriaCampos;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
+window.atualizarLegenda = atualizarLegenda;
 
 const tipoAbordagemSelect = document.getElementById('tipo_abordagem_id');
 if (tipoAbordagemSelect) {
@@ -520,6 +582,7 @@ if (buscaPontoInput) {
                 div.textContent = `${p.tipo || ''} ${p.logradouro}, ${p.numero} - ${p.bairro || ''} (${p.regional || ''})`;
                 div.addEventListener('click', () => {
                     document.getElementById('ponto_id_input').value = p.id;
+                    formDirty = true;
                     document.getElementById('ponto-atual').innerHTML = `
                         <p style="font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--status-success);">
                             Ponto alterado: ${p.tipo || ''} ${p.logradouro}, ${p.numero} - ${p.bairro || ''}

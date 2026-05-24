@@ -24,7 +24,7 @@ class Sprint11Controller extends Controller
                 'status' => 'implementado',
                 'andamento' => 80,
                 'esforco_restante' => 2,
-                'notas' => 'Model MembroEquipe + pivot + step 1 do wizard OK. Falta: tela admin para CRUD de membros e migrar campo `equipe` para enum/lookup.',
+                'notas' => 'Pivot vistoria_participantes + step 1 do wizard OK. Model MembroEquipe removido (tabela dropada). Participantes agora sao users com role.',
             ],
             [
                 'codigo' => '1.2',

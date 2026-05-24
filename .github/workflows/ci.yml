@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: ['8.4']
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: poprua_cras
+          POSTGRES_PASSWORD: poprua_cras
+          POSTGRES_DB: poprua_cras_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U poprua_cras -d poprua_cras_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      APP_ENV: testing
+      APP_DEBUG: true
+      DB_CONNECTION: pgsql
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_DATABASE: poprua_cras_test
+      DB_USERNAME: poprua_cras
+      DB_PASSWORD: poprua_cras
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: sync
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_pgsql, redis, pcov, mbstring, xml, curl, zip, gd, intl
+          coverage: pcov
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-php${{ matrix.php }}-
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: npm install
+        run: npm ci
+
+      - name: npm run build
+        run: npm run build
+
+      - name: Copiar .env e gerar APP_KEY
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Habilitar PostGIS e preparar banco de teste
+        run: |
+          PGPASSWORD=poprua_cras psql -h localhost -U poprua_cras -d poprua_cras_test -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+
+      - name: Rodar migrations
+        run: php artisan migrate --force --no-interaction
+
+      - name: Pint (lint)
+        run: vendor/bin/pint --test
+
+      - name: PHPStan (análise estática)
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+      - name: Testes com cobertura (PCOV)
+        run: php artisan test --coverage

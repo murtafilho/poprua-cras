@@ -45,6 +45,9 @@
                     @if(request('data_fim'))<input type="hidden" name="data_fim" value="{{ request('data_fim') }}">@endif
                     @if(request('logradouro'))<input type="hidden" name="logradouro" value="{{ request('logradouro') }}">@endif
                     @if(request('numero'))<input type="hidden" name="numero" value="{{ request('numero') }}">@endif
+                    @if(request('tipo_abordagem'))<input type="hidden" name="tipo_abordagem" value="{{ request('tipo_abordagem') }}">@endif
+                    @if(request('situacao_comunicado'))<input type="hidden" name="situacao_comunicado" value="{{ request('situacao_comunicado') }}">@endif
+                    @if(request('retorno_previsto'))<input type="hidden" name="retorno_previsto" value="{{ request('retorno_previsto') }}">@endif
                     <input type="hidden" name="endereco" id="hidden-endereco" value="{{ request('endereco') }}">
                     <input type="hidden" name="numero_endereco" id="hidden-numero-endereco" value="{{ request('numero_endereco') }}">
                     <div class="autocomplete-container">
@@ -68,7 +71,7 @@
 
         {{-- Busca Avancada --}}
         @php
-            $temFiltroAvancado = request('logradouro') || request('numero') || request('bairro') || request('regional') || request('resultado') || request('data_inicio') || request('data_fim');
+            $temFiltroAvancado = request('logradouro') || request('numero') || request('bairro') || request('regional') || request('resultado') || request('data_inicio') || request('data_fim') || request('tipo_abordagem') || request('situacao_comunicado') || request('retorno_previsto');
         @endphp
         <details class="card mb-4" {{ $temFiltroAvancado ? 'open' : '' }}>
             <summary class="card-header" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; list-style: none;">
@@ -157,12 +160,43 @@
                     </div>
                     <div class="form-row form-row-2">
                         <div class="form-group">
-                            <label class="form-label">Data Prevista Zeladoria (Inicio)</label>
+                            <label class="form-label">Data Prevista Retorno (Inicio)</label>
                             <input type="date" name="data_prevista_inicio" value="{{ request('data_prevista_inicio') }}" class="form-input">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Data Prevista Zeladoria (Fim)</label>
+                            <label class="form-label">Data Prevista Retorno (Fim)</label>
                             <input type="date" name="data_prevista_fim" value="{{ request('data_prevista_fim') }}" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row form-row-3">
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Abordagem</label>
+                            <select name="tipo_abordagem" class="form-input form-select">
+                                <option value="">Todos</option>
+                                @foreach($tiposAbordagem as $tipo)
+                                    <option value="{{ $tipo->id }}" {{ request('tipo_abordagem') == $tipo->id ? 'selected' : '' }}>
+                                        {{ $tipo->tipo }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Situacao Comunicado</label>
+                            <select name="situacao_comunicado" class="form-input form-select">
+                                <option value="">Todos</option>
+                                <option value="com_comunicado" {{ request('situacao_comunicado') == 'com_comunicado' ? 'selected' : '' }}>Com comunicado</option>
+                                <option value="sem_comunicado" {{ request('situacao_comunicado') == 'sem_comunicado' ? 'selected' : '' }}>Sem comunicado</option>
+                                <option value="aguardando_retorno" {{ request('situacao_comunicado') == 'aguardando_retorno' ? 'selected' : '' }}>Aguardando retorno</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Retorno Previsto</label>
+                            <select name="retorno_previsto" class="form-input form-select">
+                                <option value="">Todos</option>
+                                <option value="vencidos" {{ request('retorno_previsto') == 'vencidos' ? 'selected' : '' }}>Vencidos</option>
+                                <option value="proximos_7" {{ request('retorno_previsto') == 'proximos_7' ? 'selected' : '' }}>Proximos 7 dias</option>
+                                <option value="proximos_30" {{ request('retorno_previsto') == 'proximos_30' ? 'selected' : '' }}>Proximos 30 dias</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-actions">
@@ -175,13 +209,20 @@
                         <a href="{{ route('vistorias.index') }}" class="btn btn-secondary">Limpar</a>
                     </div>
                     @if(request('data_prevista_inicio'))
-                        <div style="margin-top: var(--space-2);">
+                        <div style="margin-top: var(--space-2); display: flex; gap: var(--space-2);">
                             <a href="{{ route('vistorias.roteiro', request()->only(['data_prevista_inicio', 'data_prevista_fim', 'supervisor', 'regional'])) }}"
-                               target="_blank" class="btn btn-secondary w-full">
+                               target="_blank" class="btn btn-secondary" style="flex: 1;">
                                 <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                                 </svg>
-                                Exportar Roteiro PDF
+                                Imprimir Roteiro
+                            </a>
+                            <a href="{{ route('vistorias.roteiro', array_merge(request()->only(['data_prevista_inicio', 'data_prevista_fim', 'supervisor', 'regional']), ['format' => 'pdf'])) }}"
+                               class="btn btn-primary" style="flex: 1;">
+                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Exportar PDF
                             </a>
                         </div>
                     @endif
@@ -199,6 +240,8 @@
                         <th class="hide-mobile">Descricao</th>
                         <th class="hide-mobile">Bairro</th>
                         <th class="hide-mobile">Regional</th>
+                        <th class="hide-mobile">Tipo</th>
+                        <th class="hide-mobile">Retorno</th>
                         <th class="hide-mobile text-center">Pessoas</th>
                         <th class="hide-mobile text-center">Kg</th>
                         <th class="text-center">Status</th>
@@ -224,7 +267,7 @@
                             <td>
                                 @if($vistoria->lat && $vistoria->lng)
                                     <a href="{{ route('mapa.index', ['lat' => $vistoria->lat, 'lng' => $vistoria->lng, 'zoom' => 19, 'ponto_id' => $vistoria->ponto_id, 'ajustar' => 1]) }}"
-                                       style="display: flex; align-items: center; gap: var(--space-2);">
+                                       style="display: flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: var(--space-1) 0;">
                                         <svg style="width: 16px; height: 16px; color: var(--accent-primary); flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -247,6 +290,28 @@
                                     @if($vistoria->quantidade_pessoas)
                                         <span class="badge badge-info" style="margin-left: var(--space-2);">{{ $vistoria->quantidade_pessoas }} pessoas</span>
                                     @endif
+                                    @if($vistoria->tipo_abordagem)
+                                        @php
+                                            $tipoBadgeMobile = match(true) {
+                                                str_contains(mb_strtolower($vistoria->tipo_abordagem), 'comunica') => 'badge-info',
+                                                str_contains(mb_strtolower($vistoria->tipo_abordagem), 'fiscal') => 'badge-danger',
+                                                str_contains(mb_strtolower($vistoria->tipo_abordagem), 'zeladoria') => 'badge-success',
+                                                default => 'badge-secondary',
+                                            };
+                                        @endphp
+                                        <div style="margin-top: 2px;">
+                                            <span class="badge {{ $tipoBadgeMobile }}">{{ $vistoria->tipo_abordagem }}</span>
+                                            @if($vistoria->data_prevista_zeladoria)
+                                                @php
+                                                    $dpMobile = \Carbon\Carbon::parse($vistoria->data_prevista_zeladoria);
+                                                    $diasMobile = now()->startOfDay()->diffInDays($dpMobile, false);
+                                                @endphp
+                                                <span class="badge {{ $diasMobile < 0 ? 'badge-danger' : ($diasMobile <= 7 ? 'badge-warning' : 'badge-default') }}">
+                                                    Retorno {{ $dpMobile->format('d/m') }}{{ $diasMobile < 0 ? ' (vencido)' : '' }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
                             <td class="hide-mobile">
@@ -258,6 +323,47 @@
                             </td>
                             <td class="hide-mobile">{{ $vistoria->bairro }}</td>
                             <td class="hide-mobile">{{ $vistoria->regional ?? 'N/A' }}</td>
+                            <td class="hide-mobile">
+                                @if($vistoria->tipo_abordagem)
+                                    @php
+                                        $tipoBadge = match(true) {
+                                            str_contains(mb_strtolower($vistoria->tipo_abordagem), 'comunica') => 'badge-info',
+                                            str_contains(mb_strtolower($vistoria->tipo_abordagem), 'fiscal') => 'badge-danger',
+                                            str_contains(mb_strtolower($vistoria->tipo_abordagem), 'zeladoria') => 'badge-success',
+                                            default => 'badge-secondary',
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $tipoBadge }}" style="white-space: nowrap;">{{ $vistoria->tipo_abordagem }}</span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            <td class="hide-mobile">
+                                @if($vistoria->data_prevista_zeladoria)
+                                    @php
+                                        $dataPrevista = \Carbon\Carbon::parse($vistoria->data_prevista_zeladoria);
+                                        $hoje = now()->startOfDay();
+                                        $diasAte = $hoje->diffInDays($dataPrevista, false);
+                                        if ($diasAte < 0) {
+                                            $retornoBadge = 'badge-danger';
+                                            $retornoLabel = 'Vencido (' . abs((int) $diasAte) . 'd)';
+                                        } elseif ($diasAte <= 7) {
+                                            $retornoBadge = 'badge-warning';
+                                            $retornoLabel = 'Em ' . (int) $diasAte . 'd';
+                                        } else {
+                                            $retornoBadge = 'badge-default';
+                                            $retornoLabel = 'Em ' . (int) $diasAte . 'd';
+                                        }
+                                        $periodoLabel = $vistoria->periodo_zeladoria === 'manha' ? 'M' : 'T';
+                                    @endphp
+                                    <div style="white-space: nowrap;">
+                                        <div style="font-weight: var(--font-medium);">{{ $dataPrevista->format('d/m/Y') }} <span class="text-muted" style="font-size: var(--text-xs);">({{ $periodoLabel }})</span></div>
+                                        <span class="badge {{ $retornoBadge }}" style="font-size: var(--text-xs); margin-top: 2px;">{{ $retornoLabel }}</span>
+                                    </div>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td class="hide-mobile text-center">
                                 @if($vistoria->quantidade_pessoas)
                                     <span class="badge badge-info">{{ $vistoria->quantidade_pessoas }}</span>
@@ -299,7 +405,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <div style="display: flex; gap: var(--space-1); justify-content: center;">
+                                <div style="display: flex; gap: var(--space-1); justify-content: center; align-items: center;">
                                     @if($vistoria->lat && $vistoria->lng)
                                         <a href="{{ route('mapa.index', ['lat' => $vistoria->lat, 'lng' => $vistoria->lng, 'zoom' => 19, 'ponto_id' => $vistoria->ponto_id, 'ajustar' => 1]) }}"
                                            class="btn btn-ghost btn-sm" title="Ver no mapa">
@@ -331,7 +437,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="text-center text-muted" style="padding: var(--space-6);">
+                            <td colspan="12" class="text-center text-muted" style="padding: var(--space-6);">
                                 Nenhuma vistoria encontrada.
                             </td>
                         </tr>

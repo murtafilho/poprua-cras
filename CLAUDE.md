@@ -8,38 +8,52 @@ POPRUA CRAS — sistema derivado do POPRUA Geo, focado na integracao com CRAS (C
 
 Fork inicial baseado em [poprua-geo](https://github.com/murtafilho/poprua-geo) em 2026-05-18. A estrutura de Ponto/Vistoria/Morador foi herdada e sera adaptada para os fluxos especificos do CRAS.
 
-## Comandos (todos via docker exec)
+## Ambientes
+
+### Producao (Docker em vlcp-sufis01)
+
+Comandos via `docker exec` — ver skills `setup-ambiente` e `docker/rebuild.sh`.
 
 ```bash
-# Prefixo obrigatorio — o codigo roda no container, nao no host
 EXEC="sudo docker exec php84-poprua-cras"
-
-# Migrations
 $EXEC php artisan migrate --no-interaction
-$EXEC php artisan migrate:status
-
-# Testes (phpunit.xml aponta para DB poprua_cras_test no container)
 $EXEC php artisan test
-$EXEC php artisan test --filter=NomeDoTeste
+$EXEC vendor/bin/pint --dirty
+$EXEC vendor/bin/phpstan analyse
+```
+
+### Desenvolvimento local (ambiente preferido para dev/refatoracao)
+
+O ambiente local usa PHP 8.4, PostgreSQL 16 + PostGIS 3.4, Redis 7 e Node 22 instalados nativamente. O `.env` aponta para localhost. Todos os comandos rodam direto, sem `docker exec`.
+
+```bash
+# Migrations
+php artisan migrate
+
+# Testes
+php artisan test
+php artisan test --filter=NomeDoTeste
 
 # Lint / format
-$EXEC vendor/bin/pint --dirty
+vendor/bin/pint --dirty
 
 # Analise estatica (larastan, level 6 com baseline)
-$EXEC vendor/bin/phpstan analyse
+vendor/bin/phpstan analyse
 
 # Cache
-$EXEC php artisan cache:clear
-$EXEC php artisan config:clear
+php artisan cache:clear
+php artisan config:clear
 
-# Composer / npm (Node 22 + npm + Python 3 + PCOV + pg_dump ja vem na imagem)
-$EXEC composer install --no-interaction
-$EXEC npm install && $EXEC npm run build
+# Dependencias
+composer install
+npm install && npm run build
 
-# Shell interativo (default: www-data; use -u root somente quando precisar de apt/install/chown)
-sudo docker exec -it php84-poprua-cras bash
-sudo docker exec -it -u root php84-poprua-cras bash   # quando precisar de root
+# Servidor de desenvolvimento
+php artisan serve --port=8088
 ```
+
+**Conexao DB local:** host=127.0.0.1 port=5432 db=poprua_cras user=poprua_cras
+**Banco de teste:** poprua_cras_test (mesmo host)
 
 ## Infraestrutura Docker
 
@@ -110,8 +124,7 @@ Todas as geometrias usam SRID 4326 (WGS84) com indice GIST.
 
 ## Convencoes
 
-- Todos os comandos artisan/composer/npm rodam dentro do container via `docker exec`
-- Usar `--no-interaction` em todos os comandos artisan
+- Em desenvolvimento local, comandos rodam direto (sem `docker exec`); em producao, via `docker exec`
 - Usar Form Request classes para validacao
 - Usar `Model::query()` em vez de `DB::` (exceto queries otimizadas)
 - Eager loading para evitar N+1

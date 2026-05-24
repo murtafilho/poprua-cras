@@ -1,12 +1,15 @@
 <?php
 
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Redis;
+
 require __DIR__.'/vendor/autoload.php';
 
 $app = require_once __DIR__.'/bootstrap/app.php';
-$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$app->make(Kernel::class)->bootstrap();
 
 try {
-    $redis = \Illuminate\Support\Facades\Redis::connection();
+    $redis = Redis::connection();
     $result = $redis->ping();
 
     if ($result === 'PONG' || $result === true) {
@@ -16,7 +19,7 @@ try {
     } else {
         echo '❌ Redis retornou resposta inesperada: '.var_export($result, true)."\n";
     }
-} catch (\Exception $e) {
+} catch (Exception $e) {
     echo '❌ Erro ao conectar ao Redis: '.$e->getMessage()."\n";
     exit(1);
 }

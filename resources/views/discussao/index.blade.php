@@ -934,7 +934,7 @@
             </div>
         </div>
         <div class="top-bar-actions">
-            <button class="btn-print" onclick="window.print()">Imprimir</button>
+            <button class="btn-print" x-on:click="window.print()">Imprimir</button>
         </div>
     </header>
 

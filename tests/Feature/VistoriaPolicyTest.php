@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class VistoriaPolicyTest extends TestCase
@@ -36,7 +37,7 @@ class VistoriaPolicyTest extends TestCase
             'user_id' => $this->owner->id,
         ]);
 
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $adminRole = Role::create(['name' => 'admin']);
         Permission::create(['name' => 'editar qualquer vistoria']);

@@ -23,7 +23,6 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks: {
-                    leaflet: ['leaflet', 'leaflet.markercluster'],
                     chartjs: ['chart.js'],
                 },
             },

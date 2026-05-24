@@ -1,3 +1,5 @@
+import L from './leaflet-setup';
+
 function escapeHtml(str) {
     if (str == null) return '';
     const div = document.createElement('div');
@@ -23,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const referenciaParam = urlParams.get('referencia');
 
     const map = L.map('map', {
-        zoomControl: false,
+        zoomControl: true,
         attributionControl: false
     });
 

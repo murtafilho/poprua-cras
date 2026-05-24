@@ -29,7 +29,7 @@ class SchemaDiffCommand extends Command
         'migrations',
         'password_resets', 'password_reset_tokens', 'personal_access_tokens',
         // Exclusivas do CRAS (seedadas via migrations/seeders)
-        'membros_equipe', 'vistoria_participantes',
+        'vistoria_participantes',
     ];
 
     /**

@@ -16,7 +16,11 @@ class SyncMySqlToPostgres extends Command
 
     private string $backupDir;
 
-    // Colunas MySQL a descartar (desnormalizações ou removidas no v2)
+    /**
+     * Colunas MySQL a descartar (desnormalizações ou removidas no v2).
+     *
+     * @var array<int, string>
+     */
     private array $vistoriasColunasDescartar = [
         'conformidade',
         'estrutura_abrigo_provisorio',

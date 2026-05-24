@@ -58,14 +58,14 @@
                             <input type="file" id="camera-input" accept="image/*" capture="environment" multiple class="hidden">
                             <input type="file" id="gallery-input" name="fotografias[]" accept="image/*" multiple class="hidden">
 
-                            <button type="button" onclick="document.getElementById('camera-input').click()" class="btn btn-primary btn-sm">
+                            <button type="button" x-on:click="document.getElementById('camera-input').click()" class="btn btn-primary btn-sm">
                                 <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
                                 Tirar foto
                             </button>
-                            <button type="button" onclick="document.getElementById('gallery-input').click()" class="btn btn-secondary btn-sm">
+                            <button type="button" x-on:click="document.getElementById('gallery-input').click()" class="btn btn-secondary btn-sm">
                                 <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
@@ -142,7 +142,7 @@
                                 <input type="text" name="nome_social" id="nome_social" value="{{ old('nome_social', $morador->nome_social) }}" required
                                        class="form-input @error('nome_social') is-invalid @enderror"
                                        placeholder="Nome pelo qual deseja ser chamado">
-                                <button type="button" onclick="startVoiceInput('nome_social')" class="voice-btn">
+                                <button type="button" x-on:click="startVoiceInput('nome_social')" class="voice-btn">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                                     </svg>
@@ -159,7 +159,7 @@
                                 <input type="text" name="nome_registro" id="nome_registro" value="{{ old('nome_registro', $morador->nome_registro) }}"
                                        class="form-input"
                                        placeholder="Nome civil (se diferente)">
-                                <button type="button" onclick="startVoiceInput('nome_registro')" class="voice-btn">
+                                <button type="button" x-on:click="startVoiceInput('nome_registro')" class="voice-btn">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                                     </svg>
@@ -173,7 +173,7 @@
                                 <input type="text" name="apelido" id="apelido" value="{{ old('apelido', $morador->apelido) }}"
                                        class="form-input"
                                        placeholder="Como e conhecido">
-                                <button type="button" onclick="startVoiceInput('apelido')" class="voice-btn">
+                                <button type="button" x-on:click="startVoiceInput('apelido')" class="voice-btn">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                                     </svg>
@@ -230,7 +230,7 @@
                                 <textarea name="observacoes" id="observacoes" rows="3"
                                           class="form-input form-textarea"
                                           placeholder="Informacoes adicionais relevantes...">{{ old('observacoes', $morador->observacoes) }}</textarea>
-                                <button type="button" onclick="startVoiceInput('observacoes')" class="voice-btn">
+                                <button type="button" x-on:click="startVoiceInput('observacoes')" class="voice-btn">
                                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                                     </svg>

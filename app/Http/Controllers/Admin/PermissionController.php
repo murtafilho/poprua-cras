@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Support\RoleDisplay;
+use App\Http\Requests\Admin\StorePermissionRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Permission;
 
@@ -23,13 +22,9 @@ class PermissionController extends Controller
         return view('admin.permissions.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StorePermissionRequest $request): RedirectResponse
     {
-        $request->merge(['name' => RoleDisplay::normalizePermission((string) $request->input('name', ''))]);
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9 ]+$/', 'unique:permissions,name'],
-        ]);
+        $validated = $request->validated();
 
         Permission::create(['name' => $validated['name'], 'guard_name' => 'web']);
 

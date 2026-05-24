@@ -99,7 +99,7 @@
                             <td>
                                 @if($vistoria->lat && $vistoria->lng)
                                     <a href="{{ route('mapa.index', ['lat' => $vistoria->lat, 'lng' => $vistoria->lng, 'zoom' => 19, 'ponto_id' => $vistoria->ponto_id, 'ajustar' => 1]) }}"
-                                       style="display: flex; align-items: center; gap: var(--space-2);">
+                                       style="display: flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: var(--space-1) 0;">
                                         <svg style="width: 16px; height: 16px; color: var(--accent-primary); flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -173,7 +173,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <div style="display: flex; gap: var(--space-1); justify-content: center;">
+                                <div style="display: flex; gap: var(--space-1); justify-content: center; align-items: center;">
                                     @if($vistoria->lat && $vistoria->lng)
                                         <a href="{{ route('mapa.index', ['lat' => $vistoria->lat, 'lng' => $vistoria->lng, 'zoom' => 19, 'ponto_id' => $vistoria->ponto_id, 'ajustar' => 1]) }}"
                                            class="btn btn-ghost btn-sm" title="Ver no mapa">

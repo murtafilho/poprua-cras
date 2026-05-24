@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\VistoriaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,10 +13,11 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-/** @extends \Illuminate\Database\Eloquent\Model<Vistoria> */
 class Vistoria extends Model implements HasMedia
 {
+    /** @use HasFactory<VistoriaFactory> */
     use HasFactory;
+
     use InteractsWithMedia;
     use SoftDeletes;
 
@@ -142,31 +144,37 @@ class Vistoria extends Model implements HasMedia
         return $this->belongsTo(ResultadoAcao::class, 'resultado_acao_id');
     }
 
+    /** @return BelongsTo<Encaminhamento, $this> */
     public function encaminhamento1(): BelongsTo
     {
         return $this->belongsTo(Encaminhamento::class, 'e1_id');
     }
 
+    /** @return BelongsTo<Encaminhamento, $this> */
     public function encaminhamento2(): BelongsTo
     {
         return $this->belongsTo(Encaminhamento::class, 'e2_id');
     }
 
+    /** @return BelongsTo<Encaminhamento, $this> */
     public function encaminhamento3(): BelongsTo
     {
         return $this->belongsTo(Encaminhamento::class, 'e3_id');
     }
 
+    /** @return BelongsTo<Encaminhamento, $this> */
     public function encaminhamento4(): BelongsTo
     {
         return $this->belongsTo(Encaminhamento::class, 'e4_id');
     }
 
+    /** @return BelongsTo<Encaminhamento, $this> */
     public function encaminhamento5(): BelongsTo
     {
         return $this->belongsTo(Encaminhamento::class, 'e5_id');
     }
 
+    /** @return BelongsTo<Encaminhamento, $this> */
     public function encaminhamento6(): BelongsTo
     {
         return $this->belongsTo(Encaminhamento::class, 'e6_id');
@@ -185,6 +193,7 @@ class Vistoria extends Model implements HasMedia
         return $this->belongsTo(User::class, 'finalizada_por');
     }
 
+    /** @return HasMany<VistoriaFoto, $this> */
     public function fotos(): HasMany
     {
         return $this->hasMany(VistoriaFoto::class, 'vistoria_id')->orderBy('ordem');
@@ -192,6 +201,8 @@ class Vistoria extends Model implements HasMedia
 
     /**
      * Moradores que entraram no ponto nesta vistoria
+     *
+     * @return HasMany<MoradorHistorico, $this>
      */
     public function moradoresEntrada(): HasMany
     {
@@ -200,6 +211,8 @@ class Vistoria extends Model implements HasMedia
 
     /**
      * Moradores que saíram do ponto nesta vistoria
+     *
+     * @return HasMany<MoradorHistorico, $this>
      */
     public function moradoresSaida(): HasMany
     {

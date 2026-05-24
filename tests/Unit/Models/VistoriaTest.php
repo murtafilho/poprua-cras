@@ -9,6 +9,7 @@ use App\Models\TipoAbordagem;
 use App\Models\TipoAbrigoDesmontado;
 use App\Models\User;
 use App\Models\Vistoria;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -126,7 +127,7 @@ class VistoriaTest extends TestCase
             'data_abordagem' => '2025-06-15 14:30:00',
         ]);
 
-        $this->assertInstanceOf(\Carbon\Carbon::class, $vistoria->data_abordagem);
+        $this->assertInstanceOf(Carbon::class, $vistoria->data_abordagem);
     }
 
     public function test_cast_campos_boolean(): void

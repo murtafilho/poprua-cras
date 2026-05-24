@@ -39,6 +39,9 @@ class GeoController extends Controller
         return $this->geoJsonResponse($request, $data, 'geo:limite');
     }
 
+    /**
+     * @param  array<int, array<string, mixed>>  $data
+     */
     private function geoJsonResponse(Request $request, array $data, string $cacheKey): JsonResponse
     {
         $etag = '"'.md5($cacheKey.serialize($data)).'"';

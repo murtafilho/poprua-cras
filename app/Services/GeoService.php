@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class GeoService
 {
+    /** @return array<int, array<string, mixed>> */
     public function loadBairros(): array
     {
         return DB::table('geo_bairros')
@@ -28,6 +29,7 @@ class GeoService
             ])->all();
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function loadRegionais(): array
     {
         return DB::table('geo_regionais')
@@ -49,6 +51,7 @@ class GeoService
             ])->all();
     }
 
+    /** @return array<int, array<string, mixed>>|null */
     public function loadLimite(): ?array
     {
         $limite = DB::table('geo_limite_municipio')

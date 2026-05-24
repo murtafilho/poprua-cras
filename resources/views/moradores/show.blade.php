@@ -217,7 +217,7 @@
                 Editar
             </a>
             <form action="{{ route('moradores.destroy', $morador) }}" method="POST" class="flex-1"
-                  onsubmit="return confirm('Tem certeza que deseja excluir este morador?')">
+                  x-on:submit="if (!confirm('Tem certeza que deseja excluir este morador?')) $event.preventDefault()">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger w-full">

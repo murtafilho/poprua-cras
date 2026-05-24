@@ -81,7 +81,7 @@
                                         </svg>
                                         <span class="hide-mobile">Editar</span>
                                     </a>
-                                    <form action="{{ route('admin.roles.destroy', $role) }}" method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta role?')">
+                                    <form action="{{ route('admin.roles.destroy', $role) }}" method="POST" style="display: inline;" x-on:submit="if (!confirm('Tem certeza que deseja excluir esta role?')) $event.preventDefault()">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-ghost btn-sm text-danger">

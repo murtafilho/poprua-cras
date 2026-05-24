@@ -3,7 +3,10 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\LazyCollection;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 class MigrateMySqlToPostgres extends Command
 {
@@ -11,6 +14,7 @@ class MigrateMySqlToPostgres extends Command
 
     protected $description = 'Migra dados do MySQL para PostgreSQL com suporte a PostGIS';
 
+    /** @var array<int, string> */
     private array $tables = [
         'users',
         'permissions',
@@ -105,6 +109,10 @@ class MigrateMySqlToPostgres extends Command
         }
     }
 
+    /**
+     * @param  Collection<int, \stdClass>|LazyCollection<int, \stdClass>  $rows
+     * @param  ProgressBar  $bar
+     */
     private function processRows($rows, string $table, $bar): void
     {
         $data = [];
@@ -134,17 +142,29 @@ class MigrateMySqlToPostgres extends Command
         }
     }
 
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
     private function processGeoTable(array $row): array
     {
         // Manter JSON geometry para depois converter
         return $row;
     }
 
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
     private function processEnderecoTable(array $row): array
     {
         return $row;
     }
 
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
     private function processPontosTable(array $row): array
     {
         return $row;

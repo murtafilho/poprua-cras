@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/** @extends \Illuminate\Database\Eloquent\Model<MoradorHistorico> */
 class MoradorHistorico extends Model
 {
     protected $table = 'morador_historicos';
@@ -27,21 +26,25 @@ class MoradorHistorico extends Model
         ];
     }
 
+    /** @return BelongsTo<Morador, $this> */
     public function morador(): BelongsTo
     {
         return $this->belongsTo(Morador::class);
     }
 
+    /** @return BelongsTo<Ponto, $this> */
     public function ponto(): BelongsTo
     {
         return $this->belongsTo(Ponto::class);
     }
 
+    /** @return BelongsTo<Vistoria, $this> */
     public function vistoriaEntrada(): BelongsTo
     {
         return $this->belongsTo(Vistoria::class, 'vistoria_entrada_id');
     }
 
+    /** @return BelongsTo<Vistoria, $this> */
     public function vistoriaSaida(): BelongsTo
     {
         return $this->belongsTo(Vistoria::class, 'vistoria_saida_id');

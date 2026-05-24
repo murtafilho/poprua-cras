@@ -119,6 +119,10 @@ class ImportGeoJson extends Command
         $this->info('Limite do município importado');
     }
 
+    /**
+     * @param  array<string, mixed>  $geometry
+     * @return array<string, mixed>
+     */
     private function convertGeometry(array $geometry): array
     {
         $converted = [
@@ -129,6 +133,10 @@ class ImportGeoJson extends Command
         return $converted;
     }
 
+    /**
+     * @param  array<mixed>  $coords
+     * @return array<mixed>
+     */
     private function convertCoordinates(array $coords, string $type): array
     {
         return match ($type) {
@@ -140,6 +148,10 @@ class ImportGeoJson extends Command
         };
     }
 
+    /**
+     * @param  array<int, float>  $coords
+     * @return array<int, float>
+     */
     private function convertPoint(array $coords): array
     {
         $point = new Point($coords[0], $coords[1], $this->utmProj);

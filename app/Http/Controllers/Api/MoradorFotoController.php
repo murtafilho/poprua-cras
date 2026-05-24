@@ -3,14 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreMoradorFotoRequest;
 use App\Models\Morador;
+use App\Services\FotoService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 
 class MoradorFotoController extends Controller
 {
+    public function __construct(
+        private readonly FotoService $fotoService,
+    ) {}
+
     public function index(Morador $morador): JsonResponse
     {
         $morador->loadMissing('media');
@@ -18,19 +23,13 @@ class MoradorFotoController extends Controller
         $fotos = $morador->getMedia('fotos')
             ->sortByDesc('created_at')
             ->values()
-            ->map(fn (Media $m) => $this->serializeMedia($m));
+            ->map(fn (Media $m) => $this->fotoService->serializarMedia($m));
 
         return response()->json(['fotos' => $fotos]);
     }
 
-    public function store(Request $request, Morador $morador): JsonResponse
+    public function store(StoreMoradorFotoRequest $request, Morador $morador): JsonResponse
     {
-        $request->validate([
-            'foto' => ['required_without:fotos', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
-            'fotos' => ['required_without:foto', 'array'],
-            'fotos.*' => ['image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
-        ]);
-
         $arquivos = $request->hasFile('fotos')
             ? $request->file('fotos')
             : [$request->file('foto')];
@@ -39,18 +38,12 @@ class MoradorFotoController extends Controller
         $criadas = [];
 
         foreach ($arquivos as $arquivo) {
-            $safeName = preg_replace(
-                '/[^a-zA-Z0-9._-]/',
-                '_',
-                pathinfo($arquivo->getClientOriginalName(), PATHINFO_FILENAME)
+            $criadas[] = $this->fotoService->adicionarFoto(
+                $morador,
+                $arquivo,
+                'fotos',
+                ['uploaded_by_user_id' => $userId],
             );
-
-            $media = $morador->addMedia($arquivo)
-                ->usingName($safeName)
-                ->withCustomProperties(['uploaded_by_user_id' => $userId])
-                ->toMediaCollection('fotos');
-
-            $criadas[] = $this->serializeMedia($media);
         }
 
         return response()->json(
@@ -63,7 +56,7 @@ class MoradorFotoController extends Controller
     {
         if ($media !== null) {
             if ($media->model_type !== $morador->getMorphClass() || $media->model_id !== $morador->id) {
-                return response()->json(['error' => 'Foto nao pertence a este morador.'], Response::HTTP_FORBIDDEN);
+                return response()->json(['error' => 'Foto não pertence a este morador.'], Response::HTTP_FORBIDDEN);
             }
             $media->delete();
         } else {
@@ -71,18 +64,5 @@ class MoradorFotoController extends Controller
         }
 
         return response()->json(['success' => true]);
-    }
-
-    /** @return array<string, mixed> */
-    private function serializeMedia(Media $media): array
-    {
-        return [
-            'id' => $media->id,
-            'name' => $media->name,
-            'url' => $media->getUrl(),
-            'thumb' => $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : $media->getUrl(),
-            'preview' => $media->hasGeneratedConversion('preview') ? $media->getUrl('preview') : $media->getUrl(),
-            'created_at' => $media->created_at->toIso8601String(),
-        ];
     }
 }

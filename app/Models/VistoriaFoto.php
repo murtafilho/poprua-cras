@@ -27,6 +27,7 @@ class VistoriaFoto extends Model
         ];
     }
 
+    /** @return BelongsTo<Vistoria, $this> */
     public function vistoria(): BelongsTo
     {
         return $this->belongsTo(Vistoria::class, 'vistoria_id');

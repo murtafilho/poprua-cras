@@ -20,7 +20,7 @@
     </style>
 </head>
 <body>
-    <button class="print-btn" onclick="window.print()">Imprimir / Salvar PDF</button>
+    <button class="print-btn" x-on:click="window.print()">Imprimir / Salvar PDF</button>
 
     <h1>Roteiro de Acoes de Zeladoria</h1>
     <p class="subtitle">

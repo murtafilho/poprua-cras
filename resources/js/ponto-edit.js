@@ -1,3 +1,5 @@
+import L from './leaflet-setup';
+
 document.addEventListener('DOMContentLoaded', function() {
 const APP_BASE = document.querySelector('meta[name="app-base"]').content;
 const latInput = document.getElementById('lat');

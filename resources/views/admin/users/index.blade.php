@@ -69,7 +69,7 @@
                                 <form action="{{ route('admin.users.roles.update', $user) }}" method="POST">
                                     @csrf
                                     @method('PUT')
-                                    <select name="role" class="form-input form-select" style="min-width: 120px;" onchange="this.form.submit()">
+                                    <select name="role" class="form-input form-select" style="min-width: 120px;" x-on:change="$event.target.form.submit()">
                                         <option value="">Sem role</option>
                                         @foreach($roles as $role)
                                             <option value="{{ $role->name }}" {{ $user->hasRole($role->name) ? 'selected' : '' }}>
