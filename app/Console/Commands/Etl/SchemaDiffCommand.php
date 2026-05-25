@@ -28,8 +28,10 @@ class SchemaDiffCommand extends Command
         'jobs', 'job_batches', 'failed_jobs',
         'migrations',
         'password_resets', 'password_reset_tokens', 'personal_access_tokens',
-        // Exclusivas do CRAS (seedadas via migrations/seeders)
+        // Exclusivas do CRAS (seedadas via migrations/seeders ou geridas localmente)
         'vistoria_participantes',
+        'parametros',   // criada pela migration 2026_05_24_220930 — config local
+        'user_team',    // gestao de equipes local do CRAS
     ];
 
     /**
@@ -41,12 +43,30 @@ class SchemaDiffCommand extends Command
     private const EXPECTED_DIVERGENCES = [
         'moradores' => ['drop' => ['fotografia'], 'add' => []],
         'pontos' => ['drop' => [], 'add' => ['deleted_at']],
+        'users' => ['drop' => [], 'add' => ['ativo']],
         'vistorias' => ['drop' => [], 'add' => [
             'finalizada', 'finalizada_em', 'finalizada_por',
             'data_prevista_zeladoria', 'periodo_zeladoria',
             'houve_lavratura', 'tipo_protocolo',
             'cancelada', 'cancelada_em', 'cancelada_por',
+            'houve_comunicado', 'data_comunicado',
         ]],
+    ];
+
+    /**
+     * Mismatches de TIPO esperados (registrados aqui para nao sinalizar como inesperado).
+     * Estrutura: tabela => coluna => ['cras' => udt_name, 'geo' => udt_name].
+     * Quando registrado, migrate.sql tem que fazer cast explicito no INSERT.
+     *
+     * @var array<string, array<string, array{cras: string, geo: string}>>
+     */
+    private const EXPECTED_TYPE_DIFFS = [
+        // 2026_05_20_240000_promote_date_to_timestamp.php: CRAS promoveu data_entrada/saida
+        // de date -> timestamp; migrate.sql faz cast explicito ::timestamp.
+        'morador_historicos' => [
+            'data_entrada' => ['cras' => 'timestamp', 'geo' => 'date'],
+            'data_saida' => ['cras' => 'timestamp', 'geo' => 'date'],
+        ],
     ];
 
     public function handle(): int
@@ -199,9 +219,19 @@ class SchemaDiffCommand extends Command
             $newInCras = array_values(array_diff($crasCols, $geoCols));
             $droppedInCras = array_values(array_diff($geoCols, $crasCols));
             $typeMismatch = [];
+            $unexpectedTypeMismatch = [];
+            $expectedTypes = self::EXPECTED_TYPE_DIFFS[$t] ?? [];
             foreach (array_intersect($crasCols, $geoCols) as $col) {
                 if ($cras[$t][$col] !== $geo[$t][$col]) {
-                    $typeMismatch[$col] = ['cras' => $cras[$t][$col], 'geo' => $geo[$t][$col]];
+                    $diff = ['cras' => $cras[$t][$col], 'geo' => $geo[$t][$col]];
+                    $typeMismatch[$col] = $diff;
+                    // Marca como inesperado se nao estiver em EXPECTED_TYPE_DIFFS
+                    // ou se os tipos esperados nao baterem com os observados.
+                    if (! isset($expectedTypes[$col])
+                        || $expectedTypes[$col]['cras'] !== $diff['cras']
+                        || $expectedTypes[$col]['geo'] !== $diff['geo']) {
+                        $unexpectedTypeMismatch[$col] = $diff;
+                    }
                 }
             }
 
@@ -215,7 +245,7 @@ class SchemaDiffCommand extends Command
             $missingAdd = array_diff($expected['add'], $newInCras);
             $missingDrop = array_diff($expected['drop'], $droppedInCras);
 
-            $tableLabel = ($unexpectedAdd || $unexpectedDrop || $missingAdd || $missingDrop || $typeMismatch)
+            $tableLabel = ($unexpectedAdd || $unexpectedDrop || $missingAdd || $missingDrop || $unexpectedTypeMismatch)
                 ? "<fg=red>{$t}</> (precisa atencao)"
                 : "<fg=green>{$t}</> (bate com migrate.sql)";
             $this->line($tableLabel);
@@ -227,8 +257,11 @@ class SchemaDiffCommand extends Command
                 $this->line('  dropadas em CRAS: '.implode(', ', $droppedInCras));
             }
             foreach ($typeMismatch as $col => $t2) {
-                $this->line("  tipo divergente em {$col}: CRAS={$t2['cras']} | Geo={$t2['geo']}");
-                $unexpected = true;
+                $tag = isset($unexpectedTypeMismatch[$col]) ? '' : ' (esperado, cast no migrate.sql)';
+                $this->line("  tipo divergente em {$col}: CRAS={$t2['cras']} | Geo={$t2['geo']}{$tag}");
+                if (isset($unexpectedTypeMismatch[$col])) {
+                    $unexpected = true;
+                }
             }
             if ($unexpectedAdd) {
                 $this->error('  INESPERADO add: '.implode(', ', $unexpectedAdd));

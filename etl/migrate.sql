@@ -77,7 +77,15 @@ INSERT INTO public.roles SELECT * FROM etl_geo.roles;
 INSERT INTO public.permissions SELECT * FROM etl_geo.permissions;
 INSERT INTO public.role_has_permissions SELECT * FROM etl_geo.role_has_permissions;
 
-INSERT INTO public.users SELECT * FROM etl_geo.users;
+-- users: + ativo (nova em CRAS, default true para usuarios herdados do Geo)
+INSERT INTO public.users (
+    id, name, email, email_verified_at, password, remember_token,
+    created_at, updated_at, ativo
+)
+SELECT
+    id, name, email, email_verified_at, password, remember_token,
+    created_at, updated_at, TRUE
+FROM etl_geo.users;
 INSERT INTO public.model_has_permissions SELECT * FROM etl_geo.model_has_permissions;
 INSERT INTO public.model_has_roles SELECT * FROM etl_geo.model_has_roles;
 
@@ -139,7 +147,8 @@ INSERT INTO public.vistorias (
     finalizada, finalizada_em, finalizada_por,
     data_prevista_zeladoria, periodo_zeladoria,
     houve_lavratura, tipo_protocolo,
-    cancelada, cancelada_em, cancelada_por
+    cancelada, cancelada_em, cancelada_por,
+    houve_comunicado, data_comunicado
 )
 SELECT
     id, data_abordagem, nomes_pessoas, quantidade_pessoas, tipo_abordagem_id,
@@ -160,11 +169,23 @@ SELECT
     FALSE, NULL, NULL, NULL, NULL, FALSE, NULL,
     -- cancelada (bool NOT NULL default false), cancelada_em (ts null),
     -- cancelada_por (FK null)
-    FALSE, NULL, NULL
+    FALSE, NULL, NULL,
+    -- houve_comunicado (bool NOT NULL default false), data_comunicado (date null)
+    -- (workflow zeladoria — etapa "comunicado de obstrução")
+    FALSE, NULL
 FROM etl_geo.vistorias;
 
 INSERT INTO public.vistoria_fotos SELECT * FROM etl_geo.vistoria_fotos;
-INSERT INTO public.morador_historicos SELECT * FROM etl_geo.morador_historicos;
+-- morador_historicos: data_entrada/data_saida sao DATE no Geo e TIMESTAMP no CRAS.
+-- Cast explicito evita ambiguidade no FDW e documenta a divergencia.
+INSERT INTO public.morador_historicos (
+    id, morador_id, ponto_id, vistoria_entrada_id, vistoria_saida_id,
+    data_entrada, data_saida, created_at, updated_at
+)
+SELECT
+    id, morador_id, ponto_id, vistoria_entrada_id, vistoria_saida_id,
+    data_entrada::timestamp, data_saida::timestamp, created_at, updated_at
+FROM etl_geo.morador_historicos;
 INSERT INTO public.media SELECT * FROM etl_geo.media;
 
 -- -----------------------------------------------------------------------------

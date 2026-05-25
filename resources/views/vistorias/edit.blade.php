@@ -16,29 +16,29 @@
 
 @section('content')
     <div class="form-page">
-        <form id="vistoria-form" action="{{ route('vistorias.update', $vistoria) }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate>
+        <form id="vistoria-form" action="{{ route('vistorias.update', $vistoria) }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate x-data="{}">
             @csrf
             @method('PUT')
 
             <!-- Progress Stepper -->
             <div class="progress-stepper" id="progress-stepper">
-                <div class="stepper-item active" data-step="0" x-on:click="goToStep(0)">
+                <div class="stepper-item active" data-step="0" onclick="goToStep(0)">
                     <div class="stepper-circle">1</div>
                     <span class="stepper-label">Dados</span>
                 </div>
-                <div class="stepper-item" data-step="1" x-on:click="goToStep(1)">
+                <div class="stepper-item" data-step="1" onclick="goToStep(1)">
                     <div class="stepper-circle">2</div>
                     <span class="stepper-label">Caract.</span>
                 </div>
-                <div class="stepper-item" data-step="2" x-on:click="goToStep(2)">
+                <div class="stepper-item" data-step="2" onclick="goToStep(2)">
                     <div class="stepper-circle">3</div>
                     <span class="stepper-label">Relatorio</span>
                 </div>
-                <div class="stepper-item" data-step="3" x-on:click="goToStep(3)">
+                <div class="stepper-item" data-step="3" onclick="goToStep(3)">
                     <div class="stepper-circle">4</div>
                     <span class="stepper-label">Fotos</span>
                 </div>
-                <div class="stepper-item" data-step="4" x-on:click="goToStep(4)">
+                <div class="stepper-item" data-step="4" onclick="goToStep(4)">
                     <div class="stepper-circle">5</div>
                     <span class="stepper-label">Revisar</span>
                 </div>
@@ -715,11 +715,11 @@
 
             <!-- Navegação entre abas -->
             <div class="form-step-nav" id="form-step-nav">
-                <button type="button" id="btn-prev" class="btn btn-secondary" x-on:click="goToStep(Math.max(0, window.__currentTab - 1))" style="display: none;">
+                <button type="button" id="btn-prev" class="btn btn-secondary" onclick="goToStep(Math.max(0, window.__currentTab - 1))" style="display: none;">
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     Anterior
                 </button>
-                <button type="button" id="btn-next" class="btn btn-primary" x-on:click="goToStep(Math.min(4, window.__currentTab + 1))">
+                <button type="button" id="btn-next" class="btn btn-primary" onclick="goToStep(Math.min(4, window.__currentTab + 1))">
                     Próximo
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>

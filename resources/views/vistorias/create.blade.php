@@ -16,7 +16,7 @@
 
 @section('content')
     <div class="form-page">
-        <form id="vistoria-form" action="{{ route('vistorias.store') }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate>
+        <form id="vistoria-form" action="{{ route('vistorias.store') }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate x-data="{}">
             @csrf
             <input type="hidden" name="lat" value="{{ $lat }}">
             <input type="hidden" name="lng" value="{{ $lng }}">
@@ -26,29 +26,33 @@
 
             <!-- Progress Stepper -->
             <div class="progress-stepper" id="progress-stepper" role="tablist" aria-label="Etapas da vistoria">
-                <div class="stepper-item active" data-step="0" x-on:click="goToStep(0)">
+                <div class="stepper-item active" data-step="0" onclick="goToStep(0)">
                     <div class="stepper-circle">1</div>
                     <span class="stepper-label">Dados</span>
                 </div>
-                <div class="stepper-item" data-step="1" x-on:click="goToStep(1)">
+                <div class="stepper-item" data-step="1" onclick="goToStep(1)">
                     <div class="stepper-circle">2</div>
                     <span class="stepper-label">Caract.</span>
                 </div>
-                <div class="stepper-item" data-step="2" x-on:click="goToStep(2)">
+                <div class="stepper-item" data-step="2" onclick="goToStep(2)">
                     <div class="stepper-circle">3</div>
                     <span class="stepper-label">Relatorio</span>
                 </div>
-                <div class="stepper-item" data-step="3" x-on:click="goToStep(3)">
+                <div class="stepper-item" data-step="3" onclick="goToStep(3)">
                     <div class="stepper-circle">4</div>
                     <span class="stepper-label">Pessoas</span>
                 </div>
-                <div class="stepper-item" data-step="4" x-on:click="goToStep(4)">
+                <div class="stepper-item" data-step="4" onclick="goToStep(4)">
                     <div class="stepper-circle">5</div>
+                    <span class="stepper-label">Fotos</span>
+                </div>
+                <div class="stepper-item" data-step="5" onclick="goToStep(5)">
+                    <div class="stepper-circle">6</div>
                     <span class="stepper-label">Revisar</span>
                 </div>
             </div>
             <div class="step-indicator">
-                <span id="step-indicator">Etapa <span class="step-indicator-text">1</span> de <span class="step-indicator-text">5</span></span>
+                <span id="step-indicator">Etapa <span class="step-indicator-text">1</span> de <span class="step-indicator-text">6</span></span>
             </div>
 
             <!-- Conteudo das Abas -->
@@ -612,7 +616,10 @@
                             </p>
                         </div>
                     </div>
+                </div>
 
+                <!-- Aba 5: Fotos da Vistoria -->
+                <div class="tab-content hidden" data-tab="4">
                     <div class="card mb-4">
                         <div class="card-body">
                             <label class="form-label mb-3">Fotos da Vistoria</label>
@@ -657,8 +664,8 @@
                     </div>
                 </div>
 
-                <!-- Aba 5: Revisar e Finalizar -->
-                <div class="tab-content hidden" data-tab="4">
+                <!-- Aba 6: Revisar e Finalizar -->
+                <div class="tab-content hidden" data-tab="5">
                     <div class="card mb-4">
                         <div class="card-body">
                             <h3 class="form-section-title">
