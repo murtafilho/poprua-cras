@@ -8,7 +8,7 @@ window.addEventListener('beforeunload', function(e) {
 });
 
 let currentTab = 0;
-const totalTabs = 6;
+const totalTabs = 7;
 let visitedSteps = new Set([0]);
 let recognition = null;
 let activeInput = null;
@@ -16,7 +16,7 @@ let fotosSelecionadas = [];
 let novosMoradores = [];
 const tiposAbrigo = window.VISTORIA_TIPOS_ABRIGO;
 
-const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Pessoas', 'Fotos', 'Revisar'];
+const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Encam.', 'Pessoas', 'Fotos', 'Revisar'];
 const checkmarkSVG = '<svg class="stepper-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
 
 
@@ -62,7 +62,7 @@ function showTab(index) {
     });
 
     // Ao entrar na aba de revisao, montar checklist
-    if (index === 5) {
+    if (index === 6) {
         buildReviewChecklist();
     }
 
@@ -117,7 +117,7 @@ function buildReviewChecklist() {
         },
         {
             label: 'Fotos anexadas',
-            step: 3,
+            step: 5,
             check: () => fotosSelecionadas.length > 0,
             optional: true
         }
