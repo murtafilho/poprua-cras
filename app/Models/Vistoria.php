@@ -77,6 +77,8 @@ class Vistoria extends Model implements HasMedia
         'cancelada_por',
         'data_prevista_zeladoria',
         'periodo_zeladoria',
+        'houve_comunicado',
+        'data_comunicado',
         'ponto_id',
         'user_id',
     ];
@@ -111,6 +113,8 @@ class Vistoria extends Model implements HasMedia
             'cancelada' => 'boolean',
             'cancelada_em' => 'datetime',
             'data_prevista_zeladoria' => 'datetime',
+            'houve_comunicado' => 'boolean',
+            'data_comunicado' => 'date',
         ];
     }
 

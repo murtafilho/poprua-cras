@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Parametro;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -14,28 +15,54 @@ class UpdateVistoriaRequest extends FormRequest
     }
 
     /**
-     * Garante que cada participante tenha a permission 'participar de equipes vistoria'.
+     * Validacoes after() compostas — espelha StoreVistoriaRequest:
+     *  1. Participantes — todos tem que ter a permission 'participar de equipes vistoria'.
+     *  2. Comunicado obrigatorio — se parametro `exigir_comunicado` ligado,
+     *     nao agendar zeladoria sem houve_comunicado=Sim na mesma vistoria.
      */
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $v) {
-            /** @var array<int, mixed> $participantes */
-            $participantes = $this->input('participantes', []);
-            $ids = collect($participantes)->filter()->unique()->values()->all();
-            if (empty($ids)) {
-                return;
-            }
-            $autorizados = User::query()
-                ->where('ativo', true)
-                ->permission('participar de equipes vistoria')
-                ->whereIn('id', $ids)
-                ->pluck('id')
-                ->all();
-            $invalidos = array_diff($ids, $autorizados);
-            if (! empty($invalidos)) {
-                $v->errors()->add('participantes', 'Há participantes selecionados que não estão autorizados a participar de equipes de vistoria.');
-            }
+            $this->validateParticipantes($v);
+            $this->validateComunicadoObrigatorio($v);
         });
+    }
+
+    private function validateParticipantes(Validator $v): void
+    {
+        /** @var array<int, mixed> $participantes */
+        $participantes = $this->input('participantes', []);
+        $ids = collect($participantes)->filter()->unique()->values()->all();
+        if (empty($ids)) {
+            return;
+        }
+        $autorizados = User::query()
+            ->where('ativo', true)
+            ->permission('participar de equipes vistoria')
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->all();
+        $invalidos = array_diff($ids, $autorizados);
+        if (! empty($invalidos)) {
+            $v->errors()->add('participantes', 'Há participantes selecionados que não estão autorizados a participar de equipes de vistoria.');
+        }
+    }
+
+    private function validateComunicadoObrigatorio(Validator $v): void
+    {
+        if (! Parametro::get('exigir_comunicado', false)) {
+            return;
+        }
+
+        $agendouZeladoria = ! empty($this->input('data_prevista_zeladoria'));
+        $temComunicado = $this->boolean('houve_comunicado');
+
+        if ($agendouZeladoria && ! $temComunicado) {
+            $v->errors()->add(
+                'houve_comunicado',
+                'Comunicado prévio é obrigatório para agendar zeladoria (parâmetro exigir_comunicado está ligado).'
+            );
+        }
     }
 
     /** @return array<string, mixed> */
