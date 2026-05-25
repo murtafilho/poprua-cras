@@ -707,7 +707,7 @@
 
     <!-- Modal Adicionar/Editar Morador -->
     <div id="modal-morador" class="modal-overlay hidden" x-data="{}" x-on:click.self="fecharModalMorador()">
-        <div class="modal modal-bottom" x-on:click.stop>
+        <div class="modal" x-on:click.stop>
             <div class="modal-header">
                 <h3 id="modal-morador-titulo" class="modal-title">Nova Pessoa</h3>
                 <button type="button" x-on:click="fecharModalMorador()" class="btn btn-ghost btn-icon btn-sm">
