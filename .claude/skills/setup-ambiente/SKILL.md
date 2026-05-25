@@ -189,6 +189,34 @@ ALTER SYSTEM SET checkpoint_completion_target = 0.9;
 ssh sufis "sudo docker restart pg17-poprua-cras"
 ```
 
+## Parametros da Aplicacao (tabela `parametros`)
+
+Configuracao da app (nao do ambiente) que opera SUFIS edita pela UI em
+`/admin/parametros`. Lida pelo codigo via `App\Models\Parametro::get($chave, $default)`.
+
+| Chave | Grupo | Tipo | Default | Lido em |
+|---|---|---|---|---|
+| `app_nome` | geral | string | POPRUA CRAS | layouts, titulos |
+| `app_orgao` | geral | string | Prefeitura de Belo Horizonte | layouts, relatorios |
+| `info_precaria_dias` | workflow | integer | 60 | `PontoService::infoPrecariaDias()` (status "Informacao Precaria" para pontos sem vistoria ha mais de N dias) |
+| `exigir_comunicado` | workflow | boolean | 0 (off) | `Store/UpdateVistoriaRequest::validateComunicadoObrigatorio()` — se ligado, bloqueia agendar `data_prevista_zeladoria` sem `houve_comunicado=Sim` na mesma vistoria |
+| `vistorias_por_pagina` | listagem | integer | 5 | listagens paginadas |
+| `mapa_centro_lat` / `mapa_centro_lng` / `mapa_zoom_padrao` | mapa | float / float / integer | -19.9135 / -43.9514 / 13 | mapa Leaflet |
+| `peso_*` (16 fatores) | complexidade | integer | varia | `Ponto::calcularComplexidade()` — multiplicadores VI-SPDAT |
+| `complexidade_critico/alto/medio` | complexidade | integer | 8 / 5 / 3 | thresholds de classificacao de pontos |
+
+### Habilitar `exigir_comunicado`
+
+Quando SUFIS quiser impor que toda zeladoria agendada tenha comunicado previo:
+
+```bash
+ssh sufis "sudo docker exec php84-poprua-cras php artisan tinker --execute \"App\\Models\\Parametro::set('exigir_comunicado', '1');\""
+```
+
+Ou via UI: `/admin/parametros` → grupo Workflow → editar valor. Validacao
+ja esta wired-up nos requests (vide `validateComunicadoObrigatorio`). Default
+e `0` (off) para nao quebrar instalacoes existentes sem aviso.
+
 ## Checklist de Configuracao
 
 ### Producao

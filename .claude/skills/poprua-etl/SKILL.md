@@ -16,7 +16,8 @@ description: >
 user-invocable: true
 allowed-tools: Read, Grep, Bash, Write, Edit
 argument-hint: [diff|run|status]
-version: 1.0.0
+version: 1.1.0
+updated: 2026-05-25
 ---
 
 # POPRUA ETL — Geo → CRAS (one-shot)
@@ -158,7 +159,26 @@ sudo docker exec pg17-poprua-cras pg_dump -Fc -U poprua_cras poprua_cras > backu
 - omitir do `INSERT INTO public.<tabela> (..., **sem ela**, ...)`
 
 **Tabela nova no CRAS:** adicionar em `IGNORED` no `SchemaDiffCommand` (sera
-seedada via migrations/seeders, nao via ETL).
+seedada via migrations/seeders, nao via ETL). Exemplos atuais: `parametros`,
+`user_team`, `vistoria_participantes`.
+
+**Tipo de coluna divergente CRAS×Geo** (ex: `morador_historicos.data_entrada`
+virou `timestamp` no CRAS via migration `2026_05_20_240000_promote_date_to_timestamp`,
+ainda e `date` no Geo):
+- registrar em `EXPECTED_TYPE_DIFFS[$tabela][$coluna] = ['cras' => 'timestamp', 'geo' => 'date']`
+  no `SchemaDiffCommand` (suprime o "INESPERADO" do schema-diff)
+- cast explicito no `INSERT`: `data_entrada::timestamp` em vez de `SELECT *`
+  (evita ambiguidade do FDW; documenta a divergencia inline)
+
+**Coluna nova no CRAS sem equivalente no Geo** (ex: `users.ativo` adicionado
+no CRAS, nao existe no Geo):
+- adicionar em `EXPECTED_DIVERGENCES[$tabela]['add']`
+- no `INSERT` da tabela, **listar colunas explicitamente** (nao `SELECT *`) e
+  preencher a coluna nova com o default desejado para registros herdados
+  (ex: `TRUE` para `users.ativo`)
+- Quebra do `SELECT *`: se a coluna so existe no destino, o FDW devolve N
+  colunas e o INSERT espera N+1 — erro silencioso no Postgres em alguns
+  casos, ou erro de "column count mismatch" no FDW.
 
 ## Validacao pos-execucao
 
@@ -198,6 +218,45 @@ Migration nova foi aplicada no CRAS. Atualizar `EXPECTED_DIVERGENCES` em
 
 `migrate.sql` e idempotente (TRUNCATE ... RESTART IDENTITY no inicio). Pode
 rodar varias vezes. Util para ensaios iterativos durante o cutover.
+
+### `password authentication failed for user "poprua"` no schema-diff
+
+Pegadinha conhecida (2026-05-25). O `POSTGRES_PASSWORD` do compose do
+`pg17-poprua-geo` foi sobrescrito depois do volume ser inicializado. A senha
+REAL do user `poprua` esta em `/var/www/html/joomla_sufis/ginfi/poprua-geo/.env`
+como `DB_PASSWORD` (mesma usada pela app Laravel poprua-geo). NAO copie do
+`POSTGRES_PASSWORD` do `/opt/docker/poprua-geo/.env` — esse valor e historico.
+
+Teste rapido antes de gastar tempo:
+```bash
+sudo docker exec php84-poprua-cras sh -c \
+  'PGPASSWORD="<senha>" psql -h pg17-poprua-geo -U poprua -d poprua_geo -c "SELECT 1"'
+```
+
+O `pg_hba` do Geo usa `trust` no socket local (por isso `docker exec
+pg17-poprua-geo psql -U poprua` da a falsa impressao de OK), mas `scram-sha-256`
+na rede — onde o FDW e o schema-diff se conectam.
+
+---
+
+## Changelog
+
+### v1.1.0 (2026-05-25)
+
+- Documentado caso "Tipo divergente CRAS×Geo" e a constante `EXPECTED_TYPE_DIFFS`.
+- Documentado caso "Coluna nova no CRAS sem equivalente" e a obrigacao de
+  listar colunas no INSERT em vez de `SELECT *`.
+- Listado tabelas atuais em `IGNORED` (parametros, user_team, vistoria_participantes).
+- Adicionada secao "password authentication failed" em troubleshooting,
+  apontando para `/var/www/html/joomla_sufis/ginfi/poprua-geo/.env DB_PASSWORD`.
+- Ajustes reais no `migrate.sql` desta sessao:
+  - INSERT users explicito com `ativo=TRUE`
+  - vistorias inclui `houve_comunicado` e `data_comunicado` (defaults `FALSE, NULL`)
+  - morador_historicos com cast `::timestamp` em `data_entrada` e `data_saida`
+- Sincronizacoes no `SchemaDiffCommand.php`:
+  - `IGNORED`: + parametros, user_team
+  - `EXPECTED_DIVERGENCES`: + users.add=ativo, + vistorias.add=houve_comunicado/data_comunicado
+  - Nova constante `EXPECTED_TYPE_DIFFS` (morador_historicos.data_entrada/saida)
 
 ## Limitacoes conscientes
 
