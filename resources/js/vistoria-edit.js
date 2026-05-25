@@ -10,7 +10,7 @@ window.addEventListener('beforeunload', function(e) {
 });
 
 let currentTab = 0;
-const totalTabs = 5;
+const totalTabs = 7;
 let visitedSteps = new Set([0]);
 let recognition = null;
 let activeInput = null;
@@ -19,7 +19,7 @@ let fotosParaRemover = [];
 const tiposAbrigo = window.VISTORIA_TIPOS_ABRIGO;
 const abrigosTiposSelecionados = window.VISTORIA_ABRIGOS_SELECIONADOS;
 
-const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Fotos', 'Revisar'];
+const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Encam.', 'Pessoas', 'Fotos', 'Revisar'];
 const checkmarkSVG = '<svg class="stepper-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
 
 document.addEventListener('DOMContentLoaded', function() {

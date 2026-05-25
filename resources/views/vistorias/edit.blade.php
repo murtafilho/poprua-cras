@@ -36,15 +36,23 @@
                 </div>
                 <div class="stepper-item" data-step="3" onclick="goToStep(3)">
                     <div class="stepper-circle">4</div>
-                    <span class="stepper-label">Fotos</span>
+                    <span class="stepper-label">Encam.</span>
                 </div>
                 <div class="stepper-item" data-step="4" onclick="goToStep(4)">
                     <div class="stepper-circle">5</div>
+                    <span class="stepper-label">Pessoas</span>
+                </div>
+                <div class="stepper-item" data-step="5" onclick="goToStep(5)">
+                    <div class="stepper-circle">6</div>
+                    <span class="stepper-label">Fotos</span>
+                </div>
+                <div class="stepper-item" data-step="6" onclick="goToStep(6)">
+                    <div class="stepper-circle">7</div>
                     <span class="stepper-label">Revisar</span>
                 </div>
             </div>
             <div class="step-indicator">
-                <span id="step-indicator">Etapa <span class="step-indicator-text">1</span> de <span class="step-indicator-text">5</span></span>
+                <span id="step-indicator">Etapa <span class="step-indicator-text">1</span> de <span class="step-indicator-text">7</span></span>
             </div>
 
             <!-- Conteudo das Abas -->
@@ -429,7 +437,24 @@
                         </div>
                     </div>
 
-                    <!-- Encaminhamentos -->
+                    <!-- Relatorio Descritivo -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <label class="form-label">Relatorio Descritivo da Acao</label>
+                            <div class="input-with-voice">
+                                <textarea name="observacao" id="observacao" rows="8" placeholder="Descreva detalhadamente a acao realizada..." class="form-input form-textarea" style="min-height: 200px;">{{ $vistoria->observacao }}</textarea>
+                                <button type="button" x-on:click="startVoiceInput('observacao')" class="voice-btn">
+                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba 4: Encaminhamentos -->
+                <div class="tab-content hidden" data-tab="3">
                     <div class="card mb-4">
                         <div class="card-body">
                             <h3 class="form-section-title">Encaminhamentos</h3>
@@ -453,25 +478,10 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Relatorio Descritivo -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <label class="form-label">Relatorio Descritivo da Acao</label>
-                            <div class="input-with-voice">
-                                <textarea name="observacao" id="observacao" rows="8" placeholder="Descreva detalhadamente a acao realizada..." class="form-input form-textarea" style="min-height: 200px;">{{ $vistoria->observacao }}</textarea>
-                                <button type="button" x-on:click="startVoiceInput('observacao')" class="voice-btn">
-                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Aba 4: Moradores e Fotos -->
-                <div class="tab-content hidden" data-tab="3">
+                <!-- Aba 5: Pessoas no Ponto -->
+                <div class="tab-content hidden" data-tab="4">
                     <!-- Pessoas no Ponto -->
                     <div class="card mb-4">
                         <div class="card-body">
@@ -541,6 +551,10 @@
                         </div>
                     </div>
 
+                </div>
+
+                <!-- Aba 6: Fotos da Vistoria -->
+                <div class="tab-content hidden" data-tab="5">
                     <!-- Fotos -->
                     <div class="card mb-4">
                         <div class="card-body">
@@ -674,8 +688,8 @@
                     </div>
                 </div>
 
-                <!-- Aba 5: Revisar e Finalizar -->
-                <div class="tab-content hidden" data-tab="4">
+                <!-- Aba 7: Revisar e Finalizar -->
+                <div class="tab-content hidden" data-tab="6">
                     <div class="card mb-4">
                         <div class="card-body">
                             <h3 class="form-section-title">
