@@ -123,22 +123,6 @@
                                 </select>
                             </div>
 
-                            <div id="zeladoria-campos" class="hidden">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="form-group">
-                                        <label class="form-label">Data Prevista da Zeladoria</label>
-                                        <input type="datetime-local" name="data_prevista_zeladoria" class="form-input" value="{{ old('data_prevista_zeladoria') }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Periodo</label>
-                                        <select name="periodo_zeladoria" class="form-input form-select">
-                                            <option value="">Selecione...</option>
-                                            <option value="manha">Manha</option>
-                                            <option value="tarde">Tarde</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -443,9 +427,12 @@
                                 </div>
                             </div>
 
-                            <!-- Comunicado -->
+                            <!-- Comunicado de Zeladoria -->
                             <div class="form-group">
-                                <label class="form-label">Houve Comunicado</label>
+                                <label class="form-label">Houve Comunicado entregue?</label>
+                                <p class="form-hint" style="margin-top: -4px; margin-bottom: var(--space-2);">
+                                    Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
+                                </p>
                                 <div class="radio-group">
                                     <label class="radio-option">
                                         <input type="radio" name="houve_comunicado" value="1" x-on:change="toggleComunicado()" class="form-radio">
@@ -456,9 +443,25 @@
                                         <span>Não</span>
                                     </label>
                                 </div>
-                                <div id="data_comunicado_container" class="mt-2 hidden">
-                                    <label class="form-label">Data do Comunicado</label>
-                                    <input type="date" name="data_comunicado" class="form-input">
+                                <div id="data_comunicado_container" class="mt-3 hidden">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="form-group">
+                                            <label class="form-label">Data de Entrega</label>
+                                            <input type="date" name="data_comunicado" class="form-input">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Data de Retorno</label>
+                                            <input type="datetime-local" name="data_prevista_zeladoria" class="form-input" value="{{ old('data_prevista_zeladoria') }}">
+                                        </div>
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <label class="form-label">Período de Retorno</label>
+                                        <select name="periodo_zeladoria" class="form-input form-select">
+                                            <option value="">Selecione...</option>
+                                            <option value="manha">Manhã</option>
+                                            <option value="tarde">Tarde</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
