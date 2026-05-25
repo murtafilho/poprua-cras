@@ -188,7 +188,22 @@ class MoradorController extends Controller
             $request->excluir_ponto_id
         );
 
-        return response()->json($moradores);
+        $result = $moradores->map(function ($m) {
+            $endereco = $m->pontoAtual?->enderecoAtualizado;
+            $pontoEndereco = $endereco
+                ? trim(($endereco->SIGLA_TIPO_LOGRADOURO ?? '').' '.($endereco->NOME_LOGRADOURO ?? '').', '.($endereco->NUMERO_IMOVEL ?? 'S/N').' — '.($endereco->NOME_BAIRRO_POPULAR ?? ''))
+                : null;
+
+            return [
+                'id' => $m->id,
+                'nome_social' => $m->nome_social,
+                'apelido' => $m->apelido,
+                'ponto_atual_id' => $m->ponto_atual_id,
+                'ponto_endereco' => $pontoEndereco,
+            ];
+        });
+
+        return response()->json($result);
     }
 
     /**

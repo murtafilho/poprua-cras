@@ -161,6 +161,21 @@ class VistoriaController extends Controller
             $request->user()->team()->sync($idsParaEquipe);
         }
 
+        // Processar moradores
+        if (! empty($validated['moradores_presentes'])) {
+            $this->moradorService->atualizarPresencaVistoria($vistoria, $validated['moradores_presentes']);
+        }
+        if (! empty($validated['novos_moradores'])) {
+            $ponto = $vistoria->ponto ?? Ponto::findOrFail($vistoria->ponto_id);
+            foreach ($validated['novos_moradores'] as $dadosMorador) {
+                $this->moradorService->criarComEntrada(
+                    $dadosMorador,
+                    $ponto,
+                    $vistoria
+                );
+            }
+        }
+
         // Remover fotos selecionadas
         if (! empty($validated['remover_fotos'])) {
             $vistoria->getMedia('fotos')
@@ -361,28 +376,16 @@ class VistoriaController extends Controller
 
     public function minhas(Request $request): View
     {
-        $request->validate([
-            'data_inicio' => 'nullable|date',
-            'data_fim' => 'nullable|date|after_or_equal:data_inicio',
-            'resultado' => 'nullable|integer|exists:resultados_acoes,id',
-            'per_page' => 'nullable|integer|min:1|max:100',
-        ]);
+        $request->merge(['supervisor' => (string) auth()->id(), '_minhas' => true]);
 
-        $vistorias = $this->vistoriaService->listarMinhas(
-            auth()->id(),
-            $request->only(['data_inicio', 'data_fim', 'resultado']),
-            min((int) $request->input('per_page', 5), 100)
-        );
-
-        return view('vistorias.minhas', [
-            'vistorias' => $vistorias,
-            'resultados' => $this->vistoriaService->getFilterData()['resultados'],
-        ]);
+        return $this->index($request, skipAuth: true);
     }
 
-    public function index(Request $request): View
+    public function index(Request $request, bool $skipAuth = false): View
     {
-        $this->authorize('viewAny', Vistoria::class);
+        if (! $skipAuth) {
+            $this->authorize('viewAny', Vistoria::class);
+        }
 
         $request->validate([
             'logradouro' => 'nullable|string|max:100',
@@ -590,6 +593,8 @@ class VistoriaController extends Controller
             'e6_id' => $validated['e6_id'] ?? null,
             'houve_lavratura' => $request->boolean('houve_lavratura') ? 1 : 0,
             'tipo_protocolo' => $request->boolean('houve_lavratura') ? ($validated['tipo_protocolo'] ?? null) : null,
+            'houve_comunicado' => $request->boolean('houve_comunicado') ? 1 : 0,
+            'data_comunicado' => $request->boolean('houve_comunicado') ? ($validated['data_comunicado'] ?? null) : null,
             'data_prevista_zeladoria' => $validated['data_prevista_zeladoria'] ?? null,
             'periodo_zeladoria' => $validated['periodo_zeladoria'] ?? null,
         ];

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\InfraestruturaController;
 use App\Http\Controllers\Admin\MatrizPermissoesController;
+use App\Http\Controllers\Admin\ParametroController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\Sprint11Controller;
@@ -69,6 +70,10 @@ Route::middleware('auth')->group(function () {
         Route::get('infraestrutura', InfraestruturaController::class)->name('infraestrutura');
         Route::get('sprint-11', Sprint11Controller::class)->name('sprint-11');
         Route::get('matriz-permissoes', MatrizPermissoesController::class)->name('matriz-permissoes');
+        Route::get('parametros', [ParametroController::class, 'index'])->name('parametros.index');
+        Route::put('parametros', [ParametroController::class, 'update'])->name('parametros.update');
+        Route::post('parametros', [ParametroController::class, 'create'])->name('parametros.create');
+        Route::delete('parametros/{chave}', [ParametroController::class, 'destroy'])->name('parametros.destroy');
     });
 });
 

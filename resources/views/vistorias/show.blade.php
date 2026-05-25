@@ -130,6 +130,16 @@
                             <span class="info-value">{{ ucfirst($vistoria->tipo_protocolo ?? '-') }}</span>
                         </div>
                     @endif
+                    @if($vistoria->houve_comunicado)
+                        <div class="info-item">
+                            <span class="info-label">Houve Comunicado</span>
+                            <span class="info-value">Sim</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Data do Comunicado</span>
+                            <span class="info-value">{{ $vistoria->data_comunicado?->format('d/m/Y') ?? '-' }}</span>
+                        </div>
+                    @endif
                 </div>
 
                 @if($vistoria->cancelada)

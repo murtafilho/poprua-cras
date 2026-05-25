@@ -52,8 +52,24 @@ npm install && npm run build
 php artisan serve --port=8088
 ```
 
-**Conexao DB local:** host=127.0.0.1 port=5432 db=poprua_cras user=poprua_cras
-**Banco de teste:** poprua_cras_test (mesmo host)
+**Conexao DB local:** host=127.0.0.1 port=5432 db=poprua_cras user=poprua_cras password=poprua_cras
+**Banco de teste:** poprua_cras_test (mesmo host, mesma senha)
+
+## Acesso ao Sistema (dev)
+
+**URL:** http://localhost:8088 (servidor via `php artisan serve --port=8088`)
+**Login:** murtafilho@gmail.com / xman74102
+**Role:** admin (pode editar qualquer vistoria, acessar parametrizacao)
+
+Para screenshots e testes E2E via Playwright, as paginas autenticadas redirecionam ao login. Usar `npx playwright screenshot` para capturar paginas publicas (login). Para paginas autenticadas, usar o browser MCP do Playwright com login via formulario ou testar via `php artisan test`.
+
+**Rotas principais:**
+- `/vistorias` — listagem de zeladorias (cards com workflow)
+- `/minhas-vistorias` — zeladorias do usuario logado (reutiliza mesma view)
+- `/pontos` — listagem de pontos
+- `/mapa` — mapa georreferenciado (restrito a BH)
+- `/moradores` — gestao de pessoas em situacao de rua
+- `/admin/parametros` — parametrizacao do sistema (admin)
 
 ## Infraestrutura Docker
 

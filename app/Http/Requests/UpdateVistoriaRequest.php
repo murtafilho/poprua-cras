@@ -83,8 +83,10 @@ class UpdateVistoriaRequest extends FormRequest
             'apreensao_fiscal' => 'nullable|boolean',
             'auto_fiscalizacao_aplicado' => 'nullable|in:0,1',
             'auto_fiscalizacao_numero' => 'nullable|string|max:100',
-            // Lavratura e protocolo
+            // Lavratura, comunicado e protocolo
             'houve_lavratura' => 'nullable|boolean',
+            'houve_comunicado' => 'nullable|boolean',
+            'data_comunicado' => 'nullable|date',
             'tipo_protocolo' => 'nullable|in:chuva,frio,normal',
             // Data prevista zeladoria
             'data_prevista_zeladoria' => 'nullable|date',
@@ -99,6 +101,16 @@ class UpdateVistoriaRequest extends FormRequest
             'e4_id' => 'nullable|exists:encaminhamentos,id',
             'e5_id' => 'nullable|exists:encaminhamentos,id',
             'e6_id' => 'nullable|exists:encaminhamentos,id',
+            // Moradores
+            'moradores_presentes' => 'nullable|array',
+            'moradores_presentes.*' => 'exists:moradores,id',
+            'novos_moradores' => 'nullable|array',
+            'novos_moradores.*.nome_social' => 'required_with:novos_moradores|string|max:255',
+            'novos_moradores.*.apelido' => 'nullable|string|max:255',
+            'novos_moradores.*.genero' => 'nullable|string|max:50',
+            'novos_moradores.*.documento' => 'nullable|string|max:50',
+            'novos_moradores.*.contato' => 'nullable|string|max:100',
+            'novos_moradores.*.observacoes' => 'nullable|string|max:1000',
         ];
     }
 }

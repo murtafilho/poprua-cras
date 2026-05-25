@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const DEFAULT_ZOOM = 12;
     const MIN_ZOOM_VISTORIA = 19;
 
+    const BH_BOUNDS = L.latLngBounds(
+        [-20.0597, -44.0632],
+        [-19.7764, -43.8575]
+    );
+
     const urlParams = new URLSearchParams(window.location.search);
     const lat = urlParams.get('lat');
     const lng = urlParams.get('lng');
@@ -26,7 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const map = L.map('map', {
         zoomControl: true,
-        attributionControl: false
+        attributionControl: false,
+        maxBounds: BH_BOUNDS.pad(0.05),
+        maxBoundsViscosity: 1.0,
+        minZoom: 12
     });
 
     const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

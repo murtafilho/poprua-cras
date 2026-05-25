@@ -79,11 +79,11 @@ class VistoriaPolicyTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_admin_cannot_edit_others_vistoria(): void
+    public function test_admin_can_edit_others_vistoria(): void
     {
         $this->actingAs($this->admin)
             ->get(route('vistorias.edit', $this->vistoria))
-            ->assertForbidden();
+            ->assertOk();
     }
 
     public function test_owner_can_delete_own_vistoria(): void
@@ -124,31 +124,40 @@ class VistoriaPolicyTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_owner_cannot_edit_finalized_vistoria(): void
+    public function test_owner_can_edit_finalized_vistoria(): void
     {
         $this->vistoria->update(['finalizada' => true, 'finalizada_em' => now(), 'finalizada_por' => $this->owner->id]);
 
         $this->actingAs($this->owner)
             ->get(route('vistorias.edit', $this->vistoria))
-            ->assertForbidden();
+            ->assertOk();
     }
 
-    public function test_admin_cannot_edit_finalized_vistoria(): void
+    public function test_admin_can_edit_finalized_vistoria(): void
     {
         $this->vistoria->update(['finalizada' => true, 'finalizada_em' => now(), 'finalizada_por' => $this->owner->id]);
 
         $this->actingAs($this->admin)
             ->get(route('vistorias.edit', $this->vistoria))
+            ->assertOk();
+    }
+
+    public function test_non_owner_cannot_edit_finalized_vistoria(): void
+    {
+        $this->vistoria->update(['finalizada' => true, 'finalizada_em' => now(), 'finalizada_por' => $this->owner->id]);
+
+        $this->actingAs($this->otherUser)
+            ->get(route('vistorias.edit', $this->vistoria))
             ->assertForbidden();
     }
 
-    public function test_owner_cannot_finalize_already_finalized_vistoria(): void
+    public function test_owner_can_finalize_already_finalized_vistoria(): void
     {
         $this->vistoria->update(['finalizada' => true, 'finalizada_em' => now(), 'finalizada_por' => $this->owner->id]);
 
         $this->actingAs($this->owner)
             ->post(route('vistorias.finalizar', $this->vistoria))
-            ->assertForbidden();
+            ->assertRedirect();
     }
 
     public function test_admin_can_reativar_finalized_vistoria(): void
@@ -257,11 +266,20 @@ class VistoriaPolicyTest extends TestCase
         $this->actingAs($this->admin)->post(route('vistorias.cancelar', $this->vistoria))->assertForbidden();
     }
 
-    public function test_cancelled_vistoria_cannot_be_edited(): void
+    public function test_owner_can_edit_cancelled_vistoria(): void
     {
         $this->vistoria->update(['cancelada' => true, 'cancelada_em' => now(), 'cancelada_por' => $this->owner->id]);
 
         $this->actingAs($this->owner)
+            ->get(route('vistorias.edit', $this->vistoria))
+            ->assertOk();
+    }
+
+    public function test_non_owner_cannot_edit_cancelled_vistoria(): void
+    {
+        $this->vistoria->update(['cancelada' => true, 'cancelada_em' => now(), 'cancelada_por' => $this->owner->id]);
+
+        $this->actingAs($this->otherUser)
             ->get(route('vistorias.edit', $this->vistoria))
             ->assertForbidden();
     }

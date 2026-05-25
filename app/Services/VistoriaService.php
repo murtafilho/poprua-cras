@@ -86,7 +86,9 @@ class VistoriaService
                 DB::raw('ea."NOME_REGIONAL" as regional'),
                 'ta.tipo as tipo_abordagem',
                 'ra.resultado as resultado_acao',
-                'p.complemento', 'v.finalizada', 'v.cancelada',
+                'p.complemento', 'v.finalizada', 'v.cancelada', 'v.user_id',
+                'v.data_prevista_zeladoria', 'v.periodo_zeladoria',
+                'v.houve_comunicado', 'v.data_comunicado',
             ]);
 
         if (! empty($filtros['data_inicio'])) {
@@ -126,6 +128,8 @@ class VistoriaService
                 'u.name as usuario', 'p.complemento',
                 'v.data_prevista_zeladoria', 'v.periodo_zeladoria',
                 'v.finalizada', 'v.cancelada', 'v.user_id',
+                'v.houve_comunicado', 'v.data_comunicado',
+                DB::raw('(SELECT MAX(v2.data_abordagem) FROM vistorias v2 WHERE v2.ponto_id = v.ponto_id AND v2.deleted_at IS NULL) as ultima_vistoria_ponto'),
             ]);
 
         if (! empty($filtros['endereco'])) {

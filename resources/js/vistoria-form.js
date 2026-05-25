@@ -104,7 +104,7 @@ function buildReviewChecklist() {
             label: 'Quantidade de Pessoas',
             step: 0,
             check: () => {
-                const v = document.querySelector('[name="qtd_pessoas"]')?.value;
+                const v = document.querySelector('[name="quantidade_pessoas"]')?.value;
                 return v && parseInt(v) > 0;
             },
             optional: true
@@ -112,7 +112,7 @@ function buildReviewChecklist() {
         {
             label: 'Observacoes preenchidas',
             step: 2,
-            check: () => !!document.querySelector('[name="observacoes"]')?.value?.trim(),
+            check: () => !!document.querySelector('[name="observacao"]')?.value?.trim(),
             optional: true
         },
         {
@@ -217,6 +217,18 @@ function toggleProtocolo() {
         if (!radioSim.checked) {
             const select = container.querySelector('select[name="tipo_protocolo"]');
             if (select) select.value = '';
+        }
+    }
+}
+
+function toggleComunicado() {
+    const radioSim = document.querySelector('input[name="houve_comunicado"][value="1"]');
+    const container = document.getElementById('data_comunicado_container');
+    if (container) {
+        container.classList.toggle('hidden', !radioSim.checked);
+        if (!radioSim.checked) {
+            const input = container.querySelector('input[name="data_comunicado"]');
+            if (input) input.value = '';
         }
     }
 }
@@ -613,7 +625,7 @@ function abrirModalMorador(index = null) {
     document.getElementById('morador-observacoes').value = '';
 
     if (index !== null && novosMoradores[index]) {
-        titulo.textContent = 'Editar Morador';
+        titulo.textContent = 'Editar Pessoa';
         const m = novosMoradores[index];
         document.getElementById('morador-nome-social').value = m.nome_social || '';
         document.getElementById('morador-apelido').value = m.apelido || '';
@@ -622,7 +634,7 @@ function abrirModalMorador(index = null) {
         document.getElementById('morador-contato').value = m.contato || '';
         document.getElementById('morador-observacoes').value = m.observacoes || '';
     } else {
-        titulo.textContent = 'Novo Morador';
+        titulo.textContent = 'Nova Pessoa';
     }
 
     modal.classList.remove('hidden');
@@ -665,7 +677,7 @@ function salvarMorador() {
 }
 
 function removerMorador(index) {
-    if (confirm('Remover este morador?')) {
+    if (confirm('Remover esta pessoa?')) {
         novosMoradores.splice(index, 1);
         formDirty = true;
         renderNovosMoradores();
@@ -847,9 +859,115 @@ window.toggleQtdAnimais = toggleQtdAnimais;
 window.toggleConducaoObs = toggleConducaoObs;
 window.toggleAutoNumero = toggleAutoNumero;
 window.toggleProtocolo = toggleProtocolo;
+window.toggleComunicado = toggleComunicado;
 window.toggleZeladoriaCampos = toggleZeladoriaCampos;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
 window.atualizarLegenda = atualizarLegenda;
+
+// === Busca e vinculação de pessoas existentes ===
+const pessoasVinculadas = [];
+
+function initBuscaPessoa() {
+    const input = document.getElementById('busca-pessoa-existente');
+    const resultados = document.getElementById('busca-pessoa-resultados');
+    if (!input || !resultados) return;
+
+    let debounce = null;
+
+    input.addEventListener('input', function () {
+        clearTimeout(debounce);
+        const termo = this.value.trim();
+        if (termo.length < 2) {
+            resultados.style.display = 'none';
+            return;
+        }
+        debounce = setTimeout(() => buscarPessoas(termo), 300);
+    });
+
+    input.addEventListener('blur', () => {
+        setTimeout(() => { resultados.style.display = 'none'; }, 200);
+    });
+}
+
+async function buscarPessoas(termo) {
+    const resultados = document.getElementById('busca-pessoa-resultados');
+    resultados.innerHTML = '<div class="autocomplete-loading">Buscando...</div>';
+    resultados.style.display = 'block';
+
+    try {
+        const resp = await fetch(`${APP_BASE}/api/moradores/buscar?termo=${encodeURIComponent(termo)}`, {
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin',
+        });
+        const data = await resp.json();
+
+        if (!data.length) {
+            resultados.innerHTML = '<div class="autocomplete-empty">Nenhuma pessoa encontrada</div>';
+            return;
+        }
+
+        const idsJaPresentes = [];
+        document.querySelectorAll('input[name="moradores_presentes[]"]').forEach(cb => idsJaPresentes.push(parseInt(cb.value)));
+        pessoasVinculadas.forEach(p => idsJaPresentes.push(p.id));
+
+        resultados.innerHTML = data
+            .filter(m => !idsJaPresentes.includes(m.id))
+            .map(m => `
+                <button type="button" class="autocomplete-item" onclick="vincularPessoa(${m.id}, '${(m.nome_social || '').replace(/'/g, "\\'")}', '${(m.apelido || '').replace(/'/g, "\\'")}', '${(m.ponto_endereco || '').replace(/'/g, "\\'")}')">
+                    <div class="autocomplete-item-title">${m.nome_social}${m.apelido ? ' — "' + m.apelido + '"' : ''}</div>
+                    <div class="autocomplete-item-subtitle">${m.ponto_endereco || 'Sem ponto atual'}</div>
+                </button>
+            `).join('') || '<div class="autocomplete-empty">Todas as pessoas encontradas já estão neste ponto</div>';
+    } catch {
+        resultados.innerHTML = '<div class="autocomplete-error">Erro na busca</div>';
+    }
+}
+
+function vincularPessoa(id, nome, apelido, pontoOrigem) {
+    if (pessoasVinculadas.find(p => p.id === id)) return;
+
+    pessoasVinculadas.push({ id, nome, apelido, pontoOrigem });
+    formDirty = true;
+    renderPessoasVinculadas();
+
+    document.getElementById('busca-pessoa-existente').value = '';
+    document.getElementById('busca-pessoa-resultados').style.display = 'none';
+}
+
+function desvincularPessoa(id) {
+    const idx = pessoasVinculadas.findIndex(p => p.id === id);
+    if (idx !== -1) pessoasVinculadas.splice(idx, 1);
+    renderPessoasVinculadas();
+}
+
+function renderPessoasVinculadas() {
+    const container = document.getElementById('pessoas-vinculadas');
+    if (!container) return;
+
+    container.innerHTML = pessoasVinculadas.map(p => `
+        <div class="morador-card morador-card-new" style="border-left: 3px solid var(--color-info);">
+            <div class="morador-avatar" style="background: var(--color-info-dim); color: var(--color-info);">
+                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            <div class="morador-info">
+                <p class="morador-name">${p.nome}${p.apelido ? ' — "' + p.apelido + '"' : ''}</p>
+                <p class="morador-nickname" style="font-size: 10px; color: var(--color-info);">Transferido de: ${p.pontoOrigem || 'sem ponto'}</p>
+            </div>
+            <input type="hidden" name="moradores_presentes[]" value="${p.id}">
+            <button type="button" onclick="desvincularPessoa(${p.id})" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-danger);">
+                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', initBuscaPessoa);
+window.vincularPessoa = vincularPessoa;
+window.desvincularPessoa = desvincularPessoa;
 
 const tipoAbordagemSelect = document.getElementById('tipo_abordagem_id');
 if (tipoAbordagemSelect) {

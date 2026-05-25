@@ -19,7 +19,7 @@ class DashboardService
     /** Total de pontos cadastrados */
     public function totalPontos(): int
     {
-        return Cache::remember(
+        return (int) Cache::remember(
             'dashboard:total_pontos',
             self::CACHE_TTL,
             fn () => Ponto::query()->count()

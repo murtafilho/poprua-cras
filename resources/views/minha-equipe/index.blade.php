@@ -51,8 +51,8 @@
         pointer-events: none;
     }
     .equipe-membro input[type="checkbox"]:checked + .checkbox {
-        background: var(--accent-primary, #2dd4bf);
-        border-color: var(--accent-primary, #2dd4bf);
+        background: var(--accent-primary, #1B2A6B);
+        border-color: var(--accent-primary, #1B2A6B);
     }
     .equipe-membro input[type="checkbox"]:checked + .checkbox::after {
         content: '';

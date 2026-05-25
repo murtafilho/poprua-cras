@@ -60,6 +60,7 @@ function updateStepper(currentIndex) {
 
 function showTab(index) {
     currentTab = index;
+    window.__currentTab = index;
     updateStepper(index);
 
     document.querySelectorAll('.tab-content').forEach((content, i) => {
@@ -68,7 +69,11 @@ function showTab(index) {
 
     document.querySelector('.form-content')?.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Ao entrar na aba de revisao, montar checklist
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    if (btnPrev) btnPrev.style.display = index === 0 ? 'none' : '';
+    if (btnNext) btnNext.style.display = index === totalTabs - 1 ? 'none' : '';
+
     if (index === totalTabs - 1) {
         buildReviewChecklist();
     }
@@ -108,7 +113,7 @@ function buildReviewChecklist() {
         {
             label: 'Observacoes preenchidas',
             step: 2,
-            check: () => !!document.querySelector('[name="observacoes"]')?.value?.trim(),
+            check: () => !!document.querySelector('[name="observacao"]')?.value?.trim(),
             optional: true
         },
         {
@@ -216,6 +221,17 @@ function toggleProtocolo() {
             const select = container.querySelector('select[name="tipo_protocolo"]');
             if (select) select.value = '';
         }
+    }
+}
+
+function toggleComunicado() {
+    const sim = document.querySelector('input[name="houve_comunicado"][value="1"]');
+    const container = document.getElementById('data_comunicado_container');
+    if (!sim || !container) return;
+    container.classList.toggle('hidden', !sim.checked);
+    if (!sim.checked) {
+        const dateInput = container.querySelector('input[name="data_comunicado"]');
+        if (dateInput) dateInput.value = '';
     }
 }
 
@@ -537,6 +553,230 @@ function startVoiceInput(inputId) {
     recognition.start();
 }
 
+let novosMoradores = [];
+
+function abrirModalMorador(index = null) {
+    const modal = document.getElementById('modal-morador');
+    const titulo = document.getElementById('modal-morador-titulo');
+
+    document.getElementById('morador-edit-index').value = index !== null ? index : '';
+    document.getElementById('morador-nome-social').value = '';
+    document.getElementById('morador-apelido').value = '';
+    document.getElementById('morador-genero').value = '';
+    document.getElementById('morador-documento').value = '';
+    document.getElementById('morador-contato').value = '';
+    document.getElementById('morador-observacoes').value = '';
+
+    if (index !== null && novosMoradores[index]) {
+        titulo.textContent = 'Editar Pessoa';
+        const m = novosMoradores[index];
+        document.getElementById('morador-nome-social').value = m.nome_social || '';
+        document.getElementById('morador-apelido').value = m.apelido || '';
+        document.getElementById('morador-genero').value = m.genero || '';
+        document.getElementById('morador-documento').value = m.documento || '';
+        document.getElementById('morador-contato').value = m.contato || '';
+        document.getElementById('morador-observacoes').value = m.observacoes || '';
+    } else {
+        titulo.textContent = 'Nova Pessoa';
+    }
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharModalMorador() {
+    document.getElementById('modal-morador').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function salvarMorador() {
+    const nome = document.getElementById('morador-nome-social').value.trim();
+    if (!nome) return;
+
+    const morador = {
+        nome_social: nome,
+        apelido: document.getElementById('morador-apelido').value.trim(),
+        genero: document.getElementById('morador-genero').value,
+        documento: document.getElementById('morador-documento').value.trim(),
+        contato: document.getElementById('morador-contato').value.trim(),
+        observacoes: document.getElementById('morador-observacoes').value.trim(),
+        id: Date.now()
+    };
+
+    const editIndex = document.getElementById('morador-edit-index').value;
+    if (editIndex !== '') {
+        novosMoradores[parseInt(editIndex)] = morador;
+    } else {
+        novosMoradores.push(morador);
+    }
+
+    formDirty = true;
+    renderNovosMoradores();
+    fecharModalMorador();
+}
+
+function removerMorador(index) {
+    if (confirm('Remover esta pessoa?')) {
+        novosMoradores.splice(index, 1);
+        formDirty = true;
+        renderNovosMoradores();
+    }
+}
+
+function renderNovosMoradores() {
+    const container = document.getElementById('novos-moradores');
+    if (!container) return;
+    container.innerHTML = '';
+
+    novosMoradores.forEach((m, index) => {
+        const div = document.createElement('div');
+        div.className = 'morador-card morador-card-new';
+        div.innerHTML = `
+            <div class="morador-avatar morador-avatar-new">
+                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            <div class="morador-info">
+                <p class="morador-name">${m.nome_social}</p>
+                ${m.apelido ? `<p class="morador-nickname">"${m.apelido}"</p>` : ''}
+                <span class="badge badge-success">Novo</span>
+            </div>
+            <div class="morador-actions">
+                <button type="button" onclick="abrirModalMorador(${index})" class="btn btn-ghost btn-icon btn-sm">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                </button>
+                <button type="button" onclick="removerMorador(${index})" class="btn btn-ghost btn-icon btn-sm">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
+            <input type="hidden" name="novos_moradores[${index}][nome_social]" value="${m.nome_social}">
+            <input type="hidden" name="novos_moradores[${index}][apelido]" value="${m.apelido || ''}">
+            <input type="hidden" name="novos_moradores[${index}][genero]" value="${m.genero || ''}">
+            <input type="hidden" name="novos_moradores[${index}][documento]" value="${m.documento || ''}">
+            <input type="hidden" name="novos_moradores[${index}][contato]" value="${m.contato || ''}">
+            <input type="hidden" name="novos_moradores[${index}][observacoes]" value="${m.observacoes || ''}">
+        `;
+        container.appendChild(div);
+    });
+
+    const countEl = document.getElementById('morador-count');
+    if (countEl) countEl.textContent = novosMoradores.length;
+}
+
+window.abrirModalMorador = abrirModalMorador;
+window.fecharModalMorador = fecharModalMorador;
+window.salvarMorador = salvarMorador;
+window.removerMorador = removerMorador;
+// === Busca e vinculação de pessoas existentes ===
+const pessoasVinculadas = [];
+
+function initBuscaPessoa() {
+    const input = document.getElementById('busca-pessoa-existente');
+    const resultados = document.getElementById('busca-pessoa-resultados');
+    if (!input || !resultados) return;
+
+    let debounce = null;
+
+    input.addEventListener('input', function () {
+        clearTimeout(debounce);
+        const termo = this.value.trim();
+        if (termo.length < 2) {
+            resultados.style.display = 'none';
+            return;
+        }
+        debounce = setTimeout(() => buscarPessoas(termo), 300);
+    });
+
+    input.addEventListener('blur', () => {
+        setTimeout(() => { resultados.style.display = 'none'; }, 200);
+    });
+}
+
+async function buscarPessoas(termo) {
+    const resultados = document.getElementById('busca-pessoa-resultados');
+    resultados.innerHTML = '<div class="autocomplete-loading">Buscando...</div>';
+    resultados.style.display = 'block';
+
+    try {
+        const resp = await fetch(`${APP_BASE}/api/moradores/buscar?termo=${encodeURIComponent(termo)}`, {
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin',
+        });
+        const data = await resp.json();
+
+        if (!data.length) {
+            resultados.innerHTML = '<div class="autocomplete-empty">Nenhuma pessoa encontrada</div>';
+            return;
+        }
+
+        const idsJaPresentes = [];
+        document.querySelectorAll('input[name="moradores_presentes[]"]').forEach(cb => idsJaPresentes.push(parseInt(cb.value)));
+        pessoasVinculadas.forEach(p => idsJaPresentes.push(p.id));
+
+        resultados.innerHTML = data
+            .filter(m => !idsJaPresentes.includes(m.id))
+            .map(m => `
+                <button type="button" class="autocomplete-item" onclick="vincularPessoa(${m.id}, '${(m.nome_social || '').replace(/'/g, "\\'")}', '${(m.apelido || '').replace(/'/g, "\\'")}', '${(m.ponto_endereco || '').replace(/'/g, "\\'")}')">
+                    <div class="autocomplete-item-title">${m.nome_social}${m.apelido ? ' — "' + m.apelido + '"' : ''}</div>
+                    <div class="autocomplete-item-subtitle">${m.ponto_endereco || 'Sem ponto atual'}</div>
+                </button>
+            `).join('') || '<div class="autocomplete-empty">Todas as pessoas encontradas já estão neste ponto</div>';
+    } catch {
+        resultados.innerHTML = '<div class="autocomplete-error">Erro na busca</div>';
+    }
+}
+
+function vincularPessoa(id, nome, apelido, pontoOrigem) {
+    if (pessoasVinculadas.find(p => p.id === id)) return;
+
+    pessoasVinculadas.push({ id, nome, apelido, pontoOrigem });
+    formDirty = true;
+    renderPessoasVinculadas();
+
+    document.getElementById('busca-pessoa-existente').value = '';
+    document.getElementById('busca-pessoa-resultados').style.display = 'none';
+}
+
+function desvincularPessoa(id) {
+    const idx = pessoasVinculadas.findIndex(p => p.id === id);
+    if (idx !== -1) pessoasVinculadas.splice(idx, 1);
+    renderPessoasVinculadas();
+}
+
+function renderPessoasVinculadas() {
+    const container = document.getElementById('pessoas-vinculadas');
+    if (!container) return;
+
+    container.innerHTML = pessoasVinculadas.map(p => `
+        <div class="morador-card morador-card-new" style="border-left: 3px solid var(--color-info);">
+            <div class="morador-avatar" style="background: var(--color-info-dim); color: var(--color-info);">
+                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            <div class="morador-info">
+                <p class="morador-name">${p.nome}${p.apelido ? ' — "' + p.apelido + '"' : ''}</p>
+                <p class="morador-nickname" style="font-size: 10px; color: var(--color-info);">Transferido de: ${p.pontoOrigem || 'sem ponto'}</p>
+            </div>
+            <input type="hidden" name="moradores_presentes[]" value="${p.id}">
+            <button type="button" onclick="desvincularPessoa(${p.id})" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-danger);">
+                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', initBuscaPessoa);
+window.vincularPessoa = vincularPessoa;
+window.desvincularPessoa = desvincularPessoa;
+
 window.goToStep = goToStep;
 window.openCamera = openCamera;
 window.removerFoto = removerFoto;
@@ -547,6 +787,7 @@ window.toggleQtdAnimais = toggleQtdAnimais;
 window.toggleConducaoObs = toggleConducaoObs;
 window.toggleAutoNumero = toggleAutoNumero;
 window.toggleProtocolo = toggleProtocolo;
+window.toggleComunicado = toggleComunicado;
 window.toggleZeladoriaCampos = toggleZeladoriaCampos;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
 window.atualizarLegenda = atualizarLegenda;

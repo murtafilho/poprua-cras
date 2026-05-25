@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Parametro;
 use App\Models\Ponto;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -13,6 +14,18 @@ use Illuminate\Support\Facades\DB;
 class PontoService
 {
     public function __construct(private EnderecoService $enderecoService) {}
+
+    private function infoPrecariaDias(): int
+    {
+        return Parametro::get('info_precaria_dias', 60);
+    }
+
+    private function infoPrecariaSql(): string
+    {
+        $dias = $this->infoPrecariaDias();
+
+        return "CASE WHEN v.data_abordagem IS NULL THEN true WHEN v.data_abordagem < NOW() - INTERVAL '{$dias} days' THEN true ELSE false END as info_precaria";
+    }
 
     /** @return array{id: int, created: bool} */
     public function findOrCreateFromCoordinates(float $lat, float $lng, ?string $complemento = null): array
@@ -60,9 +73,11 @@ class PontoService
                 DB::raw('ea."NOME_REGIONAL" as regional'),
                 DB::raw('ea."SIGLA_TIPO_LOGRADOURO" as tipo'),
                 'v.resultado_acao_id',
+                'v.data_abordagem',
                 DB::raw('COALESCE(uv.total_vistorias, 0) as total_vistorias'),
                 'uv.ultima_vistoria_id',
-                DB::raw(Ponto::COMPLEXIDADE_SQL.' as complexidade'),
+                DB::raw(Ponto::complexidadeSqlParametrizada().' as complexidade'),
+                DB::raw($this->infoPrecariaSql()),
             ])
             ->whereNotNull('p.lat')
             ->whereNotNull('p.lng')
@@ -96,9 +111,11 @@ class PontoService
                 DB::raw('ea."SIGLA_TIPO_LOGRADOURO" as tipo'),
                 'v.resultado_acao_id',
                 'ra.resultado as resultado_acao',
+                'v.data_abordagem',
                 DB::raw('COALESCE(uv.total_vistorias, 0) as total_vistorias'),
-                DB::raw(Ponto::COMPLEXIDADE_SQL.' as complexidade'),
+                DB::raw(Ponto::complexidadeSqlParametrizada().' as complexidade'),
                 'v.quantidade_pessoas',
+                DB::raw($this->infoPrecariaSql()),
             ])
             ->whereNotNull('p.lat')
             ->whereNotNull('p.lng')
@@ -117,7 +134,14 @@ class PontoService
             $query->where('ea.NOME_BAIRRO_POPULAR', 'ilike', '%'.$filters['bairro'].'%');
         }
         if (! empty($filters['resultado'])) {
-            $query->where('v.resultado_acao_id', $filters['resultado']);
+            if ($filters['resultado'] === 'info_precaria') {
+                $query->where(function ($q) {
+                    $q->whereNull('v.data_abordagem')
+                        ->orWhereRaw("v.data_abordagem < NOW() - INTERVAL '".$this->infoPrecariaDias()." days'");
+                });
+            } else {
+                $query->where('v.resultado_acao_id', $filters['resultado']);
+            }
         }
 
         return $query->orderBy('logradouro')
@@ -147,7 +171,9 @@ class PontoService
                 DB::raw('ea."SIGLA_TIPO_LOGRADOURO" as tipo'),
                 'v.resultado_acao_id',
                 'ra.resultado as resultado_acao',
+                'v.data_abordagem',
                 DB::raw('COALESCE(uv.total_vistorias, 0) as total_vistorias'),
+                DB::raw($this->infoPrecariaSql()),
             ])
             ->where('p.id', $id)
             ->first();

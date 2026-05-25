@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Moradores')
+@section('title', 'Pessoas')
 
 @section('header')
     <a href="{{ route('dashboard') }}" class="btn btn-ghost btn-icon" style="margin-left: -8px;">
@@ -8,8 +8,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
     </a>
-    <span class="mobile-header-title" style="flex: 1; text-align: center;">Moradores</span>
-    <a href="{{ route('moradores.create') }}" class="btn btn-ghost btn-icon" title="Novo morador">
+    <span class="mobile-header-title" style="flex: 1; text-align: center;">Pessoas</span>
+    <a href="{{ route('moradores.create') }}" class="btn btn-ghost btn-icon" title="Nova pessoa">
         <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
@@ -89,7 +89,7 @@
                                          alt="{{ $morador->nome_social }}"
                                          loading="lazy">
                                     @if($morador->getMedia('fotos')->count() > 1)
-                                        <span style="position: absolute; bottom: 0; right: 0; background: var(--accent-primary, #1f6feb); color: #fff; font-size: 9px; padding: 1px 5px; border-radius: 999px;">
+                                        <span style="position: absolute; bottom: 0; right: 0; background: var(--accent-primary); color: #fff; font-size: 9px; padding: 1px 5px; border-radius: 999px;">
                                             +{{ $morador->getMedia('fotos')->count() - 1 }}
                                         </span>
                                     @endif

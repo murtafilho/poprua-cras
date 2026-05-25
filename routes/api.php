@@ -15,7 +15,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::middleware(['web', 'auth'])->group(function () {
+Route::middleware(['web', 'auth', 'throttle:60,1'])->group(function () {
     Route::get('/pontos', [PontoController::class, 'index']);
     Route::get('/pontos/{id}', [PontoController::class, 'show']);
     Route::patch('/pontos/{id}/coordenadas', [PontoController::class, 'updateCoordenadas']);

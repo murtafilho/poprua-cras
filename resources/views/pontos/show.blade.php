@@ -101,72 +101,56 @@
             </div>
 
             @if($vistorias->count() > 0)
-                <div class="table-container" style="border: none; border-radius: 0;">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Data/Hora</th>
-                                <th class="hide-mobile">Tipo Abordagem</th>
-                                <th>Pessoas</th>
-                                <th class="hide-mobile">Kg</th>
-                                <th>Resultado</th>
-                                <th class="hide-mobile">Usuário</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($vistorias as $vistoria)
-                                <tr>
-                                    <td>
-                                        <div style="font-weight: var(--font-medium);">{{ \Carbon\Carbon::parse($vistoria->data_abordagem)->format('d/m/Y') }}</div>
-                                        <div class="text-muted" style="font-size: var(--text-xs);">{{ \Carbon\Carbon::parse($vistoria->data_abordagem)->format('H:i') }}</div>
-                                    </td>
-                                    <td class="hide-mobile">{{ $vistoria->tipo_abordagem ?? '-' }}</td>
-                                    <td>
+                <div class="vistoria-cards">
+                    @foreach($vistorias as $vistoria)
+                        @php
+                            $dataV = \Carbon\Carbon::parse($vistoria->data_abordagem);
+                            $horaV = $dataV->format('H:i');
+                            $resBadge = match(true) {
+                                !$vistoria->resultado_acao => 'badge-default',
+                                str_contains($vistoria->resultado_acao, 'persiste') => 'badge-danger',
+                                str_contains($vistoria->resultado_acao, 'parcialmente') => 'badge-warning',
+                                str_contains($vistoria->resultado_acao, 'ausente') => 'badge-default',
+                                str_contains($vistoria->resultado_acao, 'constatado') => 'badge-info',
+                                str_contains($vistoria->resultado_acao, 'Conformidade') => 'badge-success',
+                                default => 'badge-default',
+                            };
+                        @endphp
+                        <a href="{{ route('vistorias.show', $vistoria->id) }}" class="vistoria-card-link">
+                            <div class="vistoria-card-item {{ $loop->even ? 'even' : '' }}">
+                                <div class="vistoria-card-top">
+                                    <span class="vistoria-card-date">
+                                        {{ $dataV->format('d/m/Y') }}
+                                        @if($horaV !== '00:00')
+                                            <span class="text-muted">{{ $horaV }}</span>
+                                        @endif
+                                    </span>
+                                    <div class="vistoria-card-badges">
+                                        <span class="badge {{ $resBadge }}">{{ $vistoria->resultado_acao ?: 'Sem resultado' }}</span>
+                                    </div>
+                                </div>
+                                <div class="vistoria-card-meta">
+                                    <div class="vistoria-card-meta-right" style="justify-content: flex-start;">
+                                        @if($vistoria->tipo_abordagem)
+                                            <span class="badge badge-info">{{ $vistoria->tipo_abordagem }}</span>
+                                        @endif
                                         @if($vistoria->quantidade_pessoas)
-                                            <span style="font-weight: var(--font-medium);">{{ $vistoria->quantidade_pessoas }}</span>
-                                            @if($vistoria->nomes_pessoas)
-                                                <div class="text-muted" style="font-size: var(--text-xs); margin-top: 2px;">{{ \Illuminate\Support\Str::limit($vistoria->nomes_pessoas, 30) }}</div>
-                                            @endif
-                                        @else
-                                            <span class="text-muted">-</span>
+                                            <span class="badge badge-accent">{{ $vistoria->quantidade_pessoas }} <svg style="width:10px;height:10px;display:inline;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></span>
                                         @endif
-                                    </td>
-                                    <td class="hide-mobile">
                                         @if($vistoria->qtd_kg)
-                                            {{ $vistoria->qtd_kg }} kg
-                                        @else
-                                            <span class="text-muted">-</span>
+                                            <span class="badge badge-default">{{ $vistoria->qtd_kg }} kg</span>
                                         @endif
-                                    </td>
-                                    <td>
-                                        @if($vistoria->resultado_acao)
-                                            @php
-                                                $badgeClass = match(true) {
-                                                    str_contains($vistoria->resultado_acao, 'persiste') => 'badge-danger',
-                                                    str_contains($vistoria->resultado_acao, 'parcialmente') => 'badge-warning',
-                                                    str_contains($vistoria->resultado_acao, 'ausente') => 'badge-default',
-                                                    str_contains($vistoria->resultado_acao, 'constatado') => 'badge-info',
-                                                    str_contains($vistoria->resultado_acao, 'Conformidade') => 'badge-success',
-                                                    default => 'badge-default',
-                                                };
-                                            @endphp
-                                            <span class="badge {{ $badgeClass }}">{{ $vistoria->resultado_acao }}</span>
-                                        @else
-                                            <span class="text-muted">-</span>
+                                        @if($vistoria->usuario)
+                                            <span class="text-muted" style="font-size: var(--text-xs);">{{ $vistoria->usuario }}</span>
                                         @endif
-                                    </td>
-                                    <td class="hide-mobile">{{ $vistoria->usuario ?? '-' }}</td>
-                                </tr>
+                                    </div>
+                                </div>
                                 @if($vistoria->observacao)
-                                <tr>
-                                    <td colspan="6" style="padding: var(--space-2) var(--space-4);">
-                                        <span class="text-muted" style="font-size: var(--text-xs);"><strong>Observação:</strong> {{ $vistoria->observacao }}</span>
-                                    </td>
-                                </tr>
+                                    <div class="text-muted" style="font-size: var(--text-xs); line-height: 1.4; padding-left: 2px;">{{ $vistoria->observacao }}</div>
                                 @endif
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </div>
+                        </a>
+                    @endforeach
                 </div>
             @else
                 <div class="card-body text-center text-muted" style="padding: var(--space-8);">

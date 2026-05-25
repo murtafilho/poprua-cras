@@ -3,21 +3,21 @@
 @section('title', 'Dashboard')
 
 @section('header')
-    <a href="{{ route('dashboard') }}" class="flex items-center gap-3" style="color: var(--text-primary);">
+    <a href="{{ route('dashboard') }}" class="flex items-center gap-3" style="color: #FFFFFF;">
         <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
         </svg>
         <span class="mobile-header-title">{{ config('app.name') }}</span>
     </a>
     <div class="flex items-center gap-2">
-        <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-icon">
+        <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-icon" style="color: rgba(255,255,255,0.8);">
             <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
         </a>
         <form method="POST" action="{{ route('logout') }}" class="inline">
             @csrf
-            <button type="submit" class="btn btn-ghost btn-icon" x-on:click="if (!confirm('{{ __('Deseja sair?') }}')) $event.preventDefault()">
+            <button type="submit" class="btn btn-ghost btn-icon" style="color: rgba(255,255,255,0.8);" x-on:click="if (!confirm('{{ __('Deseja sair?') }}')) $event.preventDefault()">
                 <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                 </svg>
@@ -74,7 +74,7 @@
                                 <button type="button" class="btn btn-sm chart-filter" data-series="ausente" style="font-size: 11px; border-color: #94a3b8; color: #94a3b8;">Ausente</button>
                                 <button type="button" class="btn btn-sm chart-filter" data-series="nao_constatado" style="font-size: 11px; border-color: #3b82f6; color: #3b82f6;">Nao constatado</button>
                                 <button type="button" class="btn btn-sm chart-filter" data-series="conformidade" style="font-size: 11px; border-color: #10b981; color: #10b981;">Conformidade</button>
-                                <button type="button" class="btn btn-sm chart-filter" data-series="sem_vistoria" style="font-size: 11px; border-color: #cbd5e1; color: #cbd5e1;">Sem vistoria</button>
+                                <button type="button" class="btn btn-sm chart-filter" data-series="sem_vistoria" style="font-size: 11px; border-color: #94a3b8; color: #64748b;">Sem vistoria</button>
                             </div>
                         </div>
                     </div>

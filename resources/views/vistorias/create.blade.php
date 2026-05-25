@@ -40,7 +40,7 @@
                 </div>
                 <div class="stepper-item" data-step="3" x-on:click="goToStep(3)">
                     <div class="stepper-circle">4</div>
-                    <span class="stepper-label">Moradores</span>
+                    <span class="stepper-label">Pessoas</span>
                 </div>
                 <div class="stepper-item" data-step="4" x-on:click="goToStep(4)">
                     <div class="stepper-circle">5</div>
@@ -421,7 +421,7 @@
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="houve_lavratura" value="0" checked x-on:change="toggleProtocolo()" class="form-radio">
-                                        <span>Nao</span>
+                                        <span>Não</span>
                                     </label>
                                 </div>
                                 <div id="tipo_protocolo_container" class="mt-2 hidden">
@@ -432,6 +432,25 @@
                                         <option value="frio">Frio</option>
                                         <option value="normal">Normal</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <!-- Comunicado -->
+                            <div class="form-group">
+                                <label class="form-label">Houve Comunicado</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="houve_comunicado" value="1" x-on:change="toggleComunicado()" class="form-radio">
+                                        <span>Sim</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="houve_comunicado" value="0" checked x-on:change="toggleComunicado()" class="form-radio">
+                                        <span>Não</span>
+                                    </label>
+                                </div>
+                                <div id="data_comunicado_container" class="mt-2 hidden">
+                                    <label class="form-label">Data do Comunicado</label>
+                                    <input type="date" name="data_comunicado" class="form-input">
                                 </div>
                             </div>
                         </div>
@@ -524,18 +543,32 @@
                     <div class="card mb-4">
                         <div class="card-body">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="form-section-title" style="margin-bottom: 0;">Moradores do Ponto</h3>
+                                <h3 class="form-section-title" style="margin-bottom: 0;">Pessoas no Ponto</h3>
                                 <button type="button" x-on:click="abrirModalMorador()" class="btn btn-primary btn-sm">
                                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                     </svg>
-                                    Adicionar
+                                    Nova
                                 </button>
                             </div>
 
+                            {{-- Busca de pessoa já cadastrada em outro ponto --}}
+                            <div class="mb-4">
+                                <div class="autocomplete-container">
+                                    <svg style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none; z-index: 2;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" id="busca-pessoa-existente" placeholder="Buscar pessoa já cadastrada (nome ou apelido)..." autocomplete="off" class="form-input" style="padding-left: 38px;">
+                                    <div id="busca-pessoa-resultados" class="autocomplete-results" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            {{-- Pessoas vinculadas de outros pontos (adicionadas via busca) --}}
+                            <div id="pessoas-vinculadas" class="flex flex-col gap-2 mb-4"></div>
+
                             @if($pontoProximo && $pontoProximo->moradores->count() > 0)
                                 <div class="mb-4">
-                                    <p class="text-muted mb-2" style="font-size: var(--text-xs);">Moradores ja cadastrados neste ponto:</p>
+                                    <p class="text-muted mb-2" style="font-size: var(--text-xs);">Pessoas já cadastradas neste ponto:</p>
                                     <div id="moradores-existentes" class="flex flex-col gap-2">
                                         @foreach($pontoProximo->moradores as $morador)
                                             <div class="morador-card">
@@ -565,9 +598,9 @@
                             @else
                                 <p class="text-muted mb-4" id="sem-moradores-msg" style="font-size: var(--text-sm);">
                                     @if($pontoProximo)
-                                        Nenhum morador cadastrado neste ponto.
+                                        Nenhuma pessoa cadastrada neste ponto.
                                     @else
-                                        Os moradores serao vinculados ao novo ponto apos o cadastro.
+                                        As pessoas serão vinculadas ao novo ponto após o cadastro.
                                     @endif
                                 </p>
                             @endif
@@ -575,7 +608,7 @@
                             <div id="novos-moradores" class="flex flex-col gap-2"></div>
 
                             <p class="text-muted mt-3 text-center" style="font-size: var(--text-xs);">
-                                <span id="morador-count">0</span> novo(s) morador(es) a cadastrar
+                                <span id="morador-count">0</span> nova(s) pessoa(s) a cadastrar
                             </p>
                         </div>
                     </div>
@@ -663,7 +696,7 @@
     <div id="modal-morador" class="modal-overlay hidden" x-on:click.self="fecharModalMorador()">
         <div class="modal modal-bottom" x-on:click.stop>
             <div class="modal-header">
-                <h3 id="modal-morador-titulo" class="modal-title">Novo Morador</h3>
+                <h3 id="modal-morador-titulo" class="modal-title">Nova Pessoa</h3>
                 <button type="button" x-on:click="fecharModalMorador()" class="btn btn-ghost btn-icon btn-sm">
                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>

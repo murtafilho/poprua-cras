@@ -19,6 +19,24 @@ class Ponto extends Model
 
     public const COMPLEXIDADE_SQL = '(COALESCE(v.resistencia::int, 0) + COALESCE(v.num_reduzido::int, 0) + COALESCE(v.casal::int, 0) + COALESCE(v.catador_reciclados::int, 0) + COALESCE(v.fixacao_antiga::int, 0) + COALESCE(v.excesso_objetos::int, 0) + COALESCE(v.trafico_ilicitos::int, 0) + COALESCE(v.crianca_adolescente::int, 0) + COALESCE(v.idosos::int, 0) + COALESCE(v.gestante::int, 0) + COALESCE(v.lgbtqiapn::int, 0) + COALESCE(v.cena_uso_caracterizada::int, 0) + COALESCE(v.deficiente::int, 0) + COALESCE(v.agrupamento_quimico::int, 0) + COALESCE(v.saude_mental::int, 0) + COALESCE(v.animais::int, 0))';
 
+    private const FATORES = [
+        'resistencia', 'num_reduzido', 'casal', 'catador_reciclados',
+        'fixacao_antiga', 'excesso_objetos', 'trafico_ilicitos', 'crianca_adolescente',
+        'idosos', 'gestante', 'lgbtqiapn', 'cena_uso_caracterizada',
+        'deficiente', 'agrupamento_quimico', 'saude_mental', 'animais',
+    ];
+
+    public static function complexidadeSqlParametrizada(): string
+    {
+        $termos = array_map(function (string $fator) {
+            $peso = Parametro::get("peso_{$fator}", 1);
+
+            return "COALESCE(v.{$fator}::int, 0) * {$peso}";
+        }, self::FATORES);
+
+        return '('.implode(' + ', $termos).')';
+    }
+
     protected $table = 'pontos';
 
     protected $fillable = [
@@ -211,22 +229,12 @@ class Ponto extends Model
             return 0;
         }
 
-        return (int) $vistoria->resistencia
-            + (int) $vistoria->num_reduzido
-            + (int) $vistoria->casal
-            + (int) $vistoria->catador_reciclados
-            + (int) $vistoria->fixacao_antiga
-            + (int) $vistoria->excesso_objetos
-            + (int) $vistoria->trafico_ilicitos
-            + (int) $vistoria->crianca_adolescente
-            + (int) $vistoria->idosos
-            + (int) $vistoria->gestante
-            + (int) $vistoria->lgbtqiapn
-            + (int) $vistoria->cena_uso_caracterizada
-            + (int) $vistoria->deficiente
-            + (int) $vistoria->agrupamento_quimico
-            + (int) $vistoria->saude_mental
-            + (int) $vistoria->animais;
+        $total = 0;
+        foreach (self::FATORES as $fator) {
+            $total += (int) $vistoria->{$fator} * Parametro::get("peso_{$fator}", 1);
+        }
+
+        return $total;
     }
 
     /**

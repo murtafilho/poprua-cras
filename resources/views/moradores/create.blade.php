@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Novo Morador')
+@section('title', 'Nova Pessoa')
 
 @section('header')
     <div class="flex items-center gap-3 flex-1">
@@ -9,7 +9,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
         </a>
-        <span class="mobile-header-title flex-1 text-center">Novo Morador</span>
+        <span class="mobile-header-title flex-1 text-center">Nova Pessoa</span>
         <div style="width: 44px;"></div>
     </div>
 @endsection

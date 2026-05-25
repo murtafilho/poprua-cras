@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Vistorias')
+@php $isMinhas = request()->boolean('_minhas'); @endphp
+
+@section('title', $isMinhas ? 'Minhas Zeladorias' : 'Zeladorias')
 
 @push('styles')
 <style>
@@ -15,7 +17,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
     </a>
-    <span class="mobile-header-title" style="flex: 1; text-align: center;">Zeladorias</span>
+    <span class="mobile-header-title" style="flex: 1; text-align: center;">{{ $isMinhas ? 'Minhas Zeladorias' : 'Zeladorias' }}</span>
     <a href="{{ route('mapa.index', ['nova_vistoria' => 1]) }}" class="btn btn-ghost btn-icon" title="Nova vistoria">
         <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -230,100 +232,156 @@
             </div>
         </details>
 
-        {{-- Tabela de Vistorias --}}
-        <div class="table-container">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Endereco</th>
-                        <th class="hide-mobile">Descricao</th>
-                        <th class="hide-mobile">Bairro</th>
-                        <th class="hide-mobile">Regional</th>
-                        <th class="hide-mobile">Tipo</th>
-                        <th class="hide-mobile">Retorno</th>
-                        <th class="hide-mobile text-center">Pessoas</th>
-                        <th class="hide-mobile text-center">Kg</th>
-                        <th class="text-center">Status</th>
-                        <th>Resultado</th>
-                        <th class="text-center">Acoes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($vistorias as $vistoria)
-                        @php
-                            $dataAbordagem = \Carbon\Carbon::parse($vistoria->data_abordagem);
-                            $horaAbordagem = $dataAbordagem->format('H:i');
-                        @endphp
-                        <tr>
-                            <td>
-                                <div style="white-space: nowrap;">
-                                    <div style="font-weight: var(--font-medium);">{{ $dataAbordagem->format('d/m/Y') }}</div>
-                                    @if ($horaAbordagem !== '00:00')
-                                        <div class="text-muted" style="font-size: var(--text-xs);">{{ $horaAbordagem }}</div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td>
-                                @if($vistoria->lat && $vistoria->lng)
-                                    <a href="{{ route('mapa.index', ['lat' => $vistoria->lat, 'lng' => $vistoria->lng, 'zoom' => 19, 'ponto_id' => $vistoria->ponto_id, 'ajustar' => 1]) }}"
-                                       style="display: flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: var(--space-1) 0;">
-                                        <svg style="width: 16px; height: 16px; color: var(--accent-primary); flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        </svg>
-                                        <span>
-                                            @if($vistoria->tipo){{ $vistoria->tipo }} @endif{{ $vistoria->logradouro }}, {{ $vistoria->numero }}
-                                        </span>
-                                    </a>
-                                @else
-                                    <span>
-                                        @if($vistoria->tipo){{ $vistoria->tipo }} @endif{{ $vistoria->logradouro }}, {{ $vistoria->numero }}
+        {{-- Cards --}}
+        <div class="vistoria-cards">
+            @forelse($vistorias as $vistoria)
+                @php
+                    $dataAbordagem = \Carbon\Carbon::parse($vistoria->data_abordagem);
+                    $horaAbordagem = $dataAbordagem->format('H:i');
+                    $isAdmin = auth()->user()->hasRole('admin');
+                    $isAberta = !$vistoria->finalizada && !$vistoria->cancelada;
+                    $isOwner = $vistoria->user_id == auth()->id();
+                    $podeEditar = $isAdmin || $isOwner;
+                    $dp = $vistoria->data_prevista_zeladoria ? \Carbon\Carbon::parse($vistoria->data_prevista_zeladoria) : null;
+                    $dias = $dp ? now()->startOfDay()->diffInDays($dp, false) : null;
+
+                    $diasPrecaria = \App\Models\Parametro::get('info_precaria_dias', 60);
+                    $ultimaVistoriaPonto = isset($vistoria->ultima_vistoria_ponto) ? \Carbon\Carbon::parse($vistoria->ultima_vistoria_ponto) : null;
+                    $infoPrecaria = !$ultimaVistoriaPonto || $ultimaVistoriaPonto->diffInDays(now()) > $diasPrecaria;
+
+                    // Fase semântica do workflow
+                    if ($vistoria->cancelada) {
+                        $fase = 'Cancelada';
+                        $faseClass = 'wf-fase-cancelada';
+                        $faseIcon = 'M6 18L18 6M6 6l12 12';
+                    } elseif ($vistoria->finalizada && $infoPrecaria) {
+                        $fase = 'Informação Precária';
+                        $faseClass = 'wf-fase-precaria';
+                        $faseIcon = 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z';
+                    } elseif ($vistoria->finalizada) {
+                        $fase = 'Concluída';
+                        $faseClass = 'wf-fase-concluida';
+                        $faseIcon = 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
+                    } elseif ($infoPrecaria && $isAberta) {
+                        $fase = 'Atualizar Informação';
+                        $faseClass = 'wf-fase-comunicado';
+                        $faseIcon = 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15';
+                    } elseif ($dp && $dias !== null && $dias < 0) {
+                        $fase = 'Retorno Vencido';
+                        $faseClass = 'wf-fase-vencida';
+                        $faseIcon = 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z';
+                    } elseif ($dp) {
+                        $fase = 'Retorno Agendado';
+                        $faseClass = 'wf-fase-agendada';
+                        $faseIcon = 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z';
+                    } else {
+                        $fase = 'Aguardando Retorno';
+                        $faseClass = 'wf-fase-aguardando';
+                        $faseIcon = 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z';
+                    }
+
+                    $resultBadge = match(true) {
+                        !$vistoria->resultado_acao => 'badge-accent',
+                        str_contains($vistoria->resultado_acao, 'persiste') => 'badge-danger',
+                        str_contains($vistoria->resultado_acao, 'parcialmente') => 'badge-warning',
+                        str_contains($vistoria->resultado_acao, 'ausente') => 'badge-default',
+                        str_contains($vistoria->resultado_acao, 'constatado') => 'badge-info',
+                        str_contains($vistoria->resultado_acao, 'Conformidade') => 'badge-success',
+                        default => 'badge-secondary',
+                    };
+                    $borderClass = match($faseClass) {
+                        'wf-fase-cancelada' => 'status-border-danger',
+                        'wf-fase-concluida' => 'status-border-success',
+                        'wf-fase-precaria' => 'status-border-precaria',
+                        'wf-fase-comunicado' => 'status-border-atualizar',
+                        'wf-fase-vencida' => 'status-border-danger',
+                        'wf-fase-agendada' => 'status-border-agendado',
+                        default => 'status-border-info',
+                    };
+                    $ctaClass = match($faseClass) {
+                        'wf-fase-precaria' => 'btn-cta-precaria',
+                        'wf-fase-comunicado' => 'btn-cta-atualizar',
+                        'wf-fase-vencida' => 'btn-cta-vencida',
+                        'wf-fase-agendada' => 'btn-cta-agendada',
+                        'wf-fase-aguardando' => 'btn-cta-aguardando',
+                        default => 'btn-cta-primary',
+                    };
+                    $ctaLabel = match($faseClass) {
+                        'wf-fase-precaria' => 'Vistoria de Atualização',
+                        'wf-fase-comunicado' => 'Vistoria de Atualização',
+                        'wf-fase-vencida' => 'Regularizar Retorno',
+                        'wf-fase-agendada' => 'Concluir Zeladoria',
+                        'wf-fase-aguardando' => 'Agendar Retorno',
+                        default => 'Concluir Zeladoria',
+                    };
+                @endphp
+                <div class="vistoria-card-item {{ $loop->even ? 'even' : '' }} {{ $borderClass }}">
+                    {{-- Header semântico do workflow --}}
+                    <div class="wf-card-header {{ $faseClass }}">
+                        <div class="wf-card-fase">
+                            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $faseIcon }}"/>
+                            </svg>
+                            <span>{{ $fase }}</span>
+                            @if($dp && $isAberta)
+                                <span class="wf-card-prazo {{ $dias < 0 ? 'overdue' : ($dias <= 7 ? 'soon' : '') }}">{{ $dp->format('d/m') }}{{ $dias < 0 ? ' · vencida' : '' }}</span>
+                            @endif
+                        </div>
+                        <div class="wf-card-meta-right">
+                            <span class="wf-card-date">{{ $dataAbordagem->format('d/m/Y') }}</span>
+                            <span class="badge {{ $resultBadge }}">{{ $vistoria->resultado_acao ?: 'Sem resultado' }}</span>
+                        </div>
+                    </div>
+
+                    {{-- Linha 2: Descrição consolidada --}}
+                    <a href="{{ route('vistorias.show', $vistoria->id) }}" class="vistoria-card-address" style="text-decoration: none; color: inherit;">
+                        <svg style="width: 14px; height: 14px; color: var(--accent-primary); flex-shrink: 0; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <div style="min-width: 0;">
+                            <span style="font-weight: var(--font-semibold);">@if($vistoria->tipo){{ $vistoria->tipo }} @endif{{ $vistoria->logradouro }}, {{ $vistoria->numero }}</span>
+                            @if($vistoria->complemento)
+                                <span class="text-muted"> · {{ $vistoria->complemento }}</span>
+                            @endif
+                            <span class="text-muted" style="font-size: var(--text-xs); display: block; margin-top: 1px;">{{ $vistoria->bairro }} · {{ $vistoria->regional ?? 'N/A' }}</span>
+                        </div>
+                    </a>
+
+                    {{-- Linha 3: Workflow stepper --}}
+                    @if(!$vistoria->cancelada)
+                        <div class="wf-stepper">
+                            <div class="wf-step {{ $vistoria->houve_comunicado ? 'done' : ($isAberta ? 'current' : '') }}">
+                                <span class="wf-dot">{{ $vistoria->houve_comunicado ? '✓' : '1' }}</span>
+                                <span class="wf-label">Abordagem</span>
+                                @if($vistoria->houve_comunicado && $vistoria->data_comunicado)
+                                    <span class="wf-detail">{{ \Carbon\Carbon::parse($vistoria->data_comunicado)->format('d/m') }}</span>
+                                @elseif(!$vistoria->houve_comunicado && $isAberta)
+                                    <span class="wf-detail wf-pending">Pendente</span>
+                                @endif
+                            </div>
+                            <div class="wf-line {{ $vistoria->houve_comunicado ? 'done' : '' }}"></div>
+                            <div class="wf-step {{ ($vistoria->houve_comunicado && $dp) ? ($vistoria->finalizada ? 'done' : 'current') : '' }}">
+                                <span class="wf-dot">{{ ($dp && $vistoria->finalizada) ? '✓' : '2' }}</span>
+                                <span class="wf-label">Retorno</span>
+                                @if($dp)
+                                    <span class="wf-detail {{ $dias !== null && $dias < 0 ? 'wf-overdue' : '' }}">
+                                        {{ $dp->format('d/m') }}{{ $dias !== null && $dias < 0 ? ' ✗' : '' }}
                                     </span>
                                 @endif
-                                {{-- Mobile info --}}
-                                <div class="mobile-only text-muted" style="font-size: var(--text-xs); margin-top: var(--space-1);">
-                                    @if($vistoria->complemento)
-                                        <div style="margin-bottom: 2px;">{{ $vistoria->complemento }}</div>
-                                    @endif
-                                    {{ $vistoria->bairro }} - {{ $vistoria->regional ?? 'N/A' }}
-                                    @if($vistoria->quantidade_pessoas)
-                                        <span class="badge badge-info" style="margin-left: var(--space-2);">{{ $vistoria->quantidade_pessoas }} pessoas</span>
-                                    @endif
-                                    @if($vistoria->tipo_abordagem)
-                                        @php
-                                            $tipoBadgeMobile = match(true) {
-                                                str_contains(mb_strtolower($vistoria->tipo_abordagem), 'comunica') => 'badge-info',
-                                                str_contains(mb_strtolower($vistoria->tipo_abordagem), 'fiscal') => 'badge-danger',
-                                                str_contains(mb_strtolower($vistoria->tipo_abordagem), 'zeladoria') => 'badge-success',
-                                                default => 'badge-secondary',
-                                            };
-                                        @endphp
-                                        <div style="margin-top: 2px;">
-                                            <span class="badge {{ $tipoBadgeMobile }}">{{ $vistoria->tipo_abordagem }}</span>
-                                            @if($vistoria->data_prevista_zeladoria)
-                                                @php
-                                                    $dpMobile = \Carbon\Carbon::parse($vistoria->data_prevista_zeladoria);
-                                                    $diasMobile = now()->startOfDay()->diffInDays($dpMobile, false);
-                                                @endphp
-                                                <span class="badge {{ $diasMobile < 0 ? 'badge-danger' : ($diasMobile <= 7 ? 'badge-warning' : 'badge-default') }}">
-                                                    Retorno {{ $dpMobile->format('d/m') }}{{ $diasMobile < 0 ? ' (vencido)' : '' }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="hide-mobile">
-                                @if($vistoria->complemento)
-                                    {{ $vistoria->complemento }}
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                            <td class="hide-mobile">{{ $vistoria->bairro }}</td>
-                            <td class="hide-mobile">{{ $vistoria->regional ?? 'N/A' }}</td>
-                            <td class="hide-mobile">
+                            </div>
+                            <div class="wf-line {{ $vistoria->finalizada ? 'done' : '' }}"></div>
+                            <div class="wf-step {{ $vistoria->finalizada ? 'done' : '' }}">
+                                <span class="wf-dot">{{ $vistoria->finalizada ? '✓' : '3' }}</span>
+                                <span class="wf-label">Finalização</span>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Meta badges --}}
+                    @if($vistoria->quantidade_pessoas || $vistoria->tipo_abordagem)
+                        <div class="vistoria-card-meta">
+                            <div class="vistoria-card-meta-right" style="justify-content: flex-start; width: 100%;">
                                 @if($vistoria->tipo_abordagem)
                                     @php
                                         $tipoBadge = match(true) {
@@ -333,117 +391,59 @@
                                             default => 'badge-secondary',
                                         };
                                     @endphp
-                                    <span class="badge {{ $tipoBadge }}" style="white-space: nowrap;">{{ $vistoria->tipo_abordagem }}</span>
-                                @else
-                                    <span class="text-muted">-</span>
+                                    <span class="badge {{ $tipoBadge }}">{{ $vistoria->tipo_abordagem }}</span>
                                 @endif
-                            </td>
-                            <td class="hide-mobile">
-                                @if($vistoria->data_prevista_zeladoria)
-                                    @php
-                                        $dataPrevista = \Carbon\Carbon::parse($vistoria->data_prevista_zeladoria);
-                                        $hoje = now()->startOfDay();
-                                        $diasAte = $hoje->diffInDays($dataPrevista, false);
-                                        if ($diasAte < 0) {
-                                            $retornoBadge = 'badge-danger';
-                                            $retornoLabel = 'Vencido (' . abs((int) $diasAte) . 'd)';
-                                        } elseif ($diasAte <= 7) {
-                                            $retornoBadge = 'badge-warning';
-                                            $retornoLabel = 'Em ' . (int) $diasAte . 'd';
-                                        } else {
-                                            $retornoBadge = 'badge-default';
-                                            $retornoLabel = 'Em ' . (int) $diasAte . 'd';
-                                        }
-                                        $periodoLabel = $vistoria->periodo_zeladoria === 'manha' ? 'M' : 'T';
-                                    @endphp
-                                    <div style="white-space: nowrap;">
-                                        <div style="font-weight: var(--font-medium);">{{ $dataPrevista->format('d/m/Y') }} <span class="text-muted" style="font-size: var(--text-xs);">({{ $periodoLabel }})</span></div>
-                                        <span class="badge {{ $retornoBadge }}" style="font-size: var(--text-xs); margin-top: 2px;">{{ $retornoLabel }}</span>
-                                    </div>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                            <td class="hide-mobile text-center">
                                 @if($vistoria->quantidade_pessoas)
-                                    <span class="badge badge-info">{{ $vistoria->quantidade_pessoas }}</span>
-                                @else
-                                    <span class="badge badge-default">0</span>
+                                    <span class="badge badge-info">{{ $vistoria->quantidade_pessoas }} <svg style="width:10px;height:10px;display:inline;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></span>
                                 @endif
-                            </td>
-                            <td class="hide-mobile text-center">
-                                @if($vistoria->qtd_kg)
-                                    <span class="badge badge-accent">{{ $vistoria->qtd_kg }}</span>
-                                @else
-                                    <span class="badge badge-default">0</span>
-                                @endif
-                            </td>
-                            <td class="text-center">
-                                @if($vistoria->cancelada)
-                                    <span class="badge badge-danger" title="Cancelada" style="font-weight:700;">X</span>
-                                @elseif($vistoria->finalizada)
-                                    <span class="badge badge-success" title="Finalizada" style="font-weight:700;">F</span>
-                                @else
-                                    <span class="badge badge-info" title="Aberta" style="font-weight:700;">A</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($vistoria->resultado_acao)
-                                    @php
-                                        $badgeClass = match(true) {
-                                            str_contains($vistoria->resultado_acao, 'persiste') => 'badge-danger',
-                                            str_contains($vistoria->resultado_acao, 'parcialmente') => 'badge-warning',
-                                            str_contains($vistoria->resultado_acao, 'ausente') => 'badge-default',
-                                            str_contains($vistoria->resultado_acao, 'constatado') => 'badge-info',
-                                            str_contains($vistoria->resultado_acao, 'Conformidade') => 'badge-success',
-                                            default => 'badge-secondary',
-                                        };
-                                    @endphp
-                                    <span class="badge {{ $badgeClass }}">{{ $vistoria->resultado_acao }}</span>
-                                @else
-                                    <span class="badge badge-accent">Sem resultado</span>
-                                @endif
-                            </td>
-                            <td class="text-center">
-                                <div style="display: flex; gap: var(--space-1); justify-content: center; align-items: center;">
-                                    @if($vistoria->lat && $vistoria->lng)
-                                        <a href="{{ route('mapa.index', ['lat' => $vistoria->lat, 'lng' => $vistoria->lng, 'zoom' => 19, 'ponto_id' => $vistoria->ponto_id, 'ajustar' => 1]) }}"
-                                           class="btn btn-ghost btn-sm" title="Ver no mapa">
-                                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                                            </svg>
-                                        </a>
-                                    @endif
-                                    <a href="{{ route('vistorias.show', $vistoria->id) }}" class="btn btn-ghost btn-sm" title="Ver detalhes">
-                                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                    </a>
-                                    <a href="{{ route('vistorias.report', $vistoria->id) }}" class="btn btn-ghost btn-sm" title="Relatorio">
-                                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                                        </svg>
-                                    </a>
-                                    @if(!$vistoria->finalizada && !$vistoria->cancelada && $vistoria->user_id == auth()->id())
-                                        <a href="{{ route('vistorias.edit', $vistoria->id) }}" class="btn btn-ghost btn-sm" title="Editar">
-                                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                            </svg>
-                                        </a>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="12" class="text-center text-muted" style="padding: var(--space-6);">
-                                Nenhuma vistoria encontrada.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Linha 4: Ação prioritária --}}
+                    <div class="vistoria-card-cta">
+                        @if($isAberta)
+                            <a href="{{ route('vistorias.edit', $vistoria->id) }}" class="btn-cta {{ $ctaClass }}" x-on:click.stop>
+                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $faseIcon }}"/>
+                                </svg>
+                                {{ $ctaLabel }}
+                            </a>
+                        @elseif($isAdmin)
+                            <a href="{{ route('vistorias.edit', $vistoria->id) }}" class="btn-cta btn-cta-primary" style="opacity: 0.75;" x-on:click.stop>
+                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Editar
+                            </a>
+                        @endif
+                        <div class="vistoria-card-secondary-actions">
+                            @if($vistoria->lat && $vistoria->lng)
+                                <a href="{{ route('mapa.index', ['lat' => $vistoria->lat, 'lng' => $vistoria->lng, 'zoom' => 19, 'ponto_id' => $vistoria->ponto_id, 'ajustar' => 1]) }}"
+                                   class="btn btn-ghost btn-sm" title="Mapa" x-on:click.stop>
+                                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                                </a>
+                            @endif
+                            @if($podeEditar)
+                                <a href="{{ route('vistorias.edit', $vistoria->id) }}" class="btn btn-ghost btn-sm" title="Editar" x-on:click.stop>
+                                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </a>
+                            @endif
+                            <a href="{{ route('vistorias.show', $vistoria->id) }}" class="btn btn-ghost btn-sm" title="Detalhes" x-on:click.stop>
+                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </a>
+                            <a href="{{ route('vistorias.report', $vistoria->id) }}" class="btn btn-ghost btn-sm" title="Relatório" x-on:click.stop>
+                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="empty-state">
+                    <p class="empty-state-title">Nenhuma zeladoria encontrada</p>
+                    <p class="empty-state-description">Ajuste os filtros ou crie uma nova zeladoria.</p>
+                </div>
+            @endforelse
         </div>
 
         {{-- Paginacao --}}

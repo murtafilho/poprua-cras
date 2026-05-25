@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="app-base" content="{{ rtrim(url('/'), '/') }}">
-    <meta name="theme-color" content="#111214">
+    <meta name="theme-color" content="#1B2A6B">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -78,7 +78,7 @@
                 <svg class="bottom-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
-                <span class="bottom-nav-label">Moradores</span>
+                <span class="bottom-nav-label">Pessoas</span>
             </a>
             <button type="button" class="bottom-nav-item {{ request()->routeIs('admin.*') || request()->routeIs('pontos.*') || request()->routeIs('dashboard') ? 'active' : '' }}" id="bottom-nav-more" aria-expanded="false" aria-controls="sidebar" aria-label="Mais opcoes">
                 <svg class="bottom-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

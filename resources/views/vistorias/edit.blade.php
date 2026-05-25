@@ -394,7 +394,7 @@
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="houve_lavratura" value="0" {{ !$vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()" class="form-radio">
-                                        <span>Nao</span>
+                                        <span>Não</span>
                                     </label>
                                 </div>
                                 <div id="tipo_protocolo_container" class="mt-2 {{ $vistoria->houve_lavratura ? '' : 'hidden' }}">
@@ -405,6 +405,25 @@
                                         <option value="frio" {{ $vistoria->tipo_protocolo === 'frio' ? 'selected' : '' }}>Frio</option>
                                         <option value="normal" {{ $vistoria->tipo_protocolo === 'normal' ? 'selected' : '' }}>Normal</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <!-- Comunicado -->
+                            <div class="form-group">
+                                <label class="form-label">Houve Comunicado</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="houve_comunicado" value="1" {{ $vistoria->houve_comunicado ? 'checked' : '' }} x-on:change="toggleComunicado()" class="form-radio">
+                                        <span>Sim</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="houve_comunicado" value="0" {{ !$vistoria->houve_comunicado ? 'checked' : '' }} x-on:change="toggleComunicado()" class="form-radio">
+                                        <span>Não</span>
+                                    </label>
+                                </div>
+                                <div id="data_comunicado_container" class="mt-2 {{ $vistoria->houve_comunicado ? '' : 'hidden' }}">
+                                    <label class="form-label">Data do Comunicado</label>
+                                    <input type="date" name="data_comunicado" value="{{ $vistoria->data_comunicado?->format('Y-m-d') }}" class="form-input">
                                 </div>
                             </div>
                         </div>
@@ -451,8 +470,78 @@
                     </div>
                 </div>
 
-                <!-- Aba 4: Fotos -->
+                <!-- Aba 4: Moradores e Fotos -->
                 <div class="tab-content hidden" data-tab="3">
+                    <!-- Pessoas no Ponto -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="form-section-title" style="margin-bottom: 0;">Pessoas no Ponto</h3>
+                                <button type="button" x-on:click="abrirModalMorador()" class="btn btn-primary btn-sm">
+                                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    Nova
+                                </button>
+                            </div>
+
+                            {{-- Busca de pessoa já cadastrada em outro ponto --}}
+                            <div class="mb-4">
+                                <div class="autocomplete-container">
+                                    <svg style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none; z-index: 2;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    <input type="text" id="busca-pessoa-existente" placeholder="Buscar pessoa já cadastrada (nome ou apelido)..." autocomplete="off" class="form-input" style="padding-left: 38px;">
+                                    <div id="busca-pessoa-resultados" class="autocomplete-results" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            {{-- Pessoas vinculadas de outros pontos --}}
+                            <div id="pessoas-vinculadas" class="flex flex-col gap-2 mb-4"></div>
+
+                            @if($vistoria->ponto && $vistoria->ponto->moradores->count() > 0)
+                                <div class="mb-4">
+                                    <p class="text-muted mb-2" style="font-size: var(--text-xs);">Pessoas cadastradas neste ponto:</p>
+                                    <div id="moradores-existentes" class="flex flex-col gap-2">
+                                        @foreach($vistoria->ponto->moradores as $morador)
+                                            <div class="morador-card">
+                                                <div class="morador-avatar">
+                                                    @if($morador->getFirstMediaUrl('fotos'))
+                                                        <img src="{{ $morador->getFirstMediaUrl('fotos', 'thumb') ?: $morador->getFirstMediaUrl('fotos') }}" alt="{{ $morador->nome_social }}">
+                                                    @else
+                                                        <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                        </svg>
+                                                    @endif
+                                                </div>
+                                                <div class="morador-info">
+                                                    <p class="morador-name">{{ $morador->nome_social }}</p>
+                                                    @if($morador->apelido)
+                                                        <p class="morador-nickname">"{{ $morador->apelido }}"</p>
+                                                    @endif
+                                                </div>
+                                                <label class="morador-presence">
+                                                    <input type="checkbox" name="moradores_presentes[]" value="{{ $morador->id }}" checked class="form-checkbox">
+                                                    <span>Presente</span>
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <p class="text-muted mb-4" id="sem-moradores-msg" style="font-size: var(--text-sm);">
+                                    Nenhuma pessoa cadastrada neste ponto.
+                                </p>
+                            @endif
+
+                            <div id="novos-moradores" class="flex flex-col gap-2"></div>
+                            <p class="text-muted mt-3 text-center" style="font-size: var(--text-xs);">
+                                <span id="morador-count">0</span> nova(s) pessoa(s) a cadastrar
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Fotos -->
                     <div class="card mb-4">
                         <div class="card-body">
                             <label class="form-label mb-3">Fotos da Vistoria</label>
@@ -624,10 +713,76 @@
                 </div>
             </div>
 
+            <!-- Navegação entre abas -->
+            <div class="form-step-nav" id="form-step-nav">
+                <button type="button" id="btn-prev" class="btn btn-secondary" x-on:click="goToStep(Math.max(0, window.__currentTab - 1))" style="display: none;">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Anterior
+                </button>
+                <button type="button" id="btn-next" class="btn btn-primary" x-on:click="goToStep(Math.min(4, window.__currentTab + 1))">
+                    Próximo
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+
             <!-- Inputs para fotos a remover -->
             <div id="fotos-remover-inputs"></div>
             <input type="hidden" id="finalizar-apos-salvar" name="finalizar_apos_salvar" value="0">
         </form>
+    </div>
+
+    <!-- Modal Adicionar Morador -->
+    <div id="modal-morador" class="modal-overlay hidden" x-on:click.self="fecharModalMorador()">
+        <div class="modal modal-bottom" x-on:click.stop>
+            <div class="modal-header">
+                <h3 id="modal-morador-titulo" class="modal-title">Nova Pessoa</h3>
+                <button type="button" x-on:click="fecharModalMorador()" class="btn btn-ghost btn-icon btn-sm">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="morador-edit-index" value="">
+                <div class="form-group">
+                    <label for="morador-nome-social" class="form-label required">Nome Social</label>
+                    <input type="text" id="morador-nome-social" placeholder="Como deseja ser chamado" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="morador-apelido" class="form-label">Apelido</label>
+                    <input type="text" id="morador-apelido" placeholder="Como é conhecido" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="morador-genero" class="form-label">Gênero</label>
+                    <select id="morador-genero" class="form-input form-select">
+                        <option value="">Prefiro não informar</option>
+                        <option value="Homem cisgenero">Homem cisgênero</option>
+                        <option value="Mulher cisgenero">Mulher cisgênero</option>
+                        <option value="Homem trans">Homem trans</option>
+                        <option value="Mulher trans">Mulher trans</option>
+                        <option value="Travesti">Travesti</option>
+                        <option value="Nao-binario">Não-binário</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="morador-documento" class="form-label">Documento</label>
+                    <input type="text" id="morador-documento" placeholder="CPF ou RG" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="morador-contato" class="form-label">Contato</label>
+                    <input type="text" id="morador-contato" placeholder="Telefone ou outro" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="morador-observacoes" class="form-label">Observações</label>
+                    <textarea id="morador-observacoes" rows="2" placeholder="Informações adicionais" class="form-input form-textarea"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" x-on:click="salvarMorador()" class="btn btn-primary flex-1">Salvar</button>
+                <button type="button" x-on:click="fecharModalMorador()" class="btn btn-secondary flex-1">Cancelar</button>
+            </div>
+        </div>
     </div>
 
     <script>window.VISTORIA_TIPOS_ABRIGO = @json($tiposAbrigo); window.VISTORIA_ABRIGOS_SELECIONADOS = @json($vistoria->abrigos_tipos ?? []); window.VISTORIA_ID = {{ $vistoria->id }};</script>

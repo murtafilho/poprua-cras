@@ -35,11 +35,19 @@ class VistoriaPolicy
 
     public function update(User $user, Vistoria $vistoria): bool
     {
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
+        if ($vistoria->user_id === $user->id) {
+            return true;
+        }
+
         if ($vistoria->finalizada || $vistoria->cancelada) {
             return false;
         }
 
-        return $vistoria->user_id === $user->id;
+        return false;
     }
 
     public function reativar(User $user, Vistoria $vistoria): bool

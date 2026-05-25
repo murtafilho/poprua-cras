@@ -152,7 +152,7 @@ class VistoriaFotoControllerTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_store_admin_cannot_upload_to_others_vistoria(): void
+    public function test_store_admin_can_upload_to_others_vistoria(): void
     {
         $file = UploadedFile::fake()->image('test-photo.jpg', 640, 480)->size(1024);
 
@@ -161,7 +161,7 @@ class VistoriaFotoControllerTest extends TestCase
             'foto' => $file,
         ]);
 
-        $response->assertForbidden();
+        $response->assertCreated();
     }
 
     // ---------------------------------------------------------------
