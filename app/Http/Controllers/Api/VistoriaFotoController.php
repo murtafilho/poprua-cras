@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreVistoriaFotoRequest;
+use App\Http\Requests\Api\UpdateVistoriaFotoLegendaRequest;
 use App\Models\Vistoria;
 use App\Services\FotoService;
 use Illuminate\Http\JsonResponse;
@@ -19,9 +20,17 @@ class VistoriaFotoController extends Controller
         $vistoria = Vistoria::findOrFail($request->validated('vistoria_id'));
         $this->authorize('update', $vistoria);
 
+        $propriedades = [];
+        $legenda = trim((string) $request->validated('legenda', ''));
+        if ($legenda !== '') {
+            $propriedades['legenda'] = $legenda;
+        }
+
         $resultado = $this->fotoService->adicionarFoto(
             $vistoria,
             $request->file('foto'),
+            'fotos',
+            $propriedades,
         );
 
         return response()->json($resultado, 201);
@@ -41,6 +50,19 @@ class VistoriaFotoController extends Controller
         $this->authorize('update', $vistoria);
 
         $resultado = $this->fotoService->togglePublica($vistoria, $mediaId);
+
+        return response()->json($resultado);
+    }
+
+    public function setLegenda(UpdateVistoriaFotoLegendaRequest $request, Vistoria $vistoria, int $mediaId): JsonResponse
+    {
+        $this->authorize('update', $vistoria);
+
+        $resultado = $this->fotoService->setLegenda(
+            $vistoria,
+            $mediaId,
+            (string) $request->validated('legenda', ''),
+        );
 
         return response()->json($resultado);
     }

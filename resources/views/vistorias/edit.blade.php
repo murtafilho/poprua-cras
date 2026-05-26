@@ -564,24 +564,35 @@
                             @php $fotosExistentes = $vistoria->getMedia('fotos'); @endphp
                             @if($fotosExistentes->count() > 0)
                                 <div class="mb-4">
-                                    <p class="text-muted mb-2" style="font-size: var(--text-xs);">Fotos existentes — clique no cadeado para tornar pública (aparecerá no relatório do processo):</p>
+                                    <p class="text-muted mb-2" style="font-size: var(--text-xs);">Fotos existentes — clique no cadeado para tornar pública (aparece no relatório). Texto sob a foto vira legenda.</p>
                                     <div class="photos-grid" id="fotos-existentes">
                                         @foreach($fotosExistentes as $foto)
-                                            @php $fotoPublica = (bool) $foto->getCustomProperty('publica', false); @endphp
-                                            <div class="photo-preview {{ $fotoPublica ? 'foto-publica' : '' }}" id="foto-existente-{{ $foto->id }}" data-vistoria-id="{{ $vistoria->id }}">
-                                                <img src="{{ $foto->getUrl('thumb') }}" alt="Foto" loading="lazy">
-                                                <button type="button" x-on:click="togglePublicaFoto({{ $foto->id }})" class="photo-publica-btn" data-publica="{{ $fotoPublica ? '1' : '0' }}" title="{{ $fotoPublica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app' }}">
-                                                    @if($fotoPublica)
-                                                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                                    @else
-                                                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>
-                                                    @endif
-                                                </button>
-                                                <button type="button" x-on:click="marcarRemoverFoto({{ $foto->id }})" class="photo-remove-btn">
-                                                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                    </svg>
-                                                </button>
+                                            @php
+                                                $fotoPublica = (bool) $foto->getCustomProperty('publica', false);
+                                                $fotoLegenda = (string) $foto->getCustomProperty('legenda', '');
+                                            @endphp
+                                            <div class="photo-preview-wrap" id="foto-existente-{{ $foto->id }}" data-vistoria-id="{{ $vistoria->id }}">
+                                                <div class="photo-preview {{ $fotoPublica ? 'foto-publica' : '' }}">
+                                                    <img src="{{ $foto->getUrl('thumb') }}" alt="Foto" loading="lazy">
+                                                    <button type="button" x-on:click="togglePublicaFoto({{ $foto->id }})" class="photo-publica-btn" data-publica="{{ $fotoPublica ? '1' : '0' }}" title="{{ $fotoPublica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app' }}">
+                                                        @if($fotoPublica)
+                                                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                        @else
+                                                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>
+                                                        @endif
+                                                    </button>
+                                                    <button type="button" x-on:click="marcarRemoverFoto({{ $foto->id }})" class="photo-remove-btn">
+                                                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                                <input type="text" class="photo-legenda-input form-input"
+                                                       placeholder="Legenda (opcional)"
+                                                       maxlength="255"
+                                                       value="{{ $fotoLegenda }}"
+                                                       data-media-id="{{ $foto->id }}"
+                                                       onchange="salvarLegendaFoto({{ $foto->id }}, this.value)">
                                             </div>
                                         @endforeach
                                     </div>
@@ -612,6 +623,21 @@
                                         outline: 2px solid var(--accent-primary, #2dd4bf);
                                         outline-offset: 1px;
                                         border-radius: 6px;
+                                    }
+                                    .photo-preview-wrap {
+                                        display: flex;
+                                        flex-direction: column;
+                                        gap: var(--space-1);
+                                    }
+                                    .photo-legenda-input {
+                                        font-size: var(--text-xs);
+                                        padding: 4px 8px;
+                                        height: auto;
+                                    }
+                                    .photo-legenda-input.saving { opacity: 0.6; }
+                                    .photo-legenda-input.saved {
+                                        border-color: var(--accent-primary, #2dd4bf);
+                                        transition: border-color 1.5s;
                                     }
                                 </style>
                                 <script>
@@ -644,6 +670,35 @@
                                             alert('Não foi possível atualizar. Tente novamente.');
                                         } finally {
                                             btn.disabled = false;
+                                        }
+                                    }
+
+                                    async function salvarLegendaFoto(mediaId, legenda) {
+                                        const wrapper = document.getElementById(`foto-existente-${mediaId}`);
+                                        if (!wrapper) return;
+                                        const vistoriaId = wrapper.dataset.vistoriaId;
+                                        const input = wrapper.querySelector('.photo-legenda-input');
+                                        input.classList.remove('saved');
+                                        input.classList.add('saving');
+                                        try {
+                                            const resp = await fetch(`/ginfi/poprua-cras/public/api/vistorias/${vistoriaId}/fotos/${mediaId}/legenda`, {
+                                                method: 'PATCH',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                                    'Accept': 'application/json',
+                                                },
+                                                credentials: 'same-origin',
+                                                body: JSON.stringify({ legenda: legenda || '' }),
+                                            });
+                                            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                                            input.classList.add('saved');
+                                            setTimeout(() => input.classList.remove('saved'), 1500);
+                                        } catch (e) {
+                                            console.error('Falha ao salvar legenda:', e);
+                                            alert('Não foi possível salvar a legenda. Tente novamente.');
+                                        } finally {
+                                            input.classList.remove('saving');
                                         }
                                     }
                                 </script>

@@ -62,6 +62,29 @@ class FotoService
     }
 
     /**
+     * Define a legenda (custom property) de uma mídia. Texto curto que
+     * aparece sob a foto no relatório quando a foto está marcada publica.
+     *
+     * @return array{id: int, legenda: string}
+     */
+    public function setLegenda(HasMedia $modelo, int $mediaId, string $legenda, string $colecao = 'fotos'): array
+    {
+        /** @var Media $media */
+        $media = $modelo->media()
+            ->where('id', $mediaId)
+            ->where('collection_name', $colecao)
+            ->firstOrFail();
+
+        $media->setCustomProperty('legenda', $legenda);
+        $media->save();
+
+        return [
+            'id' => $media->id,
+            'legenda' => $legenda,
+        ];
+    }
+
+    /**
      * Lista fotos de uma coleção com dados serializados.
      *
      * @return array<int, array<string, mixed>>
@@ -76,6 +99,7 @@ class FotoService
             'thumb' => $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : $media->getUrl(),
             'name' => $media->name,
             'publica' => (bool) $media->getCustomProperty('publica', false),
+            'legenda' => (string) $media->getCustomProperty('legenda', ''),
         ])->all();
     }
 
@@ -93,6 +117,8 @@ class FotoService
             'thumb' => $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : $media->getUrl(),
             'preview' => $media->hasGeneratedConversion('preview') ? $media->getUrl('preview') : $media->getUrl(),
             'created_at' => $media->created_at?->toIso8601String(),
+            'publica' => (bool) $media->getCustomProperty('publica', false),
+            'legenda' => (string) $media->getCustomProperty('legenda', ''),
         ];
     }
 }

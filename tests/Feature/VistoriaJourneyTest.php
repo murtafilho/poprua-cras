@@ -336,4 +336,77 @@ class VistoriaJourneyTest extends TestCase
         $this->assertGreaterThan(0, $vistoria->getMedia('fotos')->count(),
             'Foto deveria ter sido associada à vistoria via MediaLibrary');
     }
+
+    public function test_foto_upload_com_legenda_inicial_persiste_a_legenda(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->user)->post(route('vistorias.store'), $this->fullJourneyPayload());
+        $vistoria = Vistoria::latest('id')->first();
+
+        $resp = $this->actingAs($this->user)->postJson('/api/vistorias/fotos', [
+            'vistoria_id' => $vistoria->id,
+            'foto' => UploadedFile::fake()->image('foto.jpg'),
+            'legenda' => 'Barraca debaixo do viaduto',
+        ]);
+
+        $resp->assertStatus(201);
+        $resp->assertJsonFragment(['legenda' => 'Barraca debaixo do viaduto']);
+
+        $media = $vistoria->getMedia('fotos')->first();
+        $this->assertEquals('Barraca debaixo do viaduto', $media->getCustomProperty('legenda'));
+    }
+
+    public function test_patch_legenda_atualiza_custom_property(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->user)->post(route('vistorias.store'), $this->fullJourneyPayload());
+        $vistoria = Vistoria::latest('id')->first();
+
+        $this->actingAs($this->user)->postJson('/api/vistorias/fotos', [
+            'vistoria_id' => $vistoria->id,
+            'foto' => UploadedFile::fake()->image('foto.jpg'),
+        ]);
+        $media = $vistoria->getMedia('fotos')->first();
+
+        // Define legenda via PATCH
+        $resp = $this->actingAs($this->user)->patchJson(
+            "/api/vistorias/{$vistoria->id}/fotos/{$media->id}/legenda",
+            ['legenda' => 'Pessoa em situação de rua — homem adulto']
+        );
+
+        $resp->assertOk()->assertJsonFragment(['legenda' => 'Pessoa em situação de rua — homem adulto']);
+        $this->assertEquals(
+            'Pessoa em situação de rua — homem adulto',
+            $vistoria->fresh()->getMedia('fotos')->first()->getCustomProperty('legenda')
+        );
+
+        // Sobrescreve com texto vazio (limpar)
+        $resp = $this->actingAs($this->user)->patchJson(
+            "/api/vistorias/{$vistoria->id}/fotos/{$media->id}/legenda",
+            ['legenda' => '']
+        );
+        $resp->assertOk();
+        $this->assertEquals('', $vistoria->fresh()->getMedia('fotos')->first()->getCustomProperty('legenda'));
+    }
+
+    public function test_legenda_acima_de_255_caracteres_e_rejeitada(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->user)->post(route('vistorias.store'), $this->fullJourneyPayload());
+        $vistoria = Vistoria::latest('id')->first();
+        $this->actingAs($this->user)->postJson('/api/vistorias/fotos', [
+            'vistoria_id' => $vistoria->id,
+            'foto' => UploadedFile::fake()->image('foto.jpg'),
+        ]);
+        $media = $vistoria->getMedia('fotos')->first();
+
+        $resp = $this->actingAs($this->user)->patchJson(
+            "/api/vistorias/{$vistoria->id}/fotos/{$media->id}/legenda",
+            ['legenda' => str_repeat('x', 256)]
+        );
+
+        $resp->assertStatus(422)->assertJsonValidationErrors('legenda');
+    }
 }

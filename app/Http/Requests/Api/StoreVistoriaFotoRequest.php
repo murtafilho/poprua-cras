@@ -20,6 +20,7 @@ class StoreVistoriaFotoRequest extends FormRequest
             'vistoria_id' => ['required', 'integer', 'exists:vistorias,id'],
             'foto' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
             'descricao' => ['nullable', 'string', 'max:255'],
+            'legenda' => ['nullable', 'string', 'max:255'],
         ];
     }
 

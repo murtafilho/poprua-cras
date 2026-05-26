@@ -46,6 +46,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/vistorias/fotos', [VistoriaFotoController::class, 'store']);
     Route::get('/vistorias/{vistoria}/fotos/status', [VistoriaFotoController::class, 'status']);
     Route::post('/vistorias/{vistoria}/fotos/{mediaId}/toggle-publica', [VistoriaFotoController::class, 'togglePublica']);
+    Route::patch('/vistorias/{vistoria}/fotos/{mediaId}/legenda', [VistoriaFotoController::class, 'setLegenda']);
 });
 
 // Client logs (debug mobile)
