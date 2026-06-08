@@ -1,4 +1,4 @@
-const CACHE_VERSION = 13;
+const CACHE_VERSION = 14;
 const CACHE_NAME = 'poprua-v' + CACHE_VERSION;
 const TILE_CACHE = 'poprua-tiles-v1';
 const API_CACHE = 'poprua-api-v1';
@@ -107,55 +107,81 @@ self.addEventListener('sync', function(event) {
     }
 });
 
-function syncPendingPhotos() {
-    return new Promise(function(resolve, reject) {
-        var request = indexedDB.open('poprua_fotos', 1);
-        request.onerror = function() { resolve(); };
-        request.onsuccess = function(e) {
-            var db = e.target.result;
-            if (!db.objectStoreNames.contains('pendentes')) {
-                db.close();
-                return resolve();
-            }
-            var tx = db.transaction('pendentes', 'readonly');
-            var store = tx.objectStore('pendentes');
-            var getAll = store.getAll();
-            getAll.onsuccess = function() {
-                var items = getAll.result || [];
-                db.close();
-                if (items.length === 0) return resolve();
+// --- Sincronizacao de fotos pendentes (Background Sync) ---
+// Espelha a logica de app.js (syncAllPendingPhotos): le o registro gravado por
+// salvarFotoLocal/offline-upload no shape {data:ArrayBuffer, type, name}, ignora
+// registros ainda nao reconciliados (vistoria_id 'temp_*') e autentica via cookie
+// XSRF-TOKEN do Laravel (header X-XSRF-TOKEN). Cobre o cenario de app fechado em
+// navegadores Chromium; iOS Safari nao tem Background Sync e usa o app.js.
 
-                var uploads = items.map(function(item) {
-                    var formData = new FormData();
-                    formData.append('vistoria_id', item.vistoria_id);
-                    formData.append('foto', item.blob, item.filename || 'foto.jpg');
-                    return fetch('/api/vistorias/fotos', {
-                        method: 'POST',
-                        body: formData,
-                        credentials: 'same-origin'
-                    }).then(function(response) {
-                        if (response.ok) {
-                            return removeFromStore(item.id);
-                        }
-                    }).catch(function() {});
-                });
-                Promise.all(uploads).then(resolve).catch(resolve);
-            };
-            getAll.onerror = function() { resolve(); };
-        };
+function isTempRecord(foto) {
+    var vid = foto.vistoria_id || foto.vistoriaId;
+    return typeof vid === 'string' && vid.indexOf('temp_') === 0;
+}
+
+async function getXsrfToken() {
+    try {
+        if (self.cookieStore) {
+            var c = await self.cookieStore.get('XSRF-TOKEN');
+            if (c && c.value) return decodeURIComponent(c.value);
+        }
+    } catch (e) {}
+    return null;
+}
+
+function idbOpen() {
+    return new Promise(function(resolve, reject) {
+        var req = indexedDB.open('poprua_fotos', 1);
+        req.onsuccess = function(e) { resolve(e.target.result); };
+        req.onerror = function() { reject(req.error); };
     });
 }
 
-function removeFromStore(id) {
+function idbGetAll(db) {
     return new Promise(function(resolve) {
-        var request = indexedDB.open('poprua_fotos', 1);
-        request.onsuccess = function(e) {
-            var db = e.target.result;
-            var tx = db.transaction('pendentes', 'readwrite');
-            tx.objectStore('pendentes').delete(id);
-            tx.oncomplete = function() { db.close(); resolve(); };
-            tx.onerror = function() { db.close(); resolve(); };
-        };
-        request.onerror = function() { resolve(); };
+        if (!db.objectStoreNames.contains('pendentes')) return resolve([]);
+        var tx = db.transaction('pendentes', 'readonly');
+        var req = tx.objectStore('pendentes').getAll();
+        req.onsuccess = function() { resolve(req.result || []); };
+        req.onerror = function() { resolve([]); };
     });
+}
+
+function idbDelete(db, id) {
+    return new Promise(function(resolve) {
+        var tx = db.transaction('pendentes', 'readwrite');
+        tx.objectStore('pendentes').delete(id);
+        tx.oncomplete = function() { resolve(); };
+        tx.onerror = function() { resolve(); };
+    });
+}
+
+async function syncPendingPhotos() {
+    var db;
+    try { db = await idbOpen(); } catch (e) { return; }
+    var fotos = (await idbGetAll(db)).filter(function(f) { return !isTempRecord(f); });
+    if (fotos.length === 0) { db.close(); return; }
+
+    var xsrf = await getXsrfToken();
+    var endpoint = new URL('api/vistorias/fotos', self.registration.scope).toString();
+
+    for (var i = 0; i < fotos.length; i++) {
+        var foto = fotos[i];
+        try {
+            var blob = new Blob([foto.data], { type: foto.type || 'application/octet-stream' });
+            var form = new FormData();
+            form.append('vistoria_id', foto.vistoria_id);
+            form.append('foto', blob, foto.name || 'foto.webp');
+            var headers = {};
+            if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
+            var resp = await fetch(endpoint, {
+                method: 'POST',
+                body: form,
+                headers: headers,
+                credentials: 'same-origin'
+            });
+            if (resp.ok) await idbDelete(db, foto.id);
+        } catch (e) { /* mantem na fila p/ nova tentativa */ }
+    }
+    db.close();
 }
