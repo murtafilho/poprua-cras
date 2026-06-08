@@ -1,3 +1,4 @@
+import { imgType, imgExt, imgName } from "./img-format";
 const APP_BASE = document.querySelector('meta[name="app-base"]')?.content || '';
 
 // Impedir saída acidental sem confirmação (só quando há alterações)
@@ -343,13 +344,13 @@ function processPhotoFile(file) {
         ctx.drawImage(img, 0, 0, w, h);
 
         canvas.toBlob(function(blob) {
-            const compressed = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() });
-            const preview = canvas.toDataURL('image/jpeg', 0.5);
+            const compressed = new File([blob], imgName(file.name), { type: imgType(), lastModified: Date.now() });
+            const preview = canvas.toDataURL(imgType(), 0.5);
             fotosSelecionadas.push({ file: compressed, preview, id: Date.now() + Math.random() });
             formDirty = true;
             renderFotosPreview();
             salvarFotoLocal(compressed);
-        }, 'image/jpeg', QUALITY);
+        }, imgType(), QUALITY);
     };
     img.src = URL.createObjectURL(file);
 }

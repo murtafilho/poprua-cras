@@ -1,3 +1,4 @@
+import { imgType, imgExt, imgName } from "./img-format";
 // Impedir saída acidental sem confirmação (só quando há alterações)
 let formSubmitting = false;
 let formDirty = false;
@@ -329,11 +330,11 @@ function openCameraWithAPI(type = 'back') {
             canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0);
             canvas.toBlob(function(blob) {
-                const file = new File([blob], 'foto-' + Date.now() + '.jpg', { type: 'image/jpeg' });
+                const file = new File([blob], 'foto-' + Date.now() + '.' + imgExt(), { type: imgType() });
                 processPhotoFile(file);
                 stream.getTracks().forEach(track => track.stop());
                 document.body.removeChild(modal);
-            }, 'image/jpeg', 0.9);
+            }, imgType(), 0.9);
         });
 
         modal.querySelector('#cancel-camera-btn').addEventListener('click', function() {
@@ -398,13 +399,13 @@ function processPhotoFile(file) {
         ctx.drawImage(img, 0, 0, w, h);
 
         canvas.toBlob(function(blob) {
-            const compressed = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() });
-            const preview = canvas.toDataURL('image/jpeg', 0.5);
+            const compressed = new File([blob], imgName(file.name), { type: imgType(), lastModified: Date.now() });
+            const preview = canvas.toDataURL(imgType(), 0.5);
             fotosSelecionadas.push({ file: compressed, preview, id: Date.now() + Math.random() });
             formDirty = true;
             renderFotosPreview();
             salvarFotoLocal(compressed);
-        }, 'image/jpeg', QUALITY);
+        }, imgType(), QUALITY);
     };
     img.src = URL.createObjectURL(file);
 }

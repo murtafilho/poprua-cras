@@ -1,3 +1,4 @@
+import { imgType, imgExt } from "./img-format";
 /**
  * POPRUA v2 - Offline Upload Manager
  * Gerencia fila de upload de imagens com suporte offline-first.
@@ -108,7 +109,7 @@ class OfflineUpload {
                             reject(new Error('Canvas toBlob failed'));
                         }
                     },
-                    'image/jpeg',
+                    imgType(),
                     quality
                 );
             };

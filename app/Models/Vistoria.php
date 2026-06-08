@@ -242,6 +242,7 @@ class Vistoria extends Model implements HasMedia
             ->height(300)
             ->sharpen(10)
             ->quality(80)
+            ->format('webp')
             ->performOnCollections('fotos')
             ->queued();
 
@@ -249,6 +250,7 @@ class Vistoria extends Model implements HasMedia
             ->width(800)
             ->height(600)
             ->quality(85)
+            ->format('webp')
             ->performOnCollections('fotos')
             ->queued();
     }

@@ -12,7 +12,7 @@ RUN apt-get update \
         libwebp-dev \
         libfreetype6-dev \
         curl ca-certificates gnupg \
-        python3 \
+        python3 jpegoptim optipng pngquant gifsicle webp \
     && install -d /usr/share/postgresql-common/pgdg \
     && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
         -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
