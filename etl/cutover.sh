@@ -11,12 +11,16 @@
 #   sudo bash etl/cutover.sh --apply          # executa a migracao completa
 #
 # Flags (com --apply):
-#   --freeze        poe o GEO em maintenance (artisan down) ANTES de migrar (cutover real)
-#   --unfreeze      tira o GEO de maintenance no fim (rehearsal: use junto com --freeze)
-#   --no-rsync      pula a sincronizacao de fotos
-#   --no-reseed     nao restaura vistoria_participantes/user_team apos o CASCADE
-#   --webp          dispara o media-library:regenerate (assincrono, ~horas)
-#   --skip-backup   nao faz pg_dump do CRAS (use so se ja tiver backup externo)
+#   --freeze         poe o GEO em maintenance (artisan down) ANTES de migrar (cutover real)
+#   --deactivate-geo responde "sim" automaticamente a pergunta final (desativa o geo sem prompt)
+#   --no-rsync       pula a sincronizacao de fotos
+#   --no-reseed      nao restaura vistoria_participantes/user_team apos o CASCADE
+#   --webp           dispara o media-library:regenerate (assincrono, ~horas)
+#   --skip-backup    nao faz pg_dump do CRAS (use so se ja tiver backup externo)
+#
+# Ao FINAL (modo --apply, validacao OK) o pipeline PERGUNTA se o poprua-geo deve
+# ser desativado (artisan down). Rehearsal/treino: responda 'n'. Cutover real: 'y'
+# (ou use --deactivate-geo). A resposta define o estado final do geo (up/down).
 #
 # Idempotente: etl:run faz TRUNCATE...RESTART IDENTITY; rsync e incremental.
 # =============================================================================
@@ -39,10 +43,10 @@ LOCAL_TABLES="vistoria_participantes user_team"
 DOMAIN_TABLES="users roles permissions caracteristica_abrigo encaminhamentos tipo_abordagem tipo_abrigo_desmontado resultados_acoes endereco_atualizados pontos moradores vistorias vistoria_fotos morador_historicos media geo_bairros geo_regionais geo_limite_municipio"
 
 # ---- Flags ------------------------------------------------------------------
-MODE="" ; FREEZE=0 ; UNFREEZE=0 ; DO_RSYNC=1 ; DO_RESEED=1 ; DO_WEBP=0 ; SKIP_BACKUP=0
+MODE="" ; FREEZE=0 ; DEACTIVATE=ask ; DO_RSYNC=1 ; DO_RESEED=1 ; DO_WEBP=0 ; SKIP_BACKUP=0
 for a in "$@"; do case "$a" in
   --check) MODE=check ;;  --apply) MODE=apply ;;
-  --freeze) FREEZE=1 ;;   --unfreeze) UNFREEZE=1 ;;
+  --freeze) FREEZE=1 ;;   --deactivate-geo) DEACTIVATE=yes ;;
   --no-rsync) DO_RSYNC=0 ;; --no-reseed) DO_RESEED=0 ;;
   --webp) DO_WEBP=1 ;;    --skip-backup) SKIP_BACKUP=1 ;;
   *) echo "flag desconhecida: $a" >&2 ; exit 2 ;;
@@ -62,7 +66,7 @@ art_geo(){  docker exec -u www-data "$PHP_GEO"  php "$GEO_DIR/artisan"  "$@" ; }
 FAIL=0
 
 echo "########################################################################"
-echo "# POPRUA cutover  geo -> cras   modo=$MODE  freeze=$FREEZE webp=$DO_WEBP"
+echo "# POPRUA cutover  geo -> cras   modo=$MODE  freeze=$FREEZE deactivate=$DEACTIVATE webp=$DO_WEBP"
 echo "# $(date '+%Y-%m-%d %H:%M:%S')"
 echo "########################################################################"
 
@@ -189,19 +193,38 @@ if [ "$MODE" = apply ] && [ "$DO_WEBP" = 1 ]; then
   ok "regenerate disparado — worker $QUEUE_CRAS processa em background (monitore os *.webp)"
 fi
 
-# ---- UNFREEZE ---------------------------------------------------------------
-if [ "$MODE" = apply ] && [ "$UNFREEZE" = 1 ]; then
-  phase "Unfreeze do GEO"
-  art_geo up && ok "geo fora de maintenance (artisan up)"
-elif [ "$MODE" = apply ] && [ "$FREEZE" = 1 ]; then
-  warn "GEO permanece em maintenance (sem --unfreeze) — esperado num cutover real (geo sera aposentado)"
+# ---- 10. DECISAO FINAL: desativar o poprua-geo? ----------------------------
+if [ "$MODE" = apply ]; then
+  phase "10. Desativar o poprua-geo?"
+  if [ "${PARITY_FAIL:-0}" = 1 ]; then
+    warn "validacao NAO passou — poprua-geo mantido ATIVO. Resolva as pendencias antes de desativar."
+    [ "$FREEZE" = 1 ] && art_geo up && ok "geo retirado do maintenance (rollback do freeze)"
+  else
+    echo "  Migracao validada com sucesso."
+    echo "  Desativar o poprua-geo agora? (poe o geo em maintenance/artisan down, tirando-o do ar)"
+    echo "  -> rehearsal/treino: responda 'n'   |   cutover real: 'y'"
+    if [ "$DEACTIVATE" = yes ]; then ans=y; echo "  (--deactivate-geo: respondendo 'y' automaticamente)"
+    else printf "  Desativar poprua-geo? [y/N] "; read -r ans || ans=n; fi
+    case "${ans:-n}" in
+      [yY]*)
+        art_geo down --render="errors::503" --retry=60 && ok "poprua-geo DESATIVADO (maintenance mode)."
+        echo "     decommission completo (manual, opcional): parar os containers do stack geo —"
+        echo "       sudo docker compose -f /opt/docker/poprua-geo/docker-compose.yml stop"
+        ;;
+      *)
+        ok "poprua-geo mantido ATIVO (nao desativado)."
+        [ "$FREEZE" = 1 ] && art_geo up && ok "geo retirado do maintenance (freeze revertido)"
+        ;;
+    esac
+  fi
 fi
 
 # ---- RESUMO -----------------------------------------------------------------
 phase "RESUMO"
 if [ "$MODE" = check ]; then
   echo "  modo CHECK: ambiente + schema-diff + validacao read-only concluidos."
-  echo "  Para executar:  sudo bash etl/cutover.sh --apply [--freeze --unfreeze --webp]"
+  echo "  Para treinar (rehearsal): sudo bash etl/cutover.sh --apply   (pergunta no fim se desativa o geo)"
+  echo "  Para cutover real:        sudo bash etl/cutover.sh --apply --freeze --deactivate-geo"
 else
   echo "  modo APPLY concluido. Backup: ${PRE_DUMP:-<skip>}"
 fi
