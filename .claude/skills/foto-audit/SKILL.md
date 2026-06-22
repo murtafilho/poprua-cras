@@ -6,7 +6,7 @@ description: >
   0-100 com rubrica de deducoes explicita; produz score consolidado e matriz
   Impacto x Esforco com top quick-wins. Cobre Spatie MediaLibrary (collections
   e conversions), API endpoints, offline-upload (IndexedDB + Service Worker),
-  Google Drive sync (UploadMediaToDriveJob), thumbnails, e UX no
+  thumbnails (WebP), e UX no
   vistoria-form.js / morador-form.js / blade views.
   Use sempre que o usuario pedir para auditar fotos, avaliar fluxo de upload,
   analisar arquitetura ou usabilidade das fotografias, verificar saude do
@@ -18,7 +18,7 @@ description: >
 user-invocable: true
 allowed-tools: Read, Grep, Bash, Write, Edit, Agent
 argument-hint: [arquitetura|desempenho|usabilidade|full]
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Foto Audit — POPRUA
@@ -26,6 +26,15 @@ version: 1.0.0
 Auditoria estruturada em **3 dimensoes**, cada uma 0-100. Produz score
 consolidado (media ponderada), KPIs mensuraveis, e matriz Impacto x Esforco
 com top quick-wins. Reproduzivel em ambos os sistemas (Geo e CRAS).
+
+> **v1.1.0 (2026-06-22) — Drive sync REMOVIDO do CRAS.** A migration
+> `2026_05_20_114622_drop_cloud_sync_from_media_table` removeu as colunas
+> `cloud_*` da tabela `media`, e o `UploadMediaToDriveJob`/`GoogleDriveService`
+> nao existem mais no codigo do CRAS (verificado 2026-06-22). Todas as
+> checagens de cloud-sync/Drive foram removidas desta skill. O foco de
+> desempenho passou a ser **cobertura de WebP** e **gap arquivo-vs-DB**
+> (relevante apos a migracao Geo->CRAS). No GEO o Drive ainda pode existir;
+> ao rodar contra o Geo, ignore os KPIs de WebP.
 
 **Escopo:** funcionalidade de fotografias — upload, armazenamento,
 conversoes (thumbnails), sync para Google Drive, e UX no front-end.
@@ -95,23 +104,14 @@ grep -rn "acceptsMimeTypes" app/Models/ 2>&1 | wc -l
 # Conversions com ->queued() (evita travar request)
 grep -rn "addMediaConversion\|->queued()" app/Models/ 2>&1 | grep -c queued
 
-# Migration cloud_sync presente?
-ls database/migrations/ | grep -c "cloud_sync_to_media"
-
 # API: singular vs plural (compat antiga ainda exposta?)
 grep -E "/foto[s]?[/ ]" routes/api.php | wc -l
 
-# Job de cloud sync existe?
-ls app/Jobs/ | grep -c "UploadMedia\|MediaToDrive"
-
-# Service de Drive existe?
-ls app/Services/ | grep -c "Drive"
-
-# tries/backoff configurados no Job?
-grep -E "public int \\\$tries\|public array \\\$backoff" app/Jobs/UploadMediaToDriveJob.php | wc -l
-
 # Cleanup de orfaos (CleanOrphanedMediaCommand)
 ls app/Console/Commands/ | grep -c "Orphan"
+
+# NOTA: cloud-sync/Drive (UploadMediaToDriveJob, GoogleDriveService, colunas
+# media.cloud_*) foi REMOVIDO do CRAS em 2026-05-20 — nao auditar mais (v1.1.0).
 
 # Soft delete em vistorias inclui purge media?
 grep -A 3 "use SoftDeletes" app/Models/Vistoria.php | head -5
@@ -129,9 +129,7 @@ find tests/ -name "*FotoControllerTest*" -o -name "*MediaTest*" -o -name "*Uploa
 | Collection `fotos` com `acceptsMimeTypes` (whitelist explicita) | -5 por collection sem |
 | `registerMediaConversions` para thumbnail com `->queued()` | -10 se thumbnails geradas sincronamente |
 | API: rotas singular/plural duplicadas sem deprecacao explicita | -3 |
-| `UploadMediaToDriveJob` com `tries` + `backoff` | -5 se sem retry |
 | `CleanOrphanedMediaCommand` ou rotina equivalente | -8 se inexistente |
-| Cloud sync columns na tabela `media` | -8 se inexistente |
 | Testes de unidade para FotoControllers | -5 se zero, -2 se < 5 cobertos |
 
 **Bonus:**
@@ -147,7 +145,6 @@ find tests/ -name "*FotoControllerTest*" -o -name "*MediaTest*" -o -name "*Uploa
 - `collections_with_mime_filter`
 - `conversions_queued_count`
 - `api_routes_duplicated`
-- `job_has_retry`
 - `orphan_cleanup_exists`
 - `tests_cobrindo_fotos`
 
@@ -172,12 +169,9 @@ $DB_EXEC -d $DB -tAc "
   SELECT count(*) FROM media WHERE size > 5*1024*1024;
 "
 
-# Backlog de cloud sync
-$DB_EXEC -d $DB -tAc "
-  SELECT cloud_status, count(*)
-  FROM media WHERE collection_name = 'fotos'
-  GROUP BY cloud_status;
-"
+# Cobertura WebP — conversoes em webp vs total de conversoes (relevante apos regen, v1.1.0)
+# (Spatie nao registra formato no generated_conversions; medir no filesystem)
+$EXEC sh -c "cd $PROJECT_ROOT/storage/app/public 2>/dev/null && echo webp=\$(find . -iname '*.webp' | wc -l) conv_total=\$(find . -path '*/conversions/*' -type f | wc -l)"
 
 # Fotos sem thumbnail (generated_conversions vazio/null)
 $DB_EXEC -d $DB -tAc "
@@ -202,11 +196,8 @@ grep -rn "Cache::remember\|Cache::put" app/Http/Controllers/Api/VistoriaFotoCont
 # Queue worker rodando (media-conversions)
 $EXEC ps aux | grep -c "queue:work.*media-conversions"
 
-# Idade da media mais antiga PENDING (queue parada?)
-$DB_EXEC -d $DB -tAc "
-  SELECT max(EXTRACT(epoch FROM (now() - created_at))::int) AS idade_max_pending_seg
-  FROM media WHERE cloud_status = 'pending';
-"
+# (cloud-sync removido: idade-pending nao se aplica mais. O gap arquivo-vs-DB
+#  — media sem arquivo fisico, que o ETL nao copia — e validado pelo etl/cutover.sh)
 ```
 
 ### Rubrica de pontuacao
@@ -216,8 +207,7 @@ $DB_EXEC -d $DB -tAc "
 | Tamanho medio das fotos | -10 se media > 3MB (cliente nao otimiza) |
 | Fotos > 5MB | -1 cada (cap -15) |
 | % thumbnails geradas | -20 se < 50%, -10 se 50-90% |
-| Backlog cloud sync (% pending) | -20 se > 80%, -10 se 30-80%, -3 se 5-30% |
-| Idade max pending | -10 se > 24h (job estagnado) |
+| Cobertura WebP (webp / conversoes) | -20 se < 50%, -10 se 50-90% |
 | N+1 na listagem | -10 se eager loading ausente |
 | Thumbs usados em listagens | -5 se < 70% das views usam thumb |
 | `loading="lazy"` | -5 se zero |
@@ -225,7 +215,6 @@ $DB_EXEC -d $DB -tAc "
 | Queue worker rodando | -15 se nao |
 
 **Bonus:**
-- +5 se imagens convertidas para WebP
 - +5 se tem CDN/proxy de imagens
 
 ### KPIs
@@ -235,8 +224,7 @@ $DB_EXEC -d $DB -tAc "
 - `avg_size_kb`
 - `fotos_acima_5mb`
 - `pct_thumbnails_geradas`
-- `cloud_sync_backlog_pct`
-- `idade_max_pending_horas`
+- `webp_coverage_pct`
 - `n_plus_1_risk`
 - `lazy_loading_count`
 
@@ -463,10 +451,9 @@ Grava `$AUDITS_DIR/foto-summary.json`:
 
 ## Convencoes do POPRUA aplicadas
 
-1. **Os dois sistemas tem a MESMA codebase de fotos** (Geo e CRAS — ETL copiou). Auditoria nos dois deve dar score IDENTICO em arquitetura. Diferencas serao em desempenho (volume real diferente) e UX (so se um sistema receber mudanca exclusiva).
-2. **Spatie MediaLibrary** com queue `media-conversions` (definida no docker-compose). Backlog grande aqui = queue worker parado.
-3. **Cloud sync para Google Drive** via `UploadMediaToDriveJob` — tres tentativas, backoff 30/60/120s. Se `cloud_status` ficar `pending` permanente, indica problema no GoogleDriveService.
-4. **Offline-first** em mobile — IndexedDB + Service Worker para enfileirar uploads quando perde conexao no campo.
+1. **CRAS divergiu do Geo nas fotos:** o CRAS removeu o cloud-sync/Drive (migration `drop_cloud_sync`, 2026-05-20); o Geo pode ainda ter. A arquitetura nao e mais identica entre os dois — ao rodar contra o Geo, espere ver o pipeline de Drive e ignore os KPIs de WebP.
+2. **Spatie MediaLibrary** com queue `media-conversions` (definida no docker-compose). As conversoes (thumb/preview) sao `->format('webp')->queued()`; atraso aqui = queue worker parado.
+3. **Offline-first** em mobile — IndexedDB + Service Worker para enfileirar uploads quando perde conexao no campo.
 
 ## Quando NAO usar
 
@@ -484,5 +471,11 @@ Grava `$AUDITS_DIR/foto-summary.json`:
 
 ## Versionamento
 
-Versao 1.0.0 — 2026-05-20. Mudancas significativas na rubrica = bump
-de versao para que comparacoes historicas de score sejam justas.
+- **1.1.0 — 2026-06-22:** removido o cloud-sync/Drive (colunas `media.cloud_*` e
+  `UploadMediaToDriveJob`/`GoogleDriveService` nao existem mais no CRAS). D2 troca
+  o backlog de Drive por **cobertura WebP**; rubrica/KPIs ajustados. Scores de D2
+  nao sao comparaveis com auditorias 1.0.0.
+- **1.0.0 — 2026-05-20:** versao inicial.
+
+Mudancas significativas na rubrica = bump de versao para que comparacoes
+historicas de score sejam justas.

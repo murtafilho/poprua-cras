@@ -508,10 +508,12 @@ $DB_EXEC -d poprua_cras -t -c "
 grep -rn "ST_\|whereRaw.*geom\|selectRaw.*ST_" "$PROJECT_ROOT/app/" --include="*.php" 2>/dev/null \
   | grep -v "app/Models/\|app/Services/" | wc -l
 
-# Pontos orfaos (sem EnderecoAtualizado)
+# Pontos orfaos (sem EnderecoAtualizado vinculado)
+# FK real: pontos.endereco_atualizado_id -> endereco_atualizados.id
+# (NAO existe endereco_atualizados.ponto_id — erro corrigido em 2026-06-22)
 $DB_EXEC -d poprua_cras -t -c "
   SELECT count(*) FROM pontos p
-  LEFT JOIN endereco_atualizados e ON e.ponto_id = p.id
+  LEFT JOIN endereco_atualizados e ON e.id = p.endereco_atualizado_id
   WHERE e.id IS NULL;
 " 2>/dev/null || true
 
