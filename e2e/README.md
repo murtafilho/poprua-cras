@@ -9,6 +9,7 @@ Suite end-to-end das jornadas criticas, dirigindo um navegador real (Chromium) v
 | `02-morador-equipe` | Vistoria com morador aninhado; UI de participantes/equipe (RBAC) |
 | `03-mapa-pontos-fotos` | Listagem/detalhe de pontos, mapa Leaflet + markers, foto de acervo serve 200 |
 | `04-admin-rbac` | Admin acessa `/admin/*`; agente de campo e **barrado** (403/redirect) |
+| `05-foto-upload` | Cria vistoria **com foto** (multipart, imagem em memoria) e valida que a foto fica anexada |
 
 ## Pre-requisitos
 - Node 18+ e `npm install` nesta pasta.
@@ -36,10 +37,20 @@ npx playwright show-report
 Credenciais e alvo sao configuraveis por env (ver `.env.example`).
 
 ## Seguranca de escrita
-As specs de escrita (01, 02) criam registros marcados com `[HOMOLOG-E2E]` e os **removem no
-`afterEach`** (resource destroy / soft delete). Por isso a suite e segura inclusive contra producao.
-Para um expurgo definitivo dos marcados (hard delete), rodar no banco:
-`DELETE FROM vistorias WHERE nomes_pessoas LIKE '[HOMOLOG-E2E]%'; DELETE FROM moradores WHERE nome_social LIKE '[HOMOLOG-E2E]%';`
+As specs de escrita (01, 02, 05) criam registros marcados com `[HOMOLOG-E2E]` e os **removem no
+`afterEach`** (resource destroy). Por isso a suite e segura inclusive contra producao.
+
+**Atencao (soft delete):** `destroy` faz *soft delete* da vistoria — **nao** remove a `media`/arquivos
+de foto anexados (spec 05). Para um expurgo DEFINITIVO (hard delete + arquivos), apos rodar contra prod:
+
+```sql
+-- remover arquivos antes: rm -rf storage/app/public/<media_id> p/ cada media abaixo
+DELETE FROM media WHERE model_type LIKE '%Vistoria%'
+  AND model_id IN (SELECT id FROM vistorias WHERE nomes_pessoas LIKE '[HOMOLOG-E2E]%');
+DELETE FROM morador_historicos WHERE vistoria_entrada_id IN (SELECT id FROM vistorias WHERE nomes_pessoas LIKE '[HOMOLOG-E2E]%');
+DELETE FROM vistorias WHERE nomes_pessoas LIKE '[HOMOLOG-E2E]%';
+DELETE FROM moradores WHERE nome_social LIKE '[HOMOLOG-E2E]%';
+```
 
 ## Estrutura
 - `playwright.config.ts` — config; `baseURL` por `E2E_BASE_URL`; projeto `setup` faz login e salva storageState.

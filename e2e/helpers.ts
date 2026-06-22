@@ -22,6 +22,13 @@ export const CREDS = {
 
 export const TAG = '[HOMOLOG-E2E]';
 
+/** PNG 1x1 valido (gerado em memoria — sem fixture binaria no repo). */
+const PNG_1X1_B64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgYGAAAAAEAAH2FzhVAAAAAElFTkSuQmCC';
+export function fotoPayload(name = 'e2e-foto.png') {
+  return { name, mimeType: 'image/png', buffer: Buffer.from(PNG_1X1_B64, 'base64') };
+}
+
 /** Faz login pelo formulario Breeze e confirma que saiu de /login. */
 export async function login(page: Page, email: string, pass: string): Promise<void> {
   await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
@@ -51,7 +58,7 @@ export async function primeiroPontoId(page: Page): Promise<number | null> {
   return m ? Number(m[1]) : null;
 }
 
-type CreateOpts = { withMorador?: boolean; nomes?: string };
+type CreateOpts = { withMorador?: boolean; comFoto?: boolean; nomes?: string };
 
 /**
  * Cria uma vistoria de teste pelo caminho de escrita real (POST autenticado),
@@ -101,7 +108,10 @@ export async function criarVistoria(page: Page, opts: CreateOpts = {}): Promise<
   };
   if (opts.withMorador) body['novos_moradores[0][nome_social]'] = `${TAG} morador e2e`;
 
-  const resp = await page.request.post(harvested!.action, { form: body, maxRedirects: 0, failOnStatusCode: false });
+  const reqOpts = opts.comFoto
+    ? { multipart: { ...body, 'fotos[0]': fotoPayload() }, maxRedirects: 0, failOnStatusCode: false }
+    : { form: body, maxRedirects: 0, failOnStatusCode: false };
+  const resp = await page.request.post(harvested!.action, reqOpts);
   expect(resp.status(), `create deveria redirecionar (302). corpo: ${(await safeText(resp)).slice(0, 200)}`).toBe(302);
   const loc = resp.headers()['location'] || '';
   const m = loc.match(/\/vistorias\/(\d+)/);
