@@ -32,6 +32,7 @@ class SchemaDiffCommand extends Command
         'vistoria_participantes',
         'parametros',   // criada pela migration 2026_05_24_220930 — config local
         'user_team',    // gestao de equipes local do CRAS
+        'activity_log', // spatie/laravel-activitylog — log local (migration 2026_06_22_000001), nao vem do Geo
     ];
 
     /**
@@ -136,7 +137,8 @@ class SchemaDiffCommand extends Command
                  AND t.table_name = c.table_name
                 WHERE c.table_schema = 'public'
                   AND t.table_type = 'BASE TABLE'
-                  AND c.table_name NOT IN ({$ignored})";
+                  AND c.table_name NOT IN ({$ignored})
+                  AND LEFT(c.table_name, 4) <> 'bkp_'";
         $bindings = [];
         if ($only) {
             $placeholders = implode(',', array_fill(0, count($only), '?'));

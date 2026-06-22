@@ -96,9 +96,12 @@ INSERT INTO public.geo_limite_municipio SELECT * FROM etl_geo.geo_limite_municip
 
 -- Corrige self-intersections em geo_bairros vindas da origem (geo-004 do quality-audit).
 -- 2026-05-19: detectados em "Morro dos Macacos" (id=188) e "Distrito Industrial do Jatoba" (id=426).
--- ST_MakeValid eh idempotente; o WHERE garante UPDATE so nas geometrias quebradas.
+-- ST_MakeValid pode devolver GeometryCollection (poligonos + fragmentos de linha) nessas
+-- geometrias degeneradas; ST_CollectionExtract(.,3) mantem apenas a parte poligonal e
+-- ST_Multi garante MULTIPOLYGON (a coluna nao aceita GeometryCollection). Idempotente;
+-- o WHERE restringe o UPDATE as geometrias quebradas.
 UPDATE public.geo_bairros
-SET    geom = ST_Multi(ST_MakeValid(geom))
+SET    geom = ST_Multi(ST_CollectionExtract(ST_MakeValid(geom), 3))
 WHERE  NOT ST_IsValid(geom::geometry);
 
 -- Lookups
