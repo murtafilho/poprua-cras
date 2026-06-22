@@ -21,37 +21,73 @@ Auditoria automatizada de UX navegando fluxos criticos via Playwright, medindo a
 **Stack:** Laravel 12 / Blade / Alpine.js / Leaflet / Vite. PWA usado em campo por equipes CRAS.
 **Dominio:** Ponto -> Vistoria -> Morador. Mapa georreferenciado. Admin com RBAC.
 
-## Pre-requisitos
+## Ambientes e seguranca
 
-1. App rodando em `http://localhost:8088` (ou URL configuravel via `APP_URL`)
-2. Usuario admin seedado (email/senha no `.env` ou defaults: `admin@poprua.test` / `password`)
-3. Dados minimos: ao menos 1 Ponto com EnderecoAtualizado + 1 Vistoria
+O Playwright roda **a partir da maquina do dev** (local, v1.58+) contra um alvo
+configuravel por `ALVO`. **Padrao = `prod`** (homologacao pos-migracao Geo->CRAS).
+
+| ALVO | APP_URL | Checks de DB (read-only) |
+|---|---|---|
+| **prod** (padrao) | `https://sufis.pbh.gov.br/ginfi/poprua-cras/public` | via `ssh sufis "sudo docker exec pg17-poprua-cras psql ..."` |
+| local | `http://localhost:8088` | `psql -h 127.0.0.1 -p 5434 -U poprua_cras ...` |
+
+### ⚠️ Seguranca em PRODUCAO — fluxos de ESCRITA
+
+F3 (criar vistoria), F4 (finalizar), F5 (criar morador) e F8 (criar usuario)
+**GRAVAM no banco de producao**. Por isso, em `prod` a skill roda por padrao em
+**modo nao-destrutivo**: navega, mede tempo/campos/cliques, tira screenshots e
+preenche os formularios, mas **NAO submete** os passos de escrita (para no passo
+anterior ao submit/finalizar). Para exercitar o submit de verdade, passe `--write`:
+os registros sao criados **marcados** (vistoria `nomes_pessoas` e morador
+`nome_registro` com prefixo `[HOMOLOG]`) e **removidos/soft-deleted ao final**,
+com log do que foi criado. NUNCA rode `--write` sem combinar a limpeza.
+
+### Credenciais (env — nunca commitar)
+
+```bash
+export UX_USER="${UX_USER:-claude.test@interno.local}"   # migrado do geo, role agentes-campo
+export UX_PASS="${UX_PASS:?defina a senha do usuario de teste}"
+# F8 (admin) exige um admin: export UX_ADMIN_USER=... UX_ADMIN_PASS=...
+```
+
+Se a senha de `claude.test` for desconhecida, um admin pode reseta-la em prod
+(e conta de teste, sem dados reais):
+
+```bash
+ssh sufis "sudo docker exec -u www-data php84-poprua-cras php /var/www/html/joomla_sufis/ginfi/poprua-cras/artisan tinker --execute \"\\\$u=App\\Models\\User::where('email','claude.test@interno.local')->first(); \\\$u->password=bcrypt('SENHA_TESTE'); \\\$u->save(); echo 'ok';\""
+```
 
 ### Pre-flight
 
 ```bash
-PROJECT_ROOT="/data/projects/poprua-cras"
-APP_URL="${APP_URL:-http://localhost:8088}"
+ALVO="${ALVO:-prod}"
+if [ "$ALVO" = "prod" ]; then
+  APP_URL="${APP_URL:-https://sufis.pbh.gov.br/ginfi/poprua-cras/public}"
+else
+  APP_URL="${APP_URL:-http://localhost:8088}"
+fi
 
-# 1. App respondendo
-curl -s -o /dev/null -w "%{http_code}" "$APP_URL" | grep -q "200\|302" \
+# 1. App (login) respondendo
+curl -s -o /dev/null -w "%{http_code}" "$APP_URL/login" | grep -qE "200|302" \
   && echo "OK app" || echo "FAIL app"
 
-# 2. Playwright disponivel
-npx playwright --version 2>/dev/null && echo "OK playwright" || echo "FAIL playwright"
+# 2. Playwright local
+npx playwright --version 2>/dev/null && echo "OK playwright" || echo "FAIL playwright -> npx playwright install chromium"
 
-# 3. Dados minimos
-PGPASSWORD=poprua_cras psql -U poprua_cras -h 127.0.0.1 -d poprua_cras -tAc \
-  "SELECT (SELECT count(*) FROM pontos) || '|' || (SELECT count(*) FROM vistorias)" 2>/dev/null
-
-# 4. Usuario admin
-PGPASSWORD=poprua_cras psql -U poprua_cras -h 127.0.0.1 -d poprua_cras -tAc \
-  "SELECT email FROM users u JOIN model_has_roles mr ON mr.model_id = u.id JOIN roles r ON r.id = mr.role_id WHERE r.name = 'admin' LIMIT 1" 2>/dev/null
+# 3. Dados minimos + usuario de teste (read-only). Em prod, via ssh:
+ssh sufis "sudo docker exec pg17-poprua-cras psql -U poprua_cras -d poprua_cras -tAF'|' -c \"
+  SELECT (SELECT count(*) FROM pontos), (SELECT count(*) FROM vistorias),
+         (SELECT string_agg(r.name,',') FROM users u JOIN model_has_roles mr ON mr.model_id=u.id
+            JOIN roles r ON r.id=mr.role_id WHERE u.email='${UX_USER:-claude.test@interno.local}')\""
+# (local: trocar por  psql -h 127.0.0.1 -p 5434 -U poprua_cras -d poprua_cras -tAF'|' -c "...")
 ```
 
-Se app FAIL: tentar `php artisan serve --port=8088 &` e revalidar.
-Se playwright FAIL: `npx playwright install chromium`.
-Se dados = `0|0`: avisar usuario — auditoria sera parcial.
+- **prod**: app atras de proxy HTTPS; o Playwright local precisa de rota ate
+  `sufis.pbh.gov.br` (rede RMI/PBH). Se app FAIL em prod, e rede/proxy — **NAO**
+  "subir servidor" (prod nao usa `php artisan serve`).
+- **local**: se app FAIL, `php artisan serve --port=8088 &` e revalidar.
+- playwright FAIL: `npx playwright install chromium`.
+- dados `0|0`: avisar — auditoria parcial.
 
 ---
 
@@ -342,10 +378,14 @@ page.evaluate(() => {
 
 ### Modo de invocacao
 
-- `ux-friction` — auditoria completa dos 8 fluxos
+- `ux-friction` — auditoria completa dos 8 fluxos (alvo **prod**, modo nao-destrutivo)
 - `ux-friction F3` — auditar apenas um fluxo especifico
 - `ux-friction mobile` — auditar com viewport mobile (375x812, iPhone 14)
 - `ux-friction comparar` — rodar desktop + mobile e comparar scores
+- `ux-friction local` — alvo dev local (`ALVO=local`, `http://localhost:8088`)
+- `ux-friction --write` — exercita os submits de escrita em prod com registros
+  marcados `[HOMOLOG]` + limpeza ao final (ver "Seguranca em PRODUCAO" acima).
+  Sem `--write`, F3/F4/F5/F8 param antes do submit (default seguro em prod).
 
 ### Viewport
 
@@ -495,17 +535,18 @@ SCORE_GERAL=$(( (F1*10 + F2*10 + F3*20 + F4*20 + F5*15 + F6*15 + F7*10 + F8*5) /
 
 ## Tabela de Percalcos
 
-### UXP-001 — App nao esta rodando
-- **Fix:** `php artisan serve --port=8088 &` + sleep 3 + revalidar
+### UXP-001 — App nao responde
+- **local:** `php artisan serve --port=8088 &` + sleep 3 + revalidar.
+- **prod:** NAO subir servidor. E rede/proxy — checar rota ate `sufis.pbh.gov.br`
+  (RMI/PBH) e `ssh sufis "curl -sI $APP_URL/login"` direto do host.
 
 ### UXP-002 — Playwright nao instalado
 - **Fix:** `npx playwright install chromium`
 
-### UXP-003 — Login falha (credenciais erradas)
-- **Fix:** tentar `admin@poprua.test` / `password`; se falhar, buscar no seeder:
-  ```bash
-  grep -rn "email\|password" database/seeders/ --include="*.php" | head -10
-  ```
+### UXP-003 — Login falha (credenciais)
+- **Fix:** usar `UX_USER`/`UX_PASS` (default `claude.test@interno.local`). Em prod,
+  se a senha for desconhecida, resetar a conta de teste via tinker (ver "Credenciais"
+  acima). NAO ha mais `admin@poprua.test`/`password` em prod (era seed de dev).
 
 ### UXP-004 — Nenhum ponto no banco
 - **Fix:** degradar F2, F3, F7; marcar como `degraded: true`
