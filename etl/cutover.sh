@@ -127,6 +127,18 @@ if [ "$MODE" = apply ]; then
   ok "etl:run concluido"
 fi
 
+# ---- 5b. RESEED DO RBAC DO CRAS --------------------------------------------
+# O ETL trunca/recarrega permissions/roles/role_has_permissions a partir do Geo
+# (19 perms), clobberando o RBAC canonico do CRAS (23 perms/7 papeis). Sem isto,
+# permissoes exclusivas do CRAS (ex.: 'participar de equipes vistoria') somem e
+# criar/editar vistoria estoura HTTP 500 (homologacao 22/06). PermissoesSeeder e
+# idempotente (firstOrCreate + syncPermissions) e NAO toca usuarios/atribuicoes.
+if [ "$MODE" = apply ]; then
+  phase "5b. Reseed do RBAC do CRAS (PermissoesSeeder)"
+  art_cras db:seed --class=PermissoesSeeder --force && art_cras cache:clear
+  ok "RBAC do CRAS restaurado (23 permissoes/7 papeis) + cache limpo"
+fi
+
 # ---- 6. FOTOS (rsync de arquivos fisicos) ----------------------------------
 if [ "$MODE" = apply ] && [ "$DO_RSYNC" = 1 ]; then
   phase "6. Fotos: rsync $PHP_GEO -> $PHP_CRAS ($PUB)"
