@@ -47,10 +47,32 @@ desligado.
 3. (revisar contagens + validacao PostGIS no relatorio final)
 ```
 
+### Pipeline completo (recomendado): `etl/cutover.sh`
+
+`etl:run` cobre SO os dados. O `etl:run` **nao** migra arquivos de foto, nao
+trata ambiente, nem o CASCADE colateral. Para a migracao/cutover de verdade use
+o orquestrador host-level (roda NO HOST vlcp-sufis01, chama docker exec):
+
+```bash
+sudo bash etl/cutover.sh --check    # dry-run: pre-flight + schema-diff + validacao read-only
+sudo bash etl/cutover.sh --apply    # backup + etl:run + rsync fotos + reseed locais + validacao
+# flags: --freeze/--unfreeze (geo em maintenance), --webp, --no-rsync, --no-reseed, --skip-backup
+```
+
+Fases: (1) pre-flight/ambiente — containers, rede FDW (reconecta se preciso),
+migrations; (2) schema-diff (aborta se divergir); (3) freeze geo opcional;
+(4) backup pg_dump do cras; (5) etl:run; (6) **rsync de `storage/app/public/`
+geo→cras** (o ETL nao copia arquivos!); (7) **reseed de `vistoria_participantes`
+/`user_team`** zerados pelo CASCADE (pg_restore --data-only do backup pre-run);
+(8) validacao (paridade de contagens, gap de fotos=0, PostGIS); (9) webp opcional.
+
+Cutover real = `--apply --freeze` (sem `--unfreeze`); rehearsal = `--apply` so.
+
 ## Arquivos
 
 | Arquivo | Funcao |
 |---|---|
+| `etl/cutover.sh` | **pipeline completo** (host) — ambiente + dados + fotos + reseed + webp + validacao |
 | `etl/migrate.sql` | **fonte da verdade do ETL** — TRUNCATE + FDW IMPORT + INSERTs + reset seq |
 | `app/Console/Commands/Etl/SchemaDiffCommand.php` | pre-flight; compara `EXPECTED_DIVERGENCES` (hardcoded) com diff real |
 | `app/Console/Commands/Etl/RunCommand.php` | wrapper fino: substitui senha + DB::unprepared + relatorio |
