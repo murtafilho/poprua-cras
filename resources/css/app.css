@@ -5138,3 +5138,24 @@ h6 { font-size: var(--text-sm); }
     box-shadow: none;
   }
 }
+
+/* ── Acessibilidade de toque (WCAG 2.5.5 — alvo minimo 44px) ───────────────
+   Homologacao 2026-06-22. PWA usado em campo (luva/chuva): em dispositivos de
+   toque garantimos 44px de alvo nos controles do app. .btn (44px) e .form-input
+   (48px) ja atendem; aqui reforcamos checkbox/radio (linha/rotulo inteiro
+   tappable, em vez de inflar o controle) e selects/textarea soltos. Leaflet e
+   links de texto inline NAO sao afetados (excecoes legitimas). */
+@media (pointer: coarse) {
+  .form-check { min-height: 44px; }
+  .form-check-input,
+  input[type="checkbox"],
+  input[type="radio"] { min-width: 24px; min-height: 24px; }
+  /* o rotulo que envolve um checkbox/radio vira o alvo de 44px */
+  label:has(> input[type="checkbox"]),
+  label:has(> input[type="radio"]),
+  .form-check-label { min-height: 44px; display: inline-flex; align-items: center; }
+  /* selects e textarea fora do .form-input */
+  select:not(.form-input), .form-select, textarea:not(.form-input) { min-height: 44px; }
+  /* paginacao e acoes em tabela */
+  .pagination a, .pagination button { min-width: 44px; min-height: 44px; }
+}
