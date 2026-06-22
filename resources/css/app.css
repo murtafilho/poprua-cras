@@ -3206,7 +3206,7 @@ h6 { font-size: var(--text-sm); }
 }
 
 .map-btn-nova-acao:active {
-  transform: scale(0.95);
+  transform: translateX(-50%) scale(0.95);
   background: var(--accent-secondary);
 }
 
@@ -3218,6 +3218,9 @@ h6 { font-size: var(--text-sm); }
     max-width: 320px;
     width: auto;
     padding: 14px 48px;
+  }
+  .map-btn-nova-acao:active {
+    transform: translateX(calc(-50% - 140px)) scale(0.95);
   }
   .map-fab {
     bottom: 24px;

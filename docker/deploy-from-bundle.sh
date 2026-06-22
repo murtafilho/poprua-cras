@@ -1,6 +1,11 @@
 #!/bin/bash
 # ============================================
-# Bootstrap do PopRua CRAS a partir de bundle local (sem GitHub)
+# [OBSOLETO] Bootstrap do PopRua CRAS a partir de bundle local (sem GitHub)
+#
+# >>> APOSENTADO: o repo foi publicado em git@github.com:murtafilho/poprua-cras.git.
+# >>> Para DEPLOY recorrente use:  docker/deploy.sh  (git pull --ff-only).
+# >>> Este script so serve para BOOTSTRAP do zero sem GitHub (caso historico).
+#
 # Executar no host vlcp-sufis01 como root:
 #   sudo POSTGRES_PASSWORD='senha-forte' bash deploy-from-bundle.sh
 # ============================================
