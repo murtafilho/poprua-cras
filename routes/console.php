@@ -8,8 +8,11 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Backup off-site (spatie/laravel-backup). Destino via env BACKUP_DISK.
-// Requer scheduler ativo: container queue/cron rodando `schedule:run` a cada minuto.
-Schedule::command('backup:clean')->daily()->at('03:00')->onOneServer();
-Schedule::command('backup:run')->daily()->at('03:15')->onOneServer();
-Schedule::command('backup:monitor')->daily()->at('06:00')->onOneServer();
+// Backup (spatie/laravel-backup). Destino via env BACKUP_DISK.
+// Rodado por cron do HOST uma vez/dia as 03:00 (/etc/cron.d/poprua-cras-backup ->
+// `php artisan schedule:run`). Por isso TODAS as tarefas sao dailyAt('03:00'): so
+// disparam quando o scheduler e invocado nesse minuto. Executam em sequencia:
+// limpa antigos -> roda backup -> verifica saude.
+Schedule::command('backup:clean')->dailyAt('03:00');
+Schedule::command('backup:run')->dailyAt('03:00');
+Schedule::command('backup:monitor')->dailyAt('03:00');
