@@ -1,0 +1,14 @@
+{
+  "name": "poprua-cras-e2e",
+  "private": true,
+  "description": "Suite E2E (Playwright) do POPRUA CRAS — jornadas criticas",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.0"
+  }
+}
