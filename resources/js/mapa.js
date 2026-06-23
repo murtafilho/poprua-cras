@@ -629,30 +629,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ===== Localizacao do usuario — leaflet-locatecontrol p/ infra, centragem propria =====
-    // Estrategia anti-drift: o plugin cuida do GPS (watch), do marcador "voce esta aqui"
-    // e do circulo de precisao, mas com setView:false NUNCA mexe o mapa. Quem centraliza
-    // sou eu, UMA unica vez por clique (flag jaCentralizou), com animate:false. Assim o
-    // jitter do GPS atualiza so o marcador; o MAPA fica imovel. Impossivel driftar.
-    const locateControl = L.control.locate({
-        position: 'bottomright',
-        setView: false,            // o plugin nao move o mapa
-        flyTo: false,
-        keepCurrentZoomLevel: true,
-        drawCircle: true,
-        drawMarker: true,
-        showPopup: false,
-        locateOptions: { enableHighAccuracy: true, maxZoom: 18, timeout: 10000, maximumAge: 0 },
-        strings: { title: 'Minha localizacao' },
-    }).addTo(map);
-
-    // Esconde o botao padrao do plugin: usamos o botao custom (#btn-my-location).
-    const hideLocateBtn = document.createElement('style');
-    hideLocateBtn.textContent = '.leaflet-control-locate{display:none!important;}';
-    document.head.appendChild(hideLocateBtn);
-
-    let jaCentralizou = false;
-
+    // ===== Localizacao do usuario — IDENTICO ao poprua-geo (que acerta o ponto) =====
+    // getCurrentPosition (one-shot) espera o melhor fix de GPS e centraliza. NAO usar
+    // watchPosition/plugin: a 1a leitura do watch e grosseira (IP/rede) e levava o mapa
+    // a quilometros do ponto real. Este e o fluxo do geo, verbatim.
     const btnLoc = document.getElementById('btn-my-location');
     if (btnLoc) {
         const icon = document.getElementById('location-icon');
@@ -673,32 +653,26 @@ document.addEventListener('DOMContentLoaded', function() {
             if (loader) loader.classList.remove('hidden');
             btnLoc.classList.add('active');
             btnLoc.style.pointerEvents = 'none';
-            jaCentralizou = false;   // novo clique => recentraliza uma vez
-            locateControl.start();
-        });
 
-        // Centraliza UMA vez na 1a leitura; leituras seguintes so movem o marcador.
-        map.on('locationfound', function(e) {
-            if (!jaCentralizou) {
-                jaCentralizou = true;
-                map.setView(e.latlng, 18, { animate: false });
-            }
-            // Diagnostico: mostra a PRECISAO reportada pelo aparelho. Se for de centenas
-            // de metros/km, o aparelho nao tem GPS bom (localizacao por IP/rede) -> o mapa
-            // vai ao lugar errado porque o NAVEGADOR informou errado, nao por bug do app.
-            var dt = document.getElementById('diag-tag');
-            if (dt) {
-                var acc = Math.round(e.accuracy || 0);
-                var bom = acc > 0 && acc <= 100;
-                dt.textContent = 'GPS: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5) +
-                    '  precisao +-' + acc + 'm  ' + (bom ? '(OK)' : '(IMPRECISO - sem GPS?)');
-                dt.style.background = bom ? '#059669' : '#b45309';
-            }
-            restoreButton();
-        });
-        map.on('locationerror', function() {
-            restoreButton();
-            showToast('Nao foi possivel obter sua localizacao. Verifique as permissoes do navegador.', 'warning');
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    map.flyTo([lat, lng], 18);
+                    const dt = document.getElementById('diag-tag');
+                    if (dt) {
+                        const acc = Math.round(position.coords.accuracy || 0);
+                        dt.textContent = 'GPS: ' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '  +-' + acc + 'm';
+                        dt.style.background = (acc > 0 && acc <= 100) ? '#059669' : '#b45309';
+                    }
+                    restoreButton();
+                },
+                function() {
+                    restoreButton();
+                    showToast('Nao foi possivel obter sua localizacao. Verifique as permissoes do navegador.', 'warning');
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
         });
     }
 
