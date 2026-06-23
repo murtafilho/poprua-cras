@@ -22,6 +22,10 @@ export function initDatePtBr(root = document) {
         const isDateTime = (el.getAttribute("type") || "").toLowerCase() === "datetime-local";
         flatpickr(el, {
             locale: Portuguese,
+            // Ancora o calendario no proprio campo (nao no <body>). Sem isso, neste
+            // form multi-abas o calendario fica solto no fim do body e sobrepoe a
+            // aplicacao como um retangulo no rodape ao trocar de aba.
+            static: true,
             enableTime: isDateTime,
             time_24hr: true,
             // O input original (submetido) mantem o formato ISO exigido pelo backend.
