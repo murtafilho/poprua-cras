@@ -1,4 +1,4 @@
-const CACHE_VERSION = 22;
+const CACHE_VERSION = 23;
 const CACHE_NAME = 'poprua-v' + CACHE_VERSION;
 const TILE_CACHE = 'poprua-tiles-v1';
 const API_CACHE = 'poprua-api-v1';

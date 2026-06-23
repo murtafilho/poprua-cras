@@ -10,18 +10,6 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', function() {
     const APP_BASE = window.APP_BASE;
 
-    // ===== ETIQUETA DE VERSAO (diagnostico — remover apos confirmar) =====
-    // Mostra qual build do mapa esta REALMENTE rodando no dispositivo.
-    (function () {
-        const BUILD = 'MAPA build LOC-4 (getCurrentPosition = igual geo)';
-        try { console.log('[POPRUA ' + BUILD + ']'); } catch (e) {}
-        const tag = document.createElement('div');
-        tag.id = 'diag-tag';
-        tag.textContent = BUILD;
-        tag.style.cssText = 'position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:99999;background:#dc2626;color:#fff;padding:5px 12px;border-radius:8px;font:bold 12px system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.45);pointer-events:none;white-space:nowrap;text-align:center';
-        if (document.body) document.body.appendChild(tag);
-    })();
-
     const BH_CENTER = [-19.9135, -43.9514];
     const DEFAULT_ZOOM = 12;
     const MIN_ZOOM_VISTORIA = 19;
@@ -659,12 +647,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     map.flyTo([lat, lng], 18);
-                    const dt = document.getElementById('diag-tag');
-                    if (dt) {
-                        const acc = Math.round(position.coords.accuracy || 0);
-                        dt.textContent = 'GPS: ' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '  +-' + acc + 'm';
-                        dt.style.background = (acc > 0 && acc <= 100) ? '#059669' : '#b45309';
-                    }
                     restoreButton();
                 },
                 function() {
