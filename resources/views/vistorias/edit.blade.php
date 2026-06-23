@@ -176,22 +176,6 @@
                         </div>
                     </div>
 
-                    <!-- Nomes das Pessoas -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <label class="form-label">Nomes das Pessoas</label>
-                            <p class="form-hint">Um nome por linha</p>
-                            <div class="input-with-voice">
-                                <textarea name="nomes_pessoas" id="nomes_pessoas" rows="3" placeholder="Digite um nome por linha..." class="form-input form-textarea">{{ $vistoria->nomes_pessoas }}</textarea>
-                                <button type="button" x-on:click="startVoiceInput('nomes_pessoas')" class="voice-btn">
-                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Abrigos -->
                     <div class="card mb-4">
                         <div class="card-body">
