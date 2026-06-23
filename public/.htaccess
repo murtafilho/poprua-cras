@@ -24,3 +24,12 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Service worker: nunca cachear o sw.js, senao o navegador nao ve as novas versoes
+# e os deploys nao chegam aos dispositivos (era a causa de "o fix nao aparece").
+<IfModule mod_headers.c>
+    <Files "sw.js">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+    </Files>
+</IfModule>
