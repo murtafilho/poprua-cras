@@ -759,7 +759,7 @@
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     Anterior
                 </button>
-                <button type="button" id="btn-next" class="btn btn-primary" onclick="goToStep(Math.min(4, window.__currentTab + 1))">
+                <button type="button" id="btn-next" class="btn btn-primary" onclick="goToStep(Math.min(6, window.__currentTab + 1))">
                     Próximo
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>

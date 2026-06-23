@@ -5266,3 +5266,17 @@ h6 { font-size: var(--text-sm); }
 .switch-field .switch-input:checked ~ .switch-state { color: var(--accent-primary); }
 .switch-field .switch-input:checked ~ .switch-state::after { content: "Sim"; }
 .switch-field .switch-input:focus-visible ~ .switch-track { box-shadow: 0 0 0 3px var(--accent-dim); }
+
+/* Navegacao entre etapas do wizard (Anterior / Proximo) — simetricos e alinhados.
+   Sem essa regra os botoes ficavam com larguras diferentes e desalinhados. 2026-06-23 */
+.form-step-nav {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.form-step-nav .btn {
+  flex: 1 1 0;
+  min-height: 48px;
+  justify-content: center;
+}
