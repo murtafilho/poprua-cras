@@ -14,11 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const DEFAULT_ZOOM = 12;
     const MIN_ZOOM_VISTORIA = 19;
 
-    const BH_BOUNDS = L.latLngBounds(
-        [-20.0597, -44.0632],
-        [-19.7764, -43.8575]
-    );
-
     const urlParams = new URLSearchParams(window.location.search);
     const lat = urlParams.get('lat');
     const lng = urlParams.get('lng');
@@ -29,12 +24,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const enderecoParam = urlParams.get('endereco');
     const referenciaParam = urlParams.get('referencia');
 
+    // Init identico ao poprua-geo: sem maxBounds/minZoom (maxBoundsViscosity
+    // distorce flyTo no mobile e desalinha o crosshair do fix de GPS).
     const map = L.map('map', {
-        zoomControl: true,
-        attributionControl: false,
-        maxBounds: BH_BOUNDS.pad(0.05),
-        maxBoundsViscosity: 1.0,
-        minZoom: 12
+        zoomControl: false,
+        attributionControl: false
+    });
+
+    map.whenReady(() => map.invalidateSize());
+    window.addEventListener('resize', () => map.invalidateSize());
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => map.invalidateSize(), 200);
     });
 
     const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -617,10 +617,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ===== Localizacao do usuario — IDENTICO ao poprua-geo (que acerta o ponto) =====
-    // getCurrentPosition (one-shot) espera o melhor fix de GPS e centraliza. NAO usar
-    // watchPosition/plugin: a 1a leitura do watch e grosseira (IP/rede) e levava o mapa
-    // a quilometros do ponto real. Este e o fluxo do geo, verbatim.
+    function centerMapOnCoords(lat, lng, zoomLevel = 18) {
+        map.invalidateSize({ animate: false });
+        map.flyTo([lat, lng], zoomLevel);
+    }
+
+    // ===== Localizacao do usuario — alinhado ao poprua-geo =====
+    // getCurrentPosition (one-shot). NAO usar watchPosition/plugin: a 1a leitura
+    // do watch e grosseira (IP/rede) e levava o mapa a quilometros do ponto real.
     const btnLoc = document.getElementById('btn-my-location');
     if (btnLoc) {
         const icon = document.getElementById('location-icon');
@@ -644,16 +648,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             navigator.geolocation.getCurrentPosition(
                 function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    map.flyTo([lat, lng], 18);
+                    centerMapOnCoords(position.coords.latitude, position.coords.longitude);
                     restoreButton();
                 },
                 function() {
                     restoreButton();
                     showToast('Nao foi possivel obter sua localizacao. Verifique as permissoes do navegador.', 'warning');
                 },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                { enableHighAccuracy: true, timeout: 10000 }
             );
         });
     }
