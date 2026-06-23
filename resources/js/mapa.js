@@ -494,7 +494,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 applyFilters();
                 loadedBounds = map.getBounds().pad(0.3);
                 allPointsLoaded = true;
-                checkCrosshairOverPoint();
             })
             .catch(err => console.error('Erro ao carregar pontos:', err));
     }
@@ -640,9 +639,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 position => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    // setView sem animacao: evita o drift/"snap" da camada que o flyTo
-                    // provoca em saltos grandes de zoom (Leaflet #7466 / #8164).
-                    map.setView([lat, lng], 18, { animate: false });
+                    map.flyTo([lat, lng], 18);
                     restoreButton();
                 },
                 error => {
@@ -708,72 +705,10 @@ document.addEventListener('DOMContentLoaded', function() {
     map.on('moveend', updateCrosshairAddress);
 
     let currentCrosshairEndereco = null;
-    let crosshairPopupMarker = null;
-    let crosshairPopup = null;
-
-    function checkCrosshairOverPoint() {
-        if (selectedPointMarker || geocodeMode || ajustarMode) return;
-        const zoom = map.getZoom();
-        if (zoom < 18) {
-            if (crosshairPopup) {
-                map.closePopup(crosshairPopup);
-                crosshairPopup = null;
-                crosshairPopupMarker = null;
-            }
-            return;
-        }
-
-        const center = map.getCenter();
-        const centerPoint = map.latLngToContainerPoint(center);
-        const threshold = 25;
-        let closest = null;
-        let closestDist = Infinity;
-
-        allMarkers.forEach(marker => {
-            const latlng = marker.getLatLng();
-            if (!map.getBounds().contains(latlng)) return;
-            const markerPoint = map.latLngToContainerPoint(latlng);
-            const dx = centerPoint.x - markerPoint.x;
-            const dy = centerPoint.y - markerPoint.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < threshold && dist < closestDist) {
-                closest = marker;
-                closestDist = dist;
-            }
-        });
-
-        if (closest && closest !== crosshairPopupMarker) {
-            if (crosshairPopup) map.closePopup(crosshairPopup);
-            const p = closest.pontoData;
-            const cor = coresResultado[p.resultado_acao_id] || coresResultado[null];
-            const status = legendaResultado[p.resultado_acao_id] || legendaResultado[null];
-            const totalVistorias = p.total_vistorias || 0;
-            const complexidade = p.complexidade || 0;
-            const complexidadeCor = complexidade >= 8 ? '#dc2626' : complexidade >= 4 ? '#f59e0b' : '#6b7280';
-            const btnPonto = `<a href="${APP_BASE}/pontos/${p.id}" class="popup-btn popup-btn-primary">Relatório do ponto</a>`;
-            const btnVistoria = p.ultima_vistoria_id
-                ? `<a href="#" onclick="event.stopPropagation(); abrirRelatorio(${p.ultima_vistoria_id}); return false;" class="popup-btn popup-btn-secondary">Última vistoria</a>`
-                : '';
-            const content = `<strong>${escapeHtml(p.logradouro)}, ${escapeHtml(p.numero)}</strong><br>
-                <small>${escapeHtml(p.bairro)} - ${escapeHtml(p.regional)}</small><br>
-                <span style="color:${cor}; font-weight:bold;">● ${escapeHtml(status)}</span><br>
-                <span style="font-size: 11px; color: #6b7280;">Vistorias: <strong>${totalVistorias}</strong> | Complexidade: <strong style="color:${complexidadeCor}">${complexidade}</strong></span>
-                <div class="popup-actions">${btnPonto}${btnVistoria}</div>`;
-
-            crosshairPopup = L.popup({ closeButton: false, offset: [0, -10], autoPan: false })
-                .setLatLng(closest.getLatLng())
-                .setContent(content)
-                .openOn(map);
-            crosshairPopupMarker = closest;
-        } else if (!closest && crosshairPopupMarker) {
-            if (crosshairPopup) map.closePopup(crosshairPopup);
-            crosshairPopup = null;
-            crosshairPopupMarker = null;
-        }
-    }
-
-    map.on('moveend', checkCrosshairOverPoint);
-    map.on('zoomend', checkCrosshairOverPoint);
+    // Removido checkCrosshairOverPoint (popup automatico sobre o ponto no crosshair):
+    // alinhado ao poprua-geo, que nao tem essa feature. Era a unica diferenca de
+    // comportamento de mapa entre os dois apps e a origem do "drift" pos-localizacao
+    // no zoom 18. O endereco do crosshair p/ "Nova acao" (updateCrosshairAddress) fica.
 
     const btnNovaAcao = document.getElementById('btn-nova-acao');
     const MIN_ZOOM_NOVA_ACAO = 17;
