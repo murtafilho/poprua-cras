@@ -155,15 +155,9 @@
                     <!-- Quantidades -->
                     <div class="card mb-4">
                         <div class="card-body">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="form-group">
-                                    <label class="form-label">Qtd. Pessoas</label>
-                                    <input type="number" name="quantidade_pessoas" min="0" placeholder="0" class="form-input">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Qtd. Kg</label>
-                                    <input type="number" name="qtd_kg" min="0" placeholder="0" class="form-input">
-                                </div>
+                            <div class="form-group">
+                                <label class="form-label">Qtd. Pessoas</label>
+                                <input type="number" name="quantidade_pessoas" min="0" placeholder="0" class="form-input">
                             </div>
                         </div>
                     </div>
@@ -365,10 +359,21 @@
                     <!-- Apreensao Fiscal -->
                     <div class="card mb-3">
                         <div class="card-body">
-                            <label class="checkbox-card">
-                                <input type="checkbox" name="apreensao_fiscal" value="1" class="form-checkbox">
-                                <span>Apreensão Fiscal</span>
-                            </label>
+                            <label class="form-label">Apreensão Fiscal</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="apreensao_fiscal" value="1" x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', $event.target.value !== '1')" class="form-radio">
+                                    <span>Sim</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="apreensao_fiscal" value="0" checked x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', $event.target.value !== '1')" class="form-radio">
+                                    <span>Não</span>
+                                </label>
+                            </div>
+                            <div id="qtd_kg_container" class="mt-2 hidden">
+                                <label class="form-label">Qtd. Kg (material apreendido)</label>
+                                <input type="number" name="qtd_kg" min="0" placeholder="0" class="form-input">
+                            </div>
                         </div>
                     </div>
 
