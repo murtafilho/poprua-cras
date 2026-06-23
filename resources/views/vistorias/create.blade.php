@@ -330,16 +330,10 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="form-label">Condução pelas Forças de Segurança</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="conducao_forcas_seguranca" value="1" x-on:change="toggleConducaoObs()" class="form-radio">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="conducao_forcas_seguranca" value="0" checked x-on:change="toggleConducaoObs()" class="form-radio">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <select name="conducao_forcas_seguranca" x-on:change="toggleConducaoObs()" class="form-input form-select">
+                                <option value="1">Sim</option>
+                                <option value="0" selected>Não</option>
+                            </select>
                             <div id="conducao_obs_container" class="mt-2 hidden">
                                 <textarea name="conducao_forcas_observacao" id="conducao_forcas_observacao" rows="2" placeholder="Observação sobre a condução..." class="form-input form-textarea"></textarea>
                             </div>
@@ -350,16 +344,10 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="form-label">Apreensão Fiscal</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="apreensao_fiscal" value="1" x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', $event.target.value !== '1')" class="form-radio">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="apreensao_fiscal" value="0" checked x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', $event.target.value !== '1')" class="form-radio">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <select name="apreensao_fiscal" x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', $event.target.value !== '1')" class="form-input form-select">
+                                <option value="1">Sim</option>
+                                <option value="0" selected>Não</option>
+                            </select>
                             <div id="qtd_kg_container" class="mt-2 hidden">
                                 <label class="form-label">Qtd. Kg (material apreendido)</label>
                                 <input type="number" name="qtd_kg" min="0" placeholder="0" class="form-input">
@@ -371,16 +359,10 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="form-label">Auto de Fiscalização Aplicado</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="auto_fiscalizacao_aplicado" value="1" x-on:change="toggleAutoNumero()" class="form-radio">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="auto_fiscalizacao_aplicado" value="0" checked x-on:change="toggleAutoNumero()" class="form-radio">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <select name="auto_fiscalizacao_aplicado" x-on:change="toggleAutoNumero()" class="form-input form-select">
+                                <option value="1">Sim</option>
+                                <option value="0" selected>Não</option>
+                            </select>
                             <div id="auto_numero_container" class="mt-2 hidden">
                                 <input type="text" name="auto_fiscalizacao_numero" id="auto_fiscalizacao_numero" placeholder="Número do Auto de Fiscalização" class="form-input">
                             </div>
@@ -391,16 +373,10 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="form-label">Houve Lavratura</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="houve_lavratura" value="1" x-on:change="toggleProtocolo()" class="form-radio">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="houve_lavratura" value="0" checked x-on:change="toggleProtocolo()" class="form-radio">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <select name="houve_lavratura" x-on:change="toggleProtocolo()" class="form-input form-select">
+                                <option value="1">Sim</option>
+                                <option value="0" selected>Não</option>
+                            </select>
                             <div id="tipo_protocolo_container" class="mt-2 hidden">
                                 <label class="form-label">Tipo de Protocolo</label>
                                 <select name="tipo_protocolo" class="form-input form-select">
@@ -420,16 +396,10 @@
                             <p class="form-hint" style="margin-top: -4px; margin-bottom: var(--space-2);">
                                 Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
                             </p>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="houve_comunicado" value="1" x-on:change="toggleComunicado()" class="form-radio">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="houve_comunicado" value="0" checked x-on:change="toggleComunicado()" class="form-radio">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <select name="houve_comunicado" x-on:change="toggleComunicado()" class="form-input form-select">
+                                <option value="1">Sim</option>
+                                <option value="0" selected>Não</option>
+                            </select>
                             <div id="data_comunicado_container" class="mt-3 hidden">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div class="form-group">

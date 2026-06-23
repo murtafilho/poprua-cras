@@ -196,26 +196,33 @@ function toggleQtdAnimais() {
     if (!checkbox.checked) input.value = 1;
 }
 
+// Helper: le um campo Sim/Nao tanto em <select> quanto em radio (defensivo).
+function _simNao(name) {
+    const el = document.querySelector('select[name="' + name + '"], input[name="' + name + '"][value="1"]');
+    if (!el) return false;
+    return el.tagName === 'SELECT' ? el.value === '1' : el.checked;
+}
+
 function toggleConducaoObs() {
-    const radioSim = document.querySelector('input[name="conducao_forcas_seguranca"][value="1"]');
+    const isSim = _simNao('conducao_forcas_seguranca');
     const container = document.getElementById('conducao_obs_container');
-    container.classList.toggle('hidden', !radioSim.checked);
-    if (!radioSim.checked) document.getElementById('conducao_forcas_observacao').value = '';
+    if (container) container.classList.toggle('hidden', !isSim);
+    if (!isSim) { const o = document.getElementById('conducao_forcas_observacao'); if (o) o.value = ''; }
 }
 
 function toggleAutoNumero() {
-    const radioSim = document.querySelector('input[name="auto_fiscalizacao_aplicado"][value="1"]');
+    const isSim = _simNao('auto_fiscalizacao_aplicado');
     const container = document.getElementById('auto_numero_container');
-    container.classList.toggle('hidden', !radioSim.checked);
-    if (!radioSim.checked) document.getElementById('auto_fiscalizacao_numero').value = '';
+    if (container) container.classList.toggle('hidden', !isSim);
+    if (!isSim) { const n = document.getElementById('auto_fiscalizacao_numero'); if (n) n.value = ''; }
 }
 
 function toggleProtocolo() {
-    const radioSim = document.querySelector('input[name="houve_lavratura"][value="1"]');
+    const isSim = _simNao('houve_lavratura');
     const container = document.getElementById('tipo_protocolo_container');
     if (container) {
-        container.classList.toggle('hidden', !radioSim.checked);
-        if (!radioSim.checked) {
+        container.classList.toggle('hidden', !isSim);
+        if (!isSim) {
             const select = container.querySelector('select[name="tipo_protocolo"]');
             if (select) select.value = '';
         }
@@ -223,11 +230,11 @@ function toggleProtocolo() {
 }
 
 function toggleComunicado() {
-    const radioSim = document.querySelector('input[name="houve_comunicado"][value="1"]');
+    const isSim = _simNao('houve_comunicado');
     const container = document.getElementById('data_comunicado_container');
     if (container) {
-        container.classList.toggle('hidden', !radioSim.checked);
-        if (!radioSim.checked) {
+        container.classList.toggle('hidden', !isSim);
+        if (!isSim) {
             const input = container.querySelector('input[name="data_comunicado"]');
             if (input) input.value = '';
         }
