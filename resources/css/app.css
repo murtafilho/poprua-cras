@@ -3206,7 +3206,7 @@ h6 { font-size: var(--text-sm); }
 }
 
 .map-btn-nova-acao:active {
-  transform: scale(0.95);
+  transform: translateX(-50%) scale(0.95);
   background: var(--accent-secondary);
 }
 
@@ -3218,6 +3218,9 @@ h6 { font-size: var(--text-sm); }
     max-width: 320px;
     width: auto;
     padding: 14px 48px;
+  }
+  .map-btn-nova-acao:active {
+    transform: translateX(calc(-50% - 140px)) scale(0.95);
   }
   .map-fab {
     bottom: 24px;
@@ -5134,4 +5137,146 @@ h6 { font-size: var(--text-sm); }
     border: 1px solid #ccc;
     box-shadow: none;
   }
+}
+
+/* ── Acessibilidade de toque (WCAG 2.5.5 — alvo minimo 44px) ───────────────
+   Homologacao 2026-06-22. PWA usado em campo (luva/chuva): em dispositivos de
+   toque garantimos 44px de alvo nos controles do app. .btn (44px) e .form-input
+   (48px) ja atendem; aqui reforcamos checkbox/radio (linha/rotulo inteiro
+   tappable, em vez de inflar o controle) e selects/textarea soltos. Leaflet e
+   links de texto inline NAO sao afetados (excecoes legitimas). */
+@media (pointer: coarse) {
+  .form-check { min-height: 44px; }
+  .form-check-input,
+  input[type="checkbox"],
+  input[type="radio"] { min-width: 24px; min-height: 24px; }
+  /* o rotulo que envolve um checkbox/radio vira o alvo de 44px */
+  label:has(> input[type="checkbox"]),
+  label:has(> input[type="radio"]),
+  .form-check-label { min-height: 44px; display: inline-flex; align-items: center; }
+  /* selects e textarea fora do .form-input */
+  select:not(.form-input), .form-select, textarea:not(.form-input) { min-height: 44px; }
+  /* paginacao e acoes em tabela */
+  .pagination a, .pagination button { min-width: 44px; min-height: 44px; }
+}
+
+/* ── UX mobile-first dos controles de formulario (uso em campo) — 2026-06-22 ──
+   1) Fonte >= 16px nos controles em telas pequenas/touch: evita o ZOOM
+      automatico do iOS Safari ao focar input/select (incomodo em campo).
+   2) Seta do select um pouco maior no touch. */
+@media (max-width: 575.98px), (pointer: coarse) {
+  .form-input, .form-select,
+  select:not(.form-input), textarea,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+    font-size: 16px;
+  }
+  .form-select { background-size: 20px; padding-right: 2.75rem; }
+}
+
+/* Toggle segmentado Sim/Nao: radios estilizados como botoes de 1 toque.
+   Alvo grande (48px), full-width em 2 colunas — mobile-first p/ uso em campo. */
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.segmented .seg-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--button-radius);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.segmented .seg-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.segmented .seg-option:has(input:checked) {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--text-inverse);
+}
+.segmented .seg-option:active { transform: scale(0.98); }
+
+/* Switch Sim/Nao (checkbox estilizado) — compacto, com rotulo de valor ao vivo
+   (.switch-state mostra "Nao"/"Sim" via ::after) p/ nao ficar ambiguo. 2026-06-22 */
+.switch-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 48px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.switch-field .switch-text {
+  flex: 1;
+  font-size: 16px;
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.switch-field .switch-input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch-field .switch-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 30px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 999px;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.switch-field .switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+.switch-field .switch-state {
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  min-width: 2.5em;
+  text-align: right;
+  flex-shrink: 0;
+}
+.switch-field .switch-state::after { content: "Não"; }
+.switch-field .switch-input:checked ~ .switch-track { background: var(--accent-primary); border-color: var(--accent-primary); }
+.switch-field .switch-input:checked ~ .switch-track .switch-thumb { transform: translateX(22px); background: var(--text-inverse); }
+.switch-field .switch-input:checked ~ .switch-state { color: var(--accent-primary); }
+.switch-field .switch-input:checked ~ .switch-state::after { content: "Sim"; }
+.switch-field .switch-input:focus-visible ~ .switch-track { box-shadow: 0 0 0 3px var(--accent-dim); }
+
+/* Navegacao entre etapas do wizard (Anterior / Proximo) — simetricos e alinhados.
+   Sem essa regra os botoes ficavam com larguras diferentes e desalinhados. 2026-06-23 */
+.form-step-nav {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.form-step-nav .btn {
+  flex: 1 1 0;
+  min-height: 48px;
+  justify-content: center;
 }

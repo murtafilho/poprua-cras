@@ -152,38 +152,6 @@
 
                 <!-- Aba 2: Perfil da Ocorrencia -->
                 <div class="tab-content hidden" data-tab="1">
-                    <!-- Quantidades -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="form-group">
-                                    <label class="form-label">Qtd. Pessoas</label>
-                                    <input type="number" name="quantidade_pessoas" min="0" placeholder="0" class="form-input">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Qtd. Kg</label>
-                                    <input type="number" name="qtd_kg" min="0" placeholder="0" class="form-input">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Nomes das Pessoas -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <label class="form-label">Nomes das Pessoas</label>
-                            <p class="form-hint">Um nome por linha</p>
-                            <div class="input-with-voice">
-                                <textarea name="nomes_pessoas" id="nomes_pessoas" rows="3" placeholder="Digite um nome por linha..." class="form-input form-textarea"></textarea>
-                                <button type="button" x-on:click="startVoiceInput('nomes_pessoas')" class="voice-btn">
-                                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Abrigos -->
                     <div class="card mb-4">
                         <div class="card-body">
@@ -355,113 +323,106 @@
                         </div>
                     </div>
 
-                    <div class="card mb-4">
+                    <!-- Acoes Realizadas: cada acao em seu proprio card -->
+                    <h3 class="form-section-title" style="margin: var(--space-2) 0 var(--space-3);">Ações Realizadas</h3>
+
+                    <!-- Conducao pelas Forcas de Seguranca -->
+                    <div class="card mb-3">
                         <div class="card-body">
-                            <h3 class="form-section-title">Acoes Realizadas</h3>
-
-                            <!-- Conducao pelas Forcas de Seguranca -->
-                            <div class="form-group">
-                                <label class="form-label">Conducao pelas Forcas de Seguranca</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="conducao_forcas_seguranca" value="1" x-on:change="toggleConducaoObs()" class="form-radio">
-                                        <span>Sim</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="conducao_forcas_seguranca" value="0" checked x-on:change="toggleConducaoObs()" class="form-radio">
-                                        <span>Nao</span>
-                                    </label>
-                                </div>
-                                <div id="conducao_obs_container" class="mt-2 hidden">
-                                    <textarea name="conducao_forcas_observacao" id="conducao_forcas_observacao" rows="2" placeholder="Observacao sobre a conducao..." class="form-input form-textarea"></textarea>
-                                </div>
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="conducao_forcas_seguranca" value="1" x-on:change="toggleConducaoObs()">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Condução pelas Forças de Segurança</span>
+                                <span class="switch-state"></span>
+                            </label>
+                            <div id="conducao_obs_container" class="mt-2 hidden">
+                                <textarea name="conducao_forcas_observacao" id="conducao_forcas_observacao" rows="2" placeholder="Observação sobre a condução..." class="form-input form-textarea"></textarea>
                             </div>
+                        </div>
+                    </div>
 
-                            <!-- Apreensao Fiscal -->
-                            <div class="form-group">
-                                <label class="checkbox-card">
-                                    <input type="checkbox" name="apreensao_fiscal" value="1" class="form-checkbox">
-                                    <span>Apreensao Fiscal</span>
-                                </label>
+                    <!-- Apreensao Fiscal -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="apreensao_fiscal" value="1" x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', !$event.target.checked)">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Apreensão Fiscal</span>
+                                <span class="switch-state"></span>
+                            </label>
+                            <div id="qtd_kg_container" class="mt-2 hidden">
+                                <label class="form-label">Qtd. Kg (material apreendido)</label>
+                                <input type="number" name="qtd_kg" min="0" placeholder="0" class="form-input">
                             </div>
+                        </div>
+                    </div>
 
-                            <!-- Auto de Fiscalizacao Aplicado -->
-                            <div class="form-group">
-                                <label class="form-label">Auto de Fiscalizacao Aplicado</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="1" x-on:change="toggleAutoNumero()" class="form-radio">
-                                        <span>Sim</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="0" checked x-on:change="toggleAutoNumero()" class="form-radio">
-                                        <span>Nao</span>
-                                    </label>
-                                </div>
-                                <div id="auto_numero_container" class="mt-2 hidden">
-                                    <input type="text" name="auto_fiscalizacao_numero" id="auto_fiscalizacao_numero" placeholder="Numero do Auto de Fiscalizacao" class="form-input">
-                                </div>
+                    <!-- Auto de Fiscalizacao Aplicado -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="auto_fiscalizacao_aplicado" value="1" x-on:change="toggleAutoNumero()">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Auto de Fiscalização Aplicado</span>
+                                <span class="switch-state"></span>
+                            </label>
+                            <div id="auto_numero_container" class="mt-2 hidden">
+                                <input type="text" name="auto_fiscalizacao_numero" id="auto_fiscalizacao_numero" placeholder="Número do Auto de Fiscalização" class="form-input">
                             </div>
+                        </div>
+                    </div>
 
-                            <!-- Lavratura -->
-                            <div class="form-group">
-                                <label class="form-label">Houve Lavratura</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="houve_lavratura" value="1" x-on:change="toggleProtocolo()" class="form-radio">
-                                        <span>Sim</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="houve_lavratura" value="0" checked x-on:change="toggleProtocolo()" class="form-radio">
-                                        <span>Não</span>
-                                    </label>
+                    <!-- Lavratura -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="houve_lavratura" value="1" x-on:change="toggleProtocolo()">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Houve Lavratura</span>
+                                <span class="switch-state"></span>
+                            </label>
+                            <div id="tipo_protocolo_container" class="mt-2 hidden">
+                                <label class="form-label">Tipo de Protocolo</label>
+                                <select name="tipo_protocolo" class="form-input form-select">
+                                    <option value="">Selecione...</option>
+                                    <option value="chuva">Chuva</option>
+                                    <option value="frio">Frio</option>
+                                    <option value="normal">Normal</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comunicado de Zeladoria -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="houve_comunicado" value="1" x-on:change="toggleComunicado()">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Houve Comunicado entregue?</span>
+                                <span class="switch-state"></span>
+                            </label>
+                            <p class="form-hint" style="margin-top: var(--space-2);">
+                                Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
+                            </p>
+                            <div id="data_comunicado_container" class="mt-3 hidden">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Data de Entrega</label>
+                                        <input type="date" name="data_comunicado" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Data de Retorno</label>
+                                        <input type="datetime-local" name="data_prevista_zeladoria" class="form-input" value="{{ old('data_prevista_zeladoria') }}">
+                                    </div>
                                 </div>
-                                <div id="tipo_protocolo_container" class="mt-2 hidden">
-                                    <label class="form-label">Tipo de Protocolo</label>
-                                    <select name="tipo_protocolo" class="form-input form-select">
+                                <div class="form-group mt-2">
+                                    <label class="form-label">Período de Retorno</label>
+                                    <select name="periodo_zeladoria" class="form-input form-select">
                                         <option value="">Selecione...</option>
-                                        <option value="chuva">Chuva</option>
-                                        <option value="frio">Frio</option>
-                                        <option value="normal">Normal</option>
+                                        <option value="manha">Manhã</option>
+                                        <option value="tarde">Tarde</option>
                                     </select>
-                                </div>
-                            </div>
-
-                            <!-- Comunicado de Zeladoria -->
-                            <div class="form-group">
-                                <label class="form-label">Houve Comunicado entregue?</label>
-                                <p class="form-hint" style="margin-top: -4px; margin-bottom: var(--space-2);">
-                                    Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
-                                </p>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="houve_comunicado" value="1" x-on:change="toggleComunicado()" class="form-radio">
-                                        <span>Sim</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="houve_comunicado" value="0" checked x-on:change="toggleComunicado()" class="form-radio">
-                                        <span>Não</span>
-                                    </label>
-                                </div>
-                                <div id="data_comunicado_container" class="mt-3 hidden">
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div class="form-group">
-                                            <label class="form-label">Data de Entrega</label>
-                                            <input type="date" name="data_comunicado" class="form-input">
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Data de Retorno</label>
-                                            <input type="datetime-local" name="data_prevista_zeladoria" class="form-input" value="{{ old('data_prevista_zeladoria') }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group mt-2">
-                                        <label class="form-label">Período de Retorno</label>
-                                        <select name="periodo_zeladoria" class="form-input form-select">
-                                            <option value="">Selecione...</option>
-                                            <option value="manha">Manhã</option>
-                                            <option value="tarde">Tarde</option>
-                                        </select>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -553,6 +514,17 @@
 
                 <!-- Aba 5: Pessoas no Ponto -->
                 <div class="tab-content hidden" data-tab="4">
+                    <!-- Estimativa de pessoas -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Estimativa num. pessoas</label>
+                                <input type="number" name="quantidade_pessoas" min="0" placeholder="0" class="form-input">
+                                <p class="form-hint">Estimativa do total de pessoas no local. Nao precisa coincidir com as pessoas cadastradas abaixo — nem sempre e possivel identificar todas.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card mb-4">
                         <div class="card-body">
                             <div class="flex items-center justify-between mb-4">
