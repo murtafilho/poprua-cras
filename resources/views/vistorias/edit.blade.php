@@ -297,16 +297,11 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="form-label">Condução pelas Forças de Segurança</label>
-                            <div class="segmented" role="radiogroup">
-                                <label class="seg-option">
-                                    <input type="radio" name="conducao_forcas_seguranca" value="1" {{ $vistoria->conducao_forcas_seguranca ? 'checked' : '' }} x-on:change="toggleConducaoObs()">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="seg-option">
-                                    <input type="radio" name="conducao_forcas_seguranca" value="0" {{ !$vistoria->conducao_forcas_seguranca ? 'checked' : '' }} x-on:change="toggleConducaoObs()">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="conducao_forcas_seguranca" value="1" {{ $vistoria->conducao_forcas_seguranca ? 'checked' : '' }} x-on:change="toggleConducaoObs()">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-state"></span>
+                            </label>
                             <div id="conducao_obs_container" class="mt-2 {{ $vistoria->conducao_forcas_seguranca ? '' : 'hidden' }}">
                                 <textarea name="conducao_forcas_observacao" id="conducao_forcas_observacao" rows="2" placeholder="Observação sobre a condução..." class="form-input form-textarea">{{ $vistoria->conducao_forcas_observacao }}</textarea>
                             </div>
@@ -317,16 +312,11 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="form-label">Apreensão Fiscal</label>
-                            <div class="segmented" role="radiogroup">
-                                <label class="seg-option">
-                                    <input type="radio" name="apreensao_fiscal" value="1" {{ $vistoria->apreensao_fiscal ? 'checked' : '' }} x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', $event.target.value !== '1')">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="seg-option">
-                                    <input type="radio" name="apreensao_fiscal" value="0" {{ !$vistoria->apreensao_fiscal ? 'checked' : '' }} x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', $event.target.value !== '1')">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="apreensao_fiscal" value="1" {{ $vistoria->apreensao_fiscal ? 'checked' : '' }} x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', !$event.target.checked)">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-state"></span>
+                            </label>
                             <div id="qtd_kg_container" class="mt-2 {{ $vistoria->apreensao_fiscal ? '' : 'hidden' }}">
                                 <label class="form-label">Qtd. Kg (material apreendido)</label>
                                 <input type="number" name="qtd_kg" min="0" placeholder="0" value="{{ $vistoria->qtd_kg ?: '' }}" class="form-input">
@@ -338,16 +328,11 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="form-label">Auto de Fiscalização Aplicado</label>
-                            <div class="segmented" role="radiogroup">
-                                <label class="seg-option">
-                                    <input type="radio" name="auto_fiscalizacao_aplicado" value="1" {{ $vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} x-on:change="toggleAutoNumero()">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="seg-option">
-                                    <input type="radio" name="auto_fiscalizacao_aplicado" value="0" {{ !$vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} x-on:change="toggleAutoNumero()">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="auto_fiscalizacao_aplicado" value="1" {{ $vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} x-on:change="toggleAutoNumero()">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-state"></span>
+                            </label>
                             <div id="auto_numero_container" class="mt-2 {{ $vistoria->auto_fiscalizacao_aplicado ? '' : 'hidden' }}">
                                 <input type="text" name="auto_fiscalizacao_numero" id="auto_fiscalizacao_numero"
                                        value="{{ $vistoria->auto_fiscalizacao_numero }}"
@@ -360,16 +345,11 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="form-label">Houve Lavratura</label>
-                            <div class="segmented" role="radiogroup">
-                                <label class="seg-option">
-                                    <input type="radio" name="houve_lavratura" value="1" {{ $vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="seg-option">
-                                    <input type="radio" name="houve_lavratura" value="0" {{ !$vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="houve_lavratura" value="1" {{ $vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-state"></span>
+                            </label>
                             <div id="tipo_protocolo_container" class="mt-2 {{ $vistoria->houve_lavratura ? '' : 'hidden' }}">
                                 <label class="form-label">Tipo de Protocolo</label>
                                 <select name="tipo_protocolo" class="form-input form-select">
@@ -389,16 +369,11 @@
                             <p class="form-hint" style="margin-top: -4px; margin-bottom: var(--space-2);">
                                 Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
                             </p>
-                            <div class="segmented" role="radiogroup">
-                                <label class="seg-option">
-                                    <input type="radio" name="houve_comunicado" value="1" {{ $vistoria->houve_comunicado ? 'checked' : '' }} x-on:change="toggleComunicado()">
-                                    <span>Sim</span>
-                                </label>
-                                <label class="seg-option">
-                                    <input type="radio" name="houve_comunicado" value="0" {{ !$vistoria->houve_comunicado ? 'checked' : '' }} x-on:change="toggleComunicado()">
-                                    <span>Não</span>
-                                </label>
-                            </div>
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="houve_comunicado" value="1" {{ $vistoria->houve_comunicado ? 'checked' : '' }} x-on:change="toggleComunicado()">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-state"></span>
+                            </label>
                             <div id="data_comunicado_container" class="mt-3 {{ $vistoria->houve_comunicado ? '' : 'hidden' }}">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div class="form-group">
