@@ -5159,3 +5159,55 @@ h6 { font-size: var(--text-sm); }
   /* paginacao e acoes em tabela */
   .pagination a, .pagination button { min-width: 44px; min-height: 44px; }
 }
+
+/* ── UX mobile-first dos controles de formulario (uso em campo) — 2026-06-22 ──
+   1) Fonte >= 16px nos controles em telas pequenas/touch: evita o ZOOM
+      automatico do iOS Safari ao focar input/select (incomodo em campo).
+   2) Seta do select um pouco maior no touch. */
+@media (max-width: 575.98px), (pointer: coarse) {
+  .form-input, .form-select,
+  select:not(.form-input), textarea,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+    font-size: 16px;
+  }
+  .form-select { background-size: 20px; padding-right: 2.75rem; }
+}
+
+/* Toggle segmentado Sim/Nao: radios estilizados como botoes de 1 toque.
+   Alvo grande (48px), full-width em 2 colunas — mobile-first p/ uso em campo. */
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.segmented .seg-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--button-radius);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.segmented .seg-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.segmented .seg-option:has(input:checked) {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--text-inverse);
+}
+.segmented .seg-option:active { transform: scale(0.98); }
