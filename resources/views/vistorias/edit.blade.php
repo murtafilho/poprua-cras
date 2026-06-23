@@ -112,7 +112,7 @@
                                 <label class="form-label required">Data/Hora da Abordagem</label>
                                 <input type="datetime-local" name="data_abordagem"
                                        value="{{ $vistoria->data_abordagem ? $vistoria->data_abordagem->format('Y-m-d\TH:i') : '' }}"
-                                       required class="form-input">
+                                       required class="form-input js-date-ptbr">
                             </div>
 
                             <div class="form-group">

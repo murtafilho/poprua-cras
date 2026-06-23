@@ -1,4 +1,5 @@
 import { imgType, imgExt, imgName } from "./img-format";
+import "./date-ptbr";
 const APP_BASE = document.querySelector('meta[name="app-base"]')?.content || '';
 
 // Impedir saída acidental sem confirmação (só quando há alterações)
@@ -240,22 +241,6 @@ function toggleComunicado() {
     if (!isSim) {
         const dateInput = container.querySelector('input[name="data_comunicado"]');
         if (dateInput) dateInput.value = '';
-    }
-}
-
-function toggleZeladoriaCampos() {
-    const select = document.getElementById('tipo_abordagem_id');
-    const container = document.getElementById('zeladoria-campos');
-    if (!select || !container) return;
-    const selectedOption = select.options[select.selectedIndex];
-    const tipo = selectedOption ? selectedOption.getAttribute('data-tipo') : '';
-    const isComunicacao = tipo && tipo.toLowerCase().includes('comunica');
-    container.classList.toggle('hidden', !isComunicacao);
-    if (!isComunicacao) {
-        const dateInput = container.querySelector('input[name="data_prevista_zeladoria"]');
-        const periodoSelect = container.querySelector('select[name="periodo_zeladoria"]');
-        if (dateInput) dateInput.value = '';
-        if (periodoSelect) periodoSelect.value = '';
     }
 }
 
@@ -796,15 +781,9 @@ window.toggleConducaoObs = toggleConducaoObs;
 window.toggleAutoNumero = toggleAutoNumero;
 window.toggleProtocolo = toggleProtocolo;
 window.toggleComunicado = toggleComunicado;
-window.toggleZeladoriaCampos = toggleZeladoriaCampos;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
 window.atualizarLegenda = atualizarLegenda;
 
-const tipoAbordagemSelect = document.getElementById('tipo_abordagem_id');
-if (tipoAbordagemSelect) {
-    tipoAbordagemSelect.addEventListener('change', toggleZeladoriaCampos);
-    toggleZeladoriaCampos();
-}
 toggleProtocolo();
 
 const buscaPontoInput = document.getElementById('busca-ponto');

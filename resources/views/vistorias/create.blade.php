@@ -110,7 +110,7 @@
 
                             <div class="form-group">
                                 <label class="form-label required">Data/Hora da Abordagem</label>
-                                <input type="datetime-local" name="data_abordagem" value="{{ date('Y-m-d\TH:i') }}" required class="form-input">
+                                <input type="datetime-local" name="data_abordagem" value="{{ date('Y-m-d\TH:i') }}" required class="form-input js-date-ptbr">
                             </div>
 
                             <div class="form-group">

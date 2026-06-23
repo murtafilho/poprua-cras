@@ -1,4 +1,5 @@
 import { imgType, imgExt, imgName } from "./img-format";
+import "./date-ptbr";
 // Impedir saída acidental sem confirmação (só quando há alterações)
 let formSubmitting = false;
 let formDirty = false;
@@ -238,22 +239,6 @@ function toggleComunicado() {
             const input = container.querySelector('input[name="data_comunicado"]');
             if (input) input.value = '';
         }
-    }
-}
-
-function toggleZeladoriaCampos() {
-    const select = document.getElementById('tipo_abordagem_id');
-    const container = document.getElementById('zeladoria-campos');
-    if (!select || !container) return;
-    const selectedOption = select.options[select.selectedIndex];
-    const tipo = selectedOption ? selectedOption.getAttribute('data-tipo') : '';
-    const isComunicacao = tipo && tipo.toLowerCase().includes('comunica');
-    container.classList.toggle('hidden', !isComunicacao);
-    if (!isComunicacao) {
-        const dateInput = container.querySelector('input[name="data_prevista_zeladoria"]');
-        const periodoSelect = container.querySelector('select[name="periodo_zeladoria"]');
-        if (dateInput) dateInput.value = '';
-        if (periodoSelect) periodoSelect.value = '';
     }
 }
 
@@ -802,7 +787,6 @@ function restaurarRascunho() {
         toggleConducaoObs();
         toggleAutoNumero();
         toggleProtocolo();
-        toggleZeladoriaCampos();
 
         return true;
     } catch (e) {
@@ -868,7 +852,6 @@ window.toggleConducaoObs = toggleConducaoObs;
 window.toggleAutoNumero = toggleAutoNumero;
 window.toggleProtocolo = toggleProtocolo;
 window.toggleComunicado = toggleComunicado;
-window.toggleZeladoriaCampos = toggleZeladoriaCampos;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
 window.atualizarLegenda = atualizarLegenda;
 
@@ -976,8 +959,3 @@ function renderPessoasVinculadas() {
 document.addEventListener('DOMContentLoaded', initBuscaPessoa);
 window.vincularPessoa = vincularPessoa;
 window.desvincularPessoa = desvincularPessoa;
-
-const tipoAbordagemSelect = document.getElementById('tipo_abordagem_id');
-if (tipoAbordagemSelect) {
-    tipoAbordagemSelect.addEventListener('change', toggleZeladoriaCampos);
-}
