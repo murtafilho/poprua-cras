@@ -79,6 +79,8 @@ class UpdateVistoriaRequest extends FormRequest
             'qtd_kg' => 'nullable|integer|min:0',
             'observacao' => 'nullable|string',
             'fotos.*' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
+            'legendas_fotos' => 'nullable|array',
+            'legendas_fotos.*' => 'nullable|string|max:500',
             'remover_fotos' => 'nullable|array',
             'remover_fotos.*' => 'integer',
             // Campos boolean de complexidade
