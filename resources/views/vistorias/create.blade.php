@@ -329,10 +329,10 @@
                     <!-- Conducao pelas Forcas de Seguranca -->
                     <div class="card mb-3">
                         <div class="card-body">
-                            <label class="form-label">Condução pelas Forças de Segurança</label>
                             <label class="switch-field">
                                 <input type="checkbox" class="switch-input" name="conducao_forcas_seguranca" value="1" x-on:change="toggleConducaoObs()">
                                 <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Condução pelas Forças de Segurança</span>
                                 <span class="switch-state"></span>
                             </label>
                             <div id="conducao_obs_container" class="mt-2 hidden">
@@ -344,10 +344,10 @@
                     <!-- Apreensao Fiscal -->
                     <div class="card mb-3">
                         <div class="card-body">
-                            <label class="form-label">Apreensão Fiscal</label>
                             <label class="switch-field">
                                 <input type="checkbox" class="switch-input" name="apreensao_fiscal" value="1" x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', !$event.target.checked)">
                                 <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Apreensão Fiscal</span>
                                 <span class="switch-state"></span>
                             </label>
                             <div id="qtd_kg_container" class="mt-2 hidden">
@@ -360,10 +360,10 @@
                     <!-- Auto de Fiscalizacao Aplicado -->
                     <div class="card mb-3">
                         <div class="card-body">
-                            <label class="form-label">Auto de Fiscalização Aplicado</label>
                             <label class="switch-field">
                                 <input type="checkbox" class="switch-input" name="auto_fiscalizacao_aplicado" value="1" x-on:change="toggleAutoNumero()">
                                 <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Auto de Fiscalização Aplicado</span>
                                 <span class="switch-state"></span>
                             </label>
                             <div id="auto_numero_container" class="mt-2 hidden">
@@ -375,10 +375,10 @@
                     <!-- Lavratura -->
                     <div class="card mb-3">
                         <div class="card-body">
-                            <label class="form-label">Houve Lavratura</label>
                             <label class="switch-field">
                                 <input type="checkbox" class="switch-input" name="houve_lavratura" value="1" x-on:change="toggleProtocolo()">
                                 <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Houve Lavratura</span>
                                 <span class="switch-state"></span>
                             </label>
                             <div id="tipo_protocolo_container" class="mt-2 hidden">
@@ -396,15 +396,15 @@
                     <!-- Comunicado de Zeladoria -->
                     <div class="card mb-3">
                         <div class="card-body">
-                            <label class="form-label">Houve Comunicado entregue?</label>
-                            <p class="form-hint" style="margin-top: -4px; margin-bottom: var(--space-2);">
-                                Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
-                            </p>
                             <label class="switch-field">
                                 <input type="checkbox" class="switch-input" name="houve_comunicado" value="1" x-on:change="toggleComunicado()">
                                 <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Houve Comunicado entregue?</span>
                                 <span class="switch-state"></span>
                             </label>
+                            <p class="form-hint" style="margin-top: var(--space-2);">
+                                Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
+                            </p>
                             <div id="data_comunicado_container" class="mt-3 hidden">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div class="form-group">
