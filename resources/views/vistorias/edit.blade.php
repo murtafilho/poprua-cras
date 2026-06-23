@@ -324,115 +324,122 @@
                         </div>
                     </div>
 
-                    <div class="card mb-4">
+                    <!-- Acoes Realizadas: cada acao em seu proprio card -->
+                    <h3 class="form-section-title" style="margin: var(--space-2) 0 var(--space-3);">Ações Realizadas</h3>
+
+                    <!-- Conducao pelas Forcas de Seguranca -->
+                    <div class="card mb-3">
                         <div class="card-body">
-                            <h3 class="form-section-title">Acoes Realizadas</h3>
-
-                            <!-- Conducao pelas Forcas de Seguranca -->
-                            <div class="form-group">
-                                <label class="form-label">Conducao pelas Forcas de Seguranca</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="conducao_forcas_seguranca" value="1" {{ $vistoria->conducao_forcas_seguranca ? 'checked' : '' }} x-on:change="toggleConducaoObs()" class="form-radio">
-                                        <span>Sim</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="conducao_forcas_seguranca" value="0" {{ !$vistoria->conducao_forcas_seguranca ? 'checked' : '' }} x-on:change="toggleConducaoObs()" class="form-radio">
-                                        <span>Nao</span>
-                                    </label>
-                                </div>
-                                <div id="conducao_obs_container" class="mt-2 {{ $vistoria->conducao_forcas_seguranca ? '' : 'hidden' }}">
-                                    <textarea name="conducao_forcas_observacao" id="conducao_forcas_observacao" rows="2" placeholder="Observacao sobre a conducao..." class="form-input form-textarea">{{ $vistoria->conducao_forcas_observacao }}</textarea>
-                                </div>
-                            </div>
-
-                            <!-- Apreensao Fiscal -->
-                            <div class="form-group">
-                                <label class="checkbox-card">
-                                    <input type="checkbox" name="apreensao_fiscal" value="1" {{ $vistoria->apreensao_fiscal ? 'checked' : '' }} class="form-checkbox">
-                                    <span>Apreensao Fiscal</span>
+                            <label class="form-label">Condução pelas Forças de Segurança</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="conducao_forcas_seguranca" value="1" {{ $vistoria->conducao_forcas_seguranca ? 'checked' : '' }} x-on:change="toggleConducaoObs()" class="form-radio">
+                                    <span>Sim</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="conducao_forcas_seguranca" value="0" {{ !$vistoria->conducao_forcas_seguranca ? 'checked' : '' }} x-on:change="toggleConducaoObs()" class="form-radio">
+                                    <span>Não</span>
                                 </label>
                             </div>
-
-                            <!-- Auto de Fiscalizacao Aplicado -->
-                            <div class="form-group">
-                                <label class="form-label">Auto de Fiscalizacao Aplicado</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="1" {{ $vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} x-on:change="toggleAutoNumero()" class="form-radio">
-                                        <span>Sim</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="auto_fiscalizacao_aplicado" value="0" {{ !$vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} x-on:change="toggleAutoNumero()" class="form-radio">
-                                        <span>Nao</span>
-                                    </label>
-                                </div>
-                                <div id="auto_numero_container" class="mt-2 {{ $vistoria->auto_fiscalizacao_aplicado ? '' : 'hidden' }}">
-                                    <input type="text" name="auto_fiscalizacao_numero" id="auto_fiscalizacao_numero"
-                                           value="{{ $vistoria->auto_fiscalizacao_numero }}"
-                                           placeholder="Numero do Auto de Fiscalizacao" class="form-input">
-                                </div>
+                            <div id="conducao_obs_container" class="mt-2 {{ $vistoria->conducao_forcas_seguranca ? '' : 'hidden' }}">
+                                <textarea name="conducao_forcas_observacao" id="conducao_forcas_observacao" rows="2" placeholder="Observação sobre a condução..." class="form-input form-textarea">{{ $vistoria->conducao_forcas_observacao }}</textarea>
                             </div>
+                        </div>
+                    </div>
 
-                            <!-- Lavratura -->
-                            <div class="form-group">
-                                <label class="form-label">Houve Lavratura</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="houve_lavratura" value="1" {{ $vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()" class="form-radio">
-                                        <span>Sim</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="houve_lavratura" value="0" {{ !$vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()" class="form-radio">
-                                        <span>Não</span>
-                                    </label>
+                    <!-- Apreensao Fiscal -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="checkbox-card">
+                                <input type="checkbox" name="apreensao_fiscal" value="1" {{ $vistoria->apreensao_fiscal ? 'checked' : '' }} class="form-checkbox">
+                                <span>Apreensão Fiscal</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Auto de Fiscalizacao Aplicado -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="form-label">Auto de Fiscalização Aplicado</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="auto_fiscalizacao_aplicado" value="1" {{ $vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} x-on:change="toggleAutoNumero()" class="form-radio">
+                                    <span>Sim</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="auto_fiscalizacao_aplicado" value="0" {{ !$vistoria->auto_fiscalizacao_aplicado ? 'checked' : '' }} x-on:change="toggleAutoNumero()" class="form-radio">
+                                    <span>Não</span>
+                                </label>
+                            </div>
+                            <div id="auto_numero_container" class="mt-2 {{ $vistoria->auto_fiscalizacao_aplicado ? '' : 'hidden' }}">
+                                <input type="text" name="auto_fiscalizacao_numero" id="auto_fiscalizacao_numero"
+                                       value="{{ $vistoria->auto_fiscalizacao_numero }}"
+                                       placeholder="Número do Auto de Fiscalização" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lavratura -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="form-label">Houve Lavratura</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="houve_lavratura" value="1" {{ $vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()" class="form-radio">
+                                    <span>Sim</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="houve_lavratura" value="0" {{ !$vistoria->houve_lavratura ? 'checked' : '' }} x-on:change="toggleProtocolo()" class="form-radio">
+                                    <span>Não</span>
+                                </label>
+                            </div>
+                            <div id="tipo_protocolo_container" class="mt-2 {{ $vistoria->houve_lavratura ? '' : 'hidden' }}">
+                                <label class="form-label">Tipo de Protocolo</label>
+                                <select name="tipo_protocolo" class="form-input form-select">
+                                    <option value="">Selecione...</option>
+                                    <option value="chuva" {{ $vistoria->tipo_protocolo === 'chuva' ? 'selected' : '' }}>Chuva</option>
+                                    <option value="frio" {{ $vistoria->tipo_protocolo === 'frio' ? 'selected' : '' }}>Frio</option>
+                                    <option value="normal" {{ $vistoria->tipo_protocolo === 'normal' ? 'selected' : '' }}>Normal</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comunicado de Zeladoria -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="form-label">Houve Comunicado entregue?</label>
+                            <p class="form-hint" style="margin-top: -4px; margin-bottom: var(--space-2);">
+                                Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
+                            </p>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="houve_comunicado" value="1" {{ $vistoria->houve_comunicado ? 'checked' : '' }} x-on:change="toggleComunicado()" class="form-radio">
+                                    <span>Sim</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="houve_comunicado" value="0" {{ !$vistoria->houve_comunicado ? 'checked' : '' }} x-on:change="toggleComunicado()" class="form-radio">
+                                    <span>Não</span>
+                                </label>
+                            </div>
+                            <div id="data_comunicado_container" class="mt-3 {{ $vistoria->houve_comunicado ? '' : 'hidden' }}">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Data de Entrega</label>
+                                        <input type="date" name="data_comunicado" value="{{ $vistoria->data_comunicado?->format('Y-m-d') }}" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Data de Retorno</label>
+                                        <input type="datetime-local" name="data_prevista_zeladoria" value="{{ old('data_prevista_zeladoria', $vistoria->data_prevista_zeladoria?->format('Y-m-d\TH:i')) }}" class="form-input">
+                                    </div>
                                 </div>
-                                <div id="tipo_protocolo_container" class="mt-2 {{ $vistoria->houve_lavratura ? '' : 'hidden' }}">
-                                    <label class="form-label">Tipo de Protocolo</label>
-                                    <select name="tipo_protocolo" class="form-input form-select">
+                                <div class="form-group mt-2">
+                                    <label class="form-label">Período de Retorno</label>
+                                    <select name="periodo_zeladoria" class="form-input form-select">
                                         <option value="">Selecione...</option>
-                                        <option value="chuva" {{ $vistoria->tipo_protocolo === 'chuva' ? 'selected' : '' }}>Chuva</option>
-                                        <option value="frio" {{ $vistoria->tipo_protocolo === 'frio' ? 'selected' : '' }}>Frio</option>
-                                        <option value="normal" {{ $vistoria->tipo_protocolo === 'normal' ? 'selected' : '' }}>Normal</option>
+                                        <option value="manha" {{ $vistoria->periodo_zeladoria === 'manha' ? 'selected' : '' }}>Manhã</option>
+                                        <option value="tarde" {{ $vistoria->periodo_zeladoria === 'tarde' ? 'selected' : '' }}>Tarde</option>
                                     </select>
-                                </div>
-                            </div>
-
-                            <!-- Comunicado de Zeladoria -->
-                            <div class="form-group">
-                                <label class="form-label">Houve Comunicado entregue?</label>
-                                <p class="form-hint" style="margin-top: -4px; margin-bottom: var(--space-2);">
-                                    Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
-                                </p>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="houve_comunicado" value="1" {{ $vistoria->houve_comunicado ? 'checked' : '' }} x-on:change="toggleComunicado()" class="form-radio">
-                                        <span>Sim</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="houve_comunicado" value="0" {{ !$vistoria->houve_comunicado ? 'checked' : '' }} x-on:change="toggleComunicado()" class="form-radio">
-                                        <span>Não</span>
-                                    </label>
-                                </div>
-                                <div id="data_comunicado_container" class="mt-3 {{ $vistoria->houve_comunicado ? '' : 'hidden' }}">
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div class="form-group">
-                                            <label class="form-label">Data de Entrega</label>
-                                            <input type="date" name="data_comunicado" value="{{ $vistoria->data_comunicado?->format('Y-m-d') }}" class="form-input">
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Data de Retorno</label>
-                                            <input type="datetime-local" name="data_prevista_zeladoria" value="{{ old('data_prevista_zeladoria', $vistoria->data_prevista_zeladoria?->format('Y-m-d\TH:i')) }}" class="form-input">
-                                        </div>
-                                    </div>
-                                    <div class="form-group mt-2">
-                                        <label class="form-label">Período de Retorno</label>
-                                        <select name="periodo_zeladoria" class="form-input form-select">
-                                            <option value="">Selecione...</option>
-                                            <option value="manha" {{ $vistoria->periodo_zeladoria === 'manha' ? 'selected' : '' }}>Manhã</option>
-                                            <option value="tarde" {{ $vistoria->periodo_zeladoria === 'tarde' ? 'selected' : '' }}>Tarde</option>
-                                        </select>
-                                    </div>
                                 </div>
                             </div>
                         </div>
