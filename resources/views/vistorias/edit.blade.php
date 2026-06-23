@@ -362,6 +362,21 @@
                         </div>
                     </div>
 
+                    <!-- Lavacao (limpeza com agua) -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="switch-field">
+                                <input type="checkbox" class="switch-input" name="houve_lavacao" value="1" {{ $vistoria->houve_lavacao ? 'checked' : '' }}>
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                                <span class="switch-text">Houve Lavação</span>
+                                <span class="switch-state"></span>
+                            </label>
+                            <p class="form-hint" style="margin-top: var(--space-2);">
+                                Limpeza do local com água (não confundir com lavratura de auto).
+                            </p>
+                        </div>
+                    </div>
+
                     <!-- Comunicado de Zeladoria -->
                     <div class="card mb-3">
                         <div class="card-body">

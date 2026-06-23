@@ -114,6 +114,7 @@ class UpdateVistoriaRequest extends FormRequest
             'auto_fiscalizacao_numero' => 'nullable|string|max:100',
             // Lavratura, comunicado e protocolo
             'houve_lavratura' => 'nullable|boolean',
+            'houve_lavacao' => 'nullable|boolean',
             'houve_comunicado' => 'nullable|boolean',
             'data_comunicado' => 'nullable|date',
             'tipo_protocolo' => 'nullable|in:chuva,frio,normal',

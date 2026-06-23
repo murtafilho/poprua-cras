@@ -122,6 +122,7 @@ class StoreVistoriaRequest extends FormRequest
             'auto_fiscalizacao_numero' => 'nullable|string|max:100',
             // Lavratura e protocolo
             'houve_lavratura' => 'nullable|boolean',
+            'houve_lavacao' => 'nullable|boolean',
             'tipo_protocolo' => 'nullable|in:chuva,frio,normal',
             // Data prevista zeladoria
             'data_prevista_zeladoria' => 'nullable|date',

@@ -130,6 +130,12 @@
                             <span class="info-value">{{ ucfirst($vistoria->tipo_protocolo ?? '-') }}</span>
                         </div>
                     @endif
+                    @if($vistoria->houve_lavacao)
+                        <div class="info-item">
+                            <span class="info-label">Houve Lavação</span>
+                            <span class="info-value">Sim</span>
+                        </div>
+                    @endif
                     @if($vistoria->houve_comunicado)
                         <div class="info-item">
                             <span class="info-label">Houve Comunicado</span>

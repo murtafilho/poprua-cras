@@ -184,13 +184,16 @@ class VistoriaController extends Controller
                 ->each(fn ($media) => $media->delete());
         }
 
-        // Processar upload de novas fotos
+        // Processar upload de novas fotos (com legenda, igual ao store())
         if ($request->hasFile('fotos')) {
-            foreach ($request->file('fotos') as $foto) {
+            $legendas = $request->input('legendas_fotos', []);
+            foreach ($request->file('fotos') as $index => $foto) {
                 if ($foto->isValid()) {
                     $safeName = preg_replace('/[^a-zA-Z0-9._-]/', '_', pathinfo($foto->getClientOriginalName(), PATHINFO_FILENAME));
+                    $legenda = $legendas[$index] ?? '';
                     $media = $vistoria->addMedia($foto)
                         ->usingName($safeName)
+                        ->withCustomProperties(['legenda' => $legenda])
                         ->toMediaCollection('fotos');
 
                 }
@@ -597,6 +600,7 @@ class VistoriaController extends Controller
             'e5_id' => $validated['e5_id'] ?? null,
             'e6_id' => $validated['e6_id'] ?? null,
             'houve_lavratura' => $request->boolean('houve_lavratura') ? 1 : 0,
+            'houve_lavacao' => $request->boolean('houve_lavacao') ? 1 : 0,
             'tipo_protocolo' => $request->boolean('houve_lavratura') ? ($validated['tipo_protocolo'] ?? null) : null,
             'houve_comunicado' => $request->boolean('houve_comunicado') ? 1 : 0,
             'data_comunicado' => $request->boolean('houve_comunicado') ? ($validated['data_comunicado'] ?? null) : null,
