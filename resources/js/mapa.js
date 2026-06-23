@@ -16,8 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const BUILD = 'MAPA build LOC-3 (locatecontrol) 23/06';
         try { console.log('[POPRUA ' + BUILD + ']'); } catch (e) {}
         const tag = document.createElement('div');
+        tag.id = 'diag-tag';
         tag.textContent = BUILD;
-        tag.style.cssText = 'position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:99999;background:#dc2626;color:#fff;padding:5px 12px;border-radius:8px;font:bold 12px system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.45);pointer-events:none;white-space:nowrap';
+        tag.style.cssText = 'position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:99999;background:#dc2626;color:#fff;padding:5px 12px;border-radius:8px;font:bold 12px system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.45);pointer-events:none;white-space:nowrap;text-align:center';
         if (document.body) document.body.appendChild(tag);
     })();
 
@@ -681,6 +682,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!jaCentralizou) {
                 jaCentralizou = true;
                 map.setView(e.latlng, 18, { animate: false });
+            }
+            // Diagnostico: mostra a PRECISAO reportada pelo aparelho. Se for de centenas
+            // de metros/km, o aparelho nao tem GPS bom (localizacao por IP/rede) -> o mapa
+            // vai ao lugar errado porque o NAVEGADOR informou errado, nao por bug do app.
+            var dt = document.getElementById('diag-tag');
+            if (dt) {
+                var acc = Math.round(e.accuracy || 0);
+                var bom = acc > 0 && acc <= 100;
+                dt.textContent = 'GPS: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5) +
+                    '  precisao +-' + acc + 'm  ' + (bom ? '(OK)' : '(IMPRECISO - sem GPS?)');
+                dt.style.background = bom ? '#059669' : '#b45309';
             }
             restoreButton();
         });
