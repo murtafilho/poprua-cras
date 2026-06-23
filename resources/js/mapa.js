@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== ETIQUETA DE VERSAO (diagnostico — remover apos confirmar) =====
     // Mostra qual build do mapa esta REALMENTE rodando no dispositivo.
     (function () {
-        const BUILD = 'MAPA build LOC-3 (locatecontrol) 23/06';
+        const BUILD = 'MAPA build LOC-4 (getCurrentPosition = igual geo)';
         try { console.log('[POPRUA ' + BUILD + ']'); } catch (e) {}
         const tag = document.createElement('div');
         tag.id = 'diag-tag';
