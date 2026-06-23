@@ -1,7 +1,12 @@
 import L from 'leaflet';
 import 'leaflet.markercluster';
-import 'leaflet.locatecontrol';
+import { LocateControl } from 'leaflet.locatecontrol';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
+
+// Registra o controle de localizacao no MESMO L (import nomeado evita o tree-shaking
+// que removia o plugin quando era so `import 'leaflet.locatecontrol'`).
+L.Control.Locate = LocateControl;
+L.control.locate = (opts) => new LocateControl(opts);
 
 // Fix Leaflet default marker icon paths
 delete L.Icon.Default.prototype._getIconUrl;
