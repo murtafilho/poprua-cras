@@ -381,8 +381,13 @@
                         <td>{{ $vistoria->id }}</td>
                     </tr>
                     <tr>
-                        <th>Data e hora da abordagem</th>
-                        <td>{{ $vistoria->data_abordagem ? \Carbon\Carbon::parse($vistoria->data_abordagem)->format('d/m/Y') . ' às ' . \Carbon\Carbon::parse($vistoria->data_abordagem)->format('H:i') : '—' }}</td>
+                        @php
+                            $dataAbordagem = $vistoria->data_abordagem ? \Carbon\Carbon::parse($vistoria->data_abordagem) : null;
+                            $horaAbordagem = $dataAbordagem?->format('H:i');
+                            $temHora = $horaAbordagem && $horaAbordagem !== '00:00';
+                        @endphp
+                        <th>{{ $temHora ? 'Data e hora da abordagem' : 'Data da abordagem' }}</th>
+                        <td>{{ $dataAbordagem ? ($dataAbordagem->format('d/m/Y') . ($temHora ? ' às ' . $horaAbordagem : '')) : '—' }}</td>
                     </tr>
                     <tr>
                         <th>Tipo de abordagem</th>

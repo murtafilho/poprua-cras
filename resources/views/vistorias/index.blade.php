@@ -299,7 +299,9 @@
                         <tr>
                             <td style="white-space: nowrap;">
                                 <span style="font-weight: var(--font-semibold);">{{ $dataAbordagem->format('d/m/Y') }}</span>
+                                @if($dataAbordagem->format('H:i') !== '00:00')
                                 <span class="text-muted" style="font-size: var(--text-xs); display: block;">{{ $dataAbordagem->format('H:i') }}</span>
+                                @endif
                             </td>
                             <td style="min-width: 220px;">
                                 <a href="{{ route('vistorias.show', $vistoria->id) }}" style="text-decoration: none; color: inherit; display: block;">

@@ -39,12 +39,15 @@ class VistoriaPolicy
             return true;
         }
 
-        if ($vistoria->user_id === $user->id) {
-            return true;
-        }
-
+        // Vistoria finalizada/cancelada bloqueia edicao para TODOS os nao-admin,
+        // inclusive o dono. (Antes a checagem de owner vinha antes e o dono ainda
+        // editava vistoria finalizada — a complementacao deve passar por complementar().)
         if ($vistoria->finalizada || $vistoria->cancelada) {
             return false;
+        }
+
+        if ($vistoria->user_id === $user->id) {
+            return true;
         }
 
         return false;
