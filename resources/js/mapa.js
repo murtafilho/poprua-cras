@@ -617,16 +617,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ===== Localizacao do usuario — plugin oficial leaflet-locatecontrol =====
-    // setView:'once' = centraliza UMA vez e PARA de seguir. Mesmo que o GPS continue
-    // reportando posicoes (jitter), o MAPA nao se move mais — elimina o "drift"
-    // pos-localizacao. O marcador/circulo de precisao acompanham o usuario.
+    // ===== Localizacao do usuario — leaflet-locatecontrol p/ infra, centragem propria =====
+    // Estrategia anti-drift: o plugin cuida do GPS (watch), do marcador "voce esta aqui"
+    // e do circulo de precisao, mas com setView:false NUNCA mexe o mapa. Quem centraliza
+    // sou eu, UMA unica vez por clique (flag jaCentralizou), com animate:false. Assim o
+    // jitter do GPS atualiza so o marcador; o MAPA fica imovel. Impossivel driftar.
     const locateControl = L.control.locate({
         position: 'bottomright',
-        setView: 'once',
-        flyTo: true,
-        keepCurrentZoomLevel: false,
-        initialZoomLevel: 18,
+        setView: false,            // o plugin nao move o mapa
+        flyTo: false,
+        keepCurrentZoomLevel: true,
         drawCircle: true,
         drawMarker: true,
         showPopup: false,
@@ -638,6 +638,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const hideLocateBtn = document.createElement('style');
     hideLocateBtn.textContent = '.leaflet-control-locate{display:none!important;}';
     document.head.appendChild(hideLocateBtn);
+
+    let jaCentralizou = false;
 
     const btnLoc = document.getElementById('btn-my-location');
     if (btnLoc) {
@@ -659,10 +661,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (loader) loader.classList.remove('hidden');
             btnLoc.classList.add('active');
             btnLoc.style.pointerEvents = 'none';
+            jaCentralizou = false;   // novo clique => recentraliza uma vez
             locateControl.start();
         });
 
-        map.on('locationfound', restoreButton);
+        // Centraliza UMA vez na 1a leitura; leituras seguintes so movem o marcador.
+        map.on('locationfound', function(e) {
+            if (!jaCentralizou) {
+                jaCentralizou = true;
+                map.setView(e.latlng, 18, { animate: false });
+            }
+            restoreButton();
+        });
         map.on('locationerror', function() {
             restoreButton();
             showToast('Nao foi possivel obter sua localizacao. Verifique as permissoes do navegador.', 'warning');
