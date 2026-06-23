@@ -1,5 +1,7 @@
 import L from 'leaflet';
 import 'leaflet.markercluster';
+import 'leaflet.locatecontrol';
+import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 
 // Fix Leaflet default marker icon paths
 delete L.Icon.Default.prototype._getIconUrl;

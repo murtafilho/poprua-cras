@@ -617,42 +617,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('btn-my-location').addEventListener('click', function() {
-        const btn = this;
+    // ===== Localizacao do usuario — plugin oficial leaflet-locatecontrol =====
+    // setView:'once' = centraliza UMA vez e PARA de seguir. Mesmo que o GPS continue
+    // reportando posicoes (jitter), o MAPA nao se move mais — elimina o "drift"
+    // pos-localizacao. O marcador/circulo de precisao acompanham o usuario.
+    const locateControl = L.control.locate({
+        position: 'bottomright',
+        setView: 'once',
+        flyTo: true,
+        keepCurrentZoomLevel: false,
+        initialZoomLevel: 18,
+        drawCircle: true,
+        drawMarker: true,
+        showPopup: false,
+        locateOptions: { enableHighAccuracy: true, maxZoom: 18, timeout: 10000, maximumAge: 0 },
+        strings: { title: 'Minha localizacao' },
+    }).addTo(map);
+
+    // Esconde o botao padrao do plugin: usamos o botao custom (#btn-my-location).
+    const hideLocateBtn = document.createElement('style');
+    hideLocateBtn.textContent = '.leaflet-control-locate{display:none!important;}';
+    document.head.appendChild(hideLocateBtn);
+
+    const btnLoc = document.getElementById('btn-my-location');
+    if (btnLoc) {
         const icon = document.getElementById('location-icon');
         const loader = document.getElementById('location-loader');
-
         const restoreButton = () => {
             if (loader) loader.classList.add('hidden');
             if (icon) icon.classList.remove('hidden');
-            btn.classList.remove('active');
-            btn.style.pointerEvents = 'auto';
+            btnLoc.classList.remove('active');
+            btnLoc.style.pointerEvents = 'auto';
         };
 
-        if (icon) icon.classList.add('hidden');
-        if (loader) loader.classList.remove('hidden');
-        btn.classList.add('active');
-        btn.style.pointerEvents = 'none';
+        btnLoc.addEventListener('click', function() {
+            if (!navigator.geolocation) {
+                showToast('Geolocalizacao nao suportada neste navegador.', 'warning');
+                return;
+            }
+            if (icon) icon.classList.add('hidden');
+            if (loader) loader.classList.remove('hidden');
+            btnLoc.classList.add('active');
+            btnLoc.style.pointerEvents = 'none';
+            locateControl.start();
+        });
 
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                position => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    map.flyTo([lat, lng], 18);
-                    restoreButton();
-                },
-                error => {
-                    restoreButton();
-                    showToast('Nao foi possivel obter sua localizacao. Verifique as permissoes do navegador.', 'warning');
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        } else {
+        map.on('locationfound', restoreButton);
+        map.on('locationerror', function() {
             restoreButton();
-            showToast('Geolocalizacao nao suportada neste navegador.', 'warning');
-        }
-    });
+            showToast('Nao foi possivel obter sua localizacao. Verifique as permissoes do navegador.', 'warning');
+        });
+    }
 
     map.on('click', function(e) {
         if (markerClickedRecently || ajustarMode) return;
