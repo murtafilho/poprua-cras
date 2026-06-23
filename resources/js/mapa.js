@@ -758,7 +758,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span style="font-size: 11px; color: #6b7280;">Vistorias: <strong>${totalVistorias}</strong> | Complexidade: <strong style="color:${complexidadeCor}">${complexidade}</strong></span>
                 <div class="popup-actions">${btnPonto}${btnVistoria}</div>`;
 
-            crosshairPopup = L.popup({ closeButton: false, offset: [0, -10] })
+            crosshairPopup = L.popup({ closeButton: false, offset: [0, -10], autoPan: false })
                 .setLatLng(closest.getLatLng())
                 .setContent(content)
                 .openOn(map);
