@@ -152,16 +152,6 @@
 
                 <!-- Aba 2: Perfil da Ocorrencia -->
                 <div class="tab-content hidden" data-tab="1">
-                    <!-- Quantidades -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label class="form-label">Qtd. Pessoas</label>
-                                <input type="number" name="quantidade_pessoas" min="0" placeholder="0" class="form-input">
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Abrigos -->
                     <div class="card mb-4">
                         <div class="card-body">
@@ -549,6 +539,17 @@
 
                 <!-- Aba 5: Pessoas no Ponto -->
                 <div class="tab-content hidden" data-tab="4">
+                    <!-- Estimativa de pessoas -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Estimativa num. pessoas</label>
+                                <input type="number" name="quantidade_pessoas" min="0" placeholder="0" class="form-input">
+                                <p class="form-hint">Estimativa do total de pessoas no local. Nao precisa coincidir com as pessoas cadastradas abaixo — nem sempre e possivel identificar todas.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card mb-4">
                         <div class="card-body">
                             <div class="flex items-center justify-between mb-4">
