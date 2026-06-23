@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -454,77 +455,81 @@ class VistoriaController extends Controller
     {
         $validated = $request->validated();
 
-        $pontoId = $validated['ponto_id'] ?? null;
-        $pontoNovo = false;
+        $vistoria = DB::transaction(function () use ($request, $validated) {
+            $pontoId = $validated['ponto_id'] ?? null;
+            $pontoNovo = false;
 
-        if (! $pontoId) {
-            $result = $this->pontoService->findOrCreateFromCoordinates(
-                (float) $validated['lat'],
-                (float) $validated['lng'],
-                $validated['complemento_ponto'] ?? null
-            );
-            $pontoId = $result['id'];
-            $pontoNovo = $result['created'];
-        }
+            if (! $pontoId) {
+                $result = $this->pontoService->findOrCreateFromCoordinates(
+                    (float) $validated['lat'],
+                    (float) $validated['lng'],
+                    $validated['complemento_ponto'] ?? null
+                );
+                $pontoId = $result['id'];
+                $pontoNovo = $result['created'];
+            }
 
-        $fields = $this->extractVistoriaFields($request, $validated);
-        $fields['ponto_id'] = $pontoId;
-        $fields['user_id'] = auth()->id();
+            $fields = $this->extractVistoriaFields($request, $validated);
+            $fields['ponto_id'] = $pontoId;
+            $fields['user_id'] = auth()->id();
 
-        $vistoria = Vistoria::create($fields);
+            $vistoria = Vistoria::create($fields);
 
-        // Sincronizar participantes da equipe
-        /** @var array<int, int> $participantesIds */
-        $participantesIds = $validated['participantes'] ?? [];
-        if (! empty($participantesIds)) {
-            $vistoria->participantes()->sync($participantesIds);
-        }
+            // Sincronizar participantes da equipe
+            /** @var array<int, int> $participantesIds */
+            $participantesIds = $validated['participantes'] ?? [];
+            if (! empty($participantesIds)) {
+                $vistoria->participantes()->sync($participantesIds);
+            }
 
-        // Regra: a equipe marcada na vistoria atualiza a "Minha Equipe" do owner
-        // (no store, o owner é sempre o usuário logado).
-        $idsParaEquipe = collect($participantesIds)
-            ->filter(fn ($id) => (int) $id !== (int) $request->user()->id)
-            ->unique()
-            ->values()
-            ->all();
-        $request->user()->team()->sync($idsParaEquipe);
+            // Regra: a equipe marcada na vistoria atualiza a "Minha Equipe" do owner
+            // (no store, o owner é sempre o usuário logado).
+            $idsParaEquipe = collect($participantesIds)
+                ->filter(fn ($id) => (int) $id !== (int) $request->user()->id)
+                ->unique()
+                ->values()
+                ->all();
+            $request->user()->team()->sync($idsParaEquipe);
 
-        // Processar upload de fotos usando Spatie Media Library
-        if ($request->hasFile('fotos')) {
-            $legendas = $request->input('legendas_fotos', []);
-            foreach ($request->file('fotos') as $index => $foto) {
-                if ($foto->isValid()) {
-                    $safeName = preg_replace('/[^a-zA-Z0-9._-]/', '_', pathinfo($foto->getClientOriginalName(), PATHINFO_FILENAME));
-                    $legenda = $legendas[$index] ?? '';
-                    $media = $vistoria->addMedia($foto)
-                        ->usingName($safeName)
-                        ->withCustomProperties(['legenda' => $legenda])
-                        ->toMediaCollection('fotos');
+            // Processar upload de fotos usando Spatie Media Library
+            if ($request->hasFile('fotos')) {
+                $legendas = $request->input('legendas_fotos', []);
+                foreach ($request->file('fotos') as $index => $foto) {
+                    if ($foto->isValid()) {
+                        $safeName = preg_replace('/[^a-zA-Z0-9._-]/', '_', pathinfo($foto->getClientOriginalName(), PATHINFO_FILENAME));
+                        $legenda = $legendas[$index] ?? '';
+                        $media = $vistoria->addMedia($foto)
+                            ->usingName($safeName)
+                            ->withCustomProperties(['legenda' => $legenda])
+                            ->toMediaCollection('fotos');
 
+                    }
                 }
             }
-        }
 
-        // Atualizar complemento do ponto existente se informado
-        $ponto = Ponto::find($pontoId);
-        if ($ponto && ! $pontoNovo && ! empty($validated['complemento_ponto'])) {
-            $ponto->update(['complemento' => $validated['complemento_ponto']]);
-        }
-
-        // Criar novos moradores e vincular ao ponto
-        if (! empty($validated['novos_moradores'])) {
-            foreach ($validated['novos_moradores'] as $dadosMorador) {
-                $this->moradorService->criarComEntrada($dadosMorador, $ponto, $vistoria);
+            // Atualizar complemento do ponto existente se informado
+            $ponto = Ponto::find($pontoId);
+            if ($ponto && ! $pontoNovo && ! empty($validated['complemento_ponto'])) {
+                $ponto->update(['complemento' => $validated['complemento_ponto']]);
             }
-        }
 
-        // Atualizar presenca dos moradores existentes
-        if (! empty($validated['moradores_presentes'])) {
-            $this->moradorService->atualizarPresencaVistoria(
-                $vistoria,
-                $validated['moradores_presentes']
-            );
-        }
+            // Criar novos moradores e vincular ao ponto
+            if (! empty($validated['novos_moradores'])) {
+                foreach ($validated['novos_moradores'] as $dadosMorador) {
+                    $this->moradorService->criarComEntrada($dadosMorador, $ponto, $vistoria);
+                }
+            }
+
+            // Atualizar presenca dos moradores existentes
+            if (! empty($validated['moradores_presentes'])) {
+                $this->moradorService->atualizarPresencaVistoria(
+                    $vistoria,
+                    $validated['moradores_presentes']
+                );
+            }
+
+            return $vistoria;
+        });
 
         Cache::forget('dashboard:total_pontos');
         Cache::forget('dashboard:totais');
