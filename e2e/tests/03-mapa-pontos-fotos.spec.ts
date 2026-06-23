@@ -10,6 +10,16 @@ test.describe('Jornada 3 — Mapa, pontos e fotos (read-only)', () => {
     await expect(page.locator('a[href*="/pontos/"]').first()).toBeVisible();
   });
 
+  test('listagem de vistorias em tabela', async ({ page }) => {
+    const resp = await page.goto(`${BASE}/vistorias`, { waitUntil: 'domcontentloaded' });
+    expect(resp?.status()).toBeLessThan(400);
+    await expect(page.locator('table.vistorias-table')).toBeVisible();
+    const headers = await page.locator('table.vistorias-table thead th').allInnerTexts();
+    expect(headers).toContain('Endereço');
+    expect(headers).toContain('Situação');
+    expect(await page.locator('table.vistorias-table tbody tr').count()).toBeGreaterThan(0);
+  });
+
   test('detalhe de um ponto abre', async ({ page }) => {
     const id = await primeiroPontoId(page);
     test.skip(id === null, 'sem pontos no ambiente');
