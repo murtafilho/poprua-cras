@@ -640,7 +640,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 position => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    map.flyTo([lat, lng], 18);
+                    // setView sem animacao: evita o drift/"snap" da camada que o flyTo
+                    // provoca em saltos grandes de zoom (Leaflet #7466 / #8164).
+                    map.setView([lat, lng], 18, { animate: false });
                     restoreButton();
                 },
                 error => {
