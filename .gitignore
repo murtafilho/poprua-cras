@@ -39,3 +39,4 @@ gp_sql.sql
 /etl/*.log
 # manifest.yaml NAO e mais versionado (one-shot via migrate.sql)
 /etl/manifest.yaml
+.claude/

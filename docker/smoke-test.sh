@@ -59,7 +59,7 @@ echo ""
 
 # --- 3. DB tem dados de dominio
 echo "[3/4] DB tem dados de dominio..."
-PONTOS_COUNT=$(docker exec pg17-poprua-cras psql -U poprua_cras -d poprua_cras -tAc "SELECT count(*) FROM pontos" 2>/dev/null || echo "ERROR")
+PONTOS_COUNT=$(sudo docker exec pg17-poprua-cras psql -U poprua_cras -d poprua_cras -tAc "SELECT count(*) FROM pontos" 2>/dev/null || echo "ERROR")
 if echo "$PONTOS_COUNT" | grep -qE '^[0-9]+$' && [ "$PONTOS_COUNT" -gt 0 ]; then
   pass "pontos = $PONTOS_COUNT (> 0)"
 else
