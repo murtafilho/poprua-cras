@@ -98,6 +98,7 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        <th class="text-center">ID</th>
                         <th>Endereço</th>
                         <th class="hide-mobile">Bairro</th>
                         <th class="hide-mobile">Regional</th>
@@ -131,6 +132,9 @@
                             };
                         @endphp
                         <tr class="clickable-row" data-href="{{ route('pontos.show', $ponto->id) }}" style="cursor: pointer;">
+                            <td class="text-center">
+                                <span class="text-muted" style="font-variant-numeric: tabular-nums;">{{ $ponto->id }}</span>
+                            </td>
                             <td>
                                 <div style="display: flex; align-items: center; gap: var(--space-2); min-height: 44px;">
                                     <svg style="width: 14px; height: 14px; color: var(--accent-primary); flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +193,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted" style="padding: var(--space-6);">
+                            <td colspan="9" class="text-center text-muted" style="padding: var(--space-6);">
                                 Nenhum ponto encontrado.
                             </td>
                         </tr>
