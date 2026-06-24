@@ -494,7 +494,7 @@
                 <dt>Houve lavratura</dt><dd>{{ $vistoria->houve_lavratura ? 'Sim' : 'Não' }}</dd>
                 <dt>Condução por forças de segurança</dt>
                 <dd>{{ $vistoria->conducao_forcas_seguranca ? 'Sim' : 'Não' }}@if($vistoria->conducao_forcas_seguranca && filled($vistoria->conducao_forcas_observacao)) — {{ $vistoria->conducao_forcas_observacao }}@endif</dd>
-                <dt>Apreensão fiscal</dt><dd>{{ $vistoria->apreensao_fiscal ? 'Sim' : 'Não' }}</dd>
+                <dt>Recolhimento de Inservíveis</dt><dd>{{ $vistoria->apreensao_fiscal ? 'Sim' : 'Não' }}</dd>
                 <dt>Auto de fiscalização</dt>
                 <dd>{{ $vistoria->auto_fiscalizacao_aplicado ? 'Aplicado' : 'Não aplicado' }}@if($vistoria->auto_fiscalizacao_aplicado && filled($vistoria->auto_fiscalizacao_numero)) — nº {{ $vistoria->auto_fiscalizacao_numero }}@endif</dd>
                 @if(filled($vistoria->material_apreendido))

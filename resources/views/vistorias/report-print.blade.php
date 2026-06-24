@@ -537,7 +537,7 @@
                         <td>{{ $vistoria->conducao_forcas_seguranca ? 'Sim' : 'Não' }}@if($vistoria->conducao_forcas_seguranca && filled($vistoria->conducao_forcas_observacao)) — {{ $vistoria->conducao_forcas_observacao }}@endif</td>
                     </tr>
                     <tr>
-                        <th>Apreensão fiscal</th>
+                        <th>Recolhimento de Inservíveis</th>
                         <td>{{ $vistoria->apreensao_fiscal ? 'Sim' : 'Não' }}</td>
                     </tr>
                     <tr>

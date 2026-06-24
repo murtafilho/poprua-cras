@@ -380,7 +380,7 @@
 
                             @if($vistoria->apreensao_fiscal)
                                 <div class="info-item">
-                                    <span class="info-label">Apreensao Fiscal</span>
+                                    <span class="info-label">Recolhimento de Inservíveis</span>
                                     <span class="badge badge-danger">Sim</span>
                                 </div>
                             @endif

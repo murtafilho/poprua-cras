@@ -308,17 +308,17 @@
                         </div>
                     </div>
 
-                    <!-- Apreensao Fiscal -->
+                    <!-- Recolhimento de Inserviveis -->
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="switch-field">
                                 <input type="checkbox" class="switch-input" name="apreensao_fiscal" value="1" {{ $vistoria->apreensao_fiscal ? 'checked' : '' }} x-on:change="document.getElementById('qtd_kg_container').classList.toggle('hidden', !$event.target.checked)">
                                 <span class="switch-track"><span class="switch-thumb"></span></span>
-                                <span class="switch-text">Apreensão Fiscal</span>
+                                <span class="switch-text">Recolhimento de Inservíveis</span>
                                 <span class="switch-state"></span>
                             </label>
                             <div id="qtd_kg_container" class="mt-2 {{ $vistoria->apreensao_fiscal ? '' : 'hidden' }}">
-                                <label class="form-label">Qtd. Kg (material apreendido)</label>
+                                <label class="form-label">Material recolhido (Kg)</label>
                                 <input type="number" name="qtd_kg" min="0" placeholder="0" value="{{ $vistoria->qtd_kg ?: '' }}" class="form-input">
                             </div>
                         </div>
