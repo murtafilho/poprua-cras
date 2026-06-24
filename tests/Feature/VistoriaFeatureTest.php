@@ -875,7 +875,7 @@ class VistoriaFeatureTest extends TestCase
     // Report
     // ========================================
 
-    public function test_authenticated_user_can_access_report(): void
+    public function test_authenticated_user_can_access_detail(): void
     {
         $vistoria = Vistoria::factory()->create([
             'tipo_abordagem_id' => $this->tipoAbordagemId,
@@ -883,7 +883,7 @@ class VistoriaFeatureTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->get(route('vistorias.report', $vistoria));
+            ->get(route('vistorias.show', $vistoria));
 
         $response->assertOk();
     }

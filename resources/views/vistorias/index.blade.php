@@ -259,25 +259,14 @@
                             $podeEditar = $isAdmin || $isOwner;
                             $dp = $vistoria->data_prevista_zeladoria ? \Carbon\Carbon::parse($vistoria->data_prevista_zeladoria) : null;
                             $dias = $dp ? now()->startOfDay()->diffInDays($dp, false) : null;
-                            $diasPrecaria = \App\Models\Parametro::get('info_precaria_dias', 60);
-                            $ultimaVistoriaPonto = isset($vistoria->ultima_vistoria_ponto) ? \Carbon\Carbon::parse($vistoria->ultima_vistoria_ponto) : null;
-                            $infoPrecaria = !$ultimaVistoriaPonto || $ultimaVistoriaPonto->diffInDays(now()) > $diasPrecaria;
 
-                            // Fase semantica do workflow (badge na coluna Situacao)
+                            // Status simples (CRUD): aberta / finalizada / cancelada
                             if ($vistoria->cancelada) {
-                                $fase = 'Cancelada'; $faseBadge = 'badge-danger';
-                            } elseif ($vistoria->finalizada && $infoPrecaria) {
-                                $fase = 'Informação Precária'; $faseBadge = 'badge-warning';
+                                $status = 'Cancelada'; $statusBadge = 'badge-danger';
                             } elseif ($vistoria->finalizada) {
-                                $fase = 'Concluída'; $faseBadge = 'badge-success';
-                            } elseif ($infoPrecaria && $isAberta) {
-                                $fase = 'Atualizar Informação'; $faseBadge = 'badge-info';
-                            } elseif ($dp && $dias !== null && $dias < 0) {
-                                $fase = 'Retorno Vencido'; $faseBadge = 'badge-danger';
-                            } elseif ($dp) {
-                                $fase = 'Retorno Agendado'; $faseBadge = 'badge-accent';
+                                $status = 'Finalizada'; $statusBadge = 'badge-success';
                             } else {
-                                $fase = 'Aguardando Retorno'; $faseBadge = 'badge-secondary';
+                                $status = 'Aberta'; $statusBadge = 'badge-secondary';
                             }
 
                             $resultBadge = match(true) {
@@ -318,12 +307,7 @@
                                 @endif
                             </td>
                             <td style="white-space: nowrap;">
-                                <span class="badge {{ $faseBadge }}">{{ $fase }}</span>
-                                @if($dp && $isAberta)
-                                    <span class="text-muted" style="font-size: var(--text-xs); display: block;{{ $dias !== null && $dias < 0 ? ' color: var(--color-danger);' : '' }}">
-                                        {{ $dp->format('d/m') }}{{ $dias !== null && $dias < 0 ? ' · vencida' : '' }}
-                                    </span>
-                                @endif
+                                <span class="badge {{ $statusBadge }}">{{ $status }}</span>
                             </td>
                             <td class="hide-mobile">
                                 <span class="badge {{ $resultBadge }}">{{ $vistoria->resultado_acao ?: 'Sem resultado' }}</span>
@@ -350,9 +334,6 @@
                                     @endif
                                     <a href="{{ route('vistorias.show', $vistoria->id) }}" class="btn btn-ghost btn-sm btn-icon" title="Detalhes">
                                         <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    </a>
-                                    <a href="{{ route('vistorias.report', $vistoria->id) }}" class="btn btn-ghost btn-sm btn-icon hide-mobile" title="Relatório">
-                                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                                     </a>
                                 </div>
                             </td>

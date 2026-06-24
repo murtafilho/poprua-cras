@@ -32,60 +32,6 @@ class VistoriaController extends Controller
         return $this->renderVistoria($vistoria, 'vistorias.show');
     }
 
-    public function report(Vistoria $vistoria): View
-    {
-        $this->authorize('view', $vistoria);
-
-        $vistoria->load([
-            'ponto.enderecoAtualizado',
-            'user',
-            'tipoAbordagem',
-            'tipoAbrigoDesmontado',
-            'resultadoAcao',
-            'encaminhamento1',
-            'encaminhamento2',
-            'encaminhamento3',
-            'encaminhamento4',
-            'encaminhamento5',
-            'encaminhamento6',
-            'moradoresEntrada.morador',
-            'participantes',
-            'media',
-        ]);
-
-        $tiposAbrigoSelecionados = $this->vistoriaService->getTiposAbrigoSelecionados($vistoria->abrigos_tipos);
-
-        $vistoriaAnterior = null;
-        $historicoPonto = collect();
-        if ($vistoria->ponto_id) {
-            $vistoriaAnterior = Vistoria::where('ponto_id', $vistoria->ponto_id)
-                ->where('id', '!=', $vistoria->id)
-                ->where('data_abordagem', '<', $vistoria->data_abordagem)
-                ->with(['user', 'resultadoAcao'])
-                ->orderBy('data_abordagem', 'desc')
-                ->first();
-
-            $historicoPonto = Vistoria::where('ponto_id', $vistoria->ponto_id)
-                ->where('id', '!=', $vistoria->id)
-                ->with(['user', 'resultadoAcao'])
-                ->orderBy('data_abordagem', 'desc')
-                ->limit(20)
-                ->get();
-        }
-
-        return view('vistorias.report', [
-            'vistoria' => $vistoria,
-            'tiposAbrigoSelecionados' => $tiposAbrigoSelecionados,
-            'vistoriaAnterior' => $vistoriaAnterior,
-            'historicoPonto' => $historicoPonto,
-        ]);
-    }
-
-    public function reportPrint(Vistoria $vistoria): View
-    {
-        return $this->renderVistoria($vistoria, 'vistorias.report-print');
-    }
-
     private function renderVistoria(Vistoria $vistoria, string $viewName): View
     {
         $this->authorize('view', $vistoria);
@@ -109,9 +55,30 @@ class VistoriaController extends Controller
 
         $tiposAbrigoSelecionados = $this->vistoriaService->getTiposAbrigoSelecionados($vistoria->abrigos_tipos);
 
+        // Histórico do ponto (vistoria anterior + ultimas 20) — exibido no detalhe unificado.
+        $vistoriaAnterior = null;
+        $historicoPonto = collect();
+        if ($vistoria->ponto_id) {
+            $vistoriaAnterior = Vistoria::where('ponto_id', $vistoria->ponto_id)
+                ->where('id', '!=', $vistoria->id)
+                ->where('data_abordagem', '<', $vistoria->data_abordagem)
+                ->with(['user', 'resultadoAcao'])
+                ->orderBy('data_abordagem', 'desc')
+                ->first();
+
+            $historicoPonto = Vistoria::where('ponto_id', $vistoria->ponto_id)
+                ->where('id', '!=', $vistoria->id)
+                ->with(['user', 'resultadoAcao'])
+                ->orderBy('data_abordagem', 'desc')
+                ->limit(20)
+                ->get();
+        }
+
         return view($viewName, [
             'vistoria' => $vistoria,
             'tiposAbrigoSelecionados' => $tiposAbrigoSelecionados,
+            'vistoriaAnterior' => $vistoriaAnterior,
+            'historicoPonto' => $historicoPonto,
         ]);
     }
 

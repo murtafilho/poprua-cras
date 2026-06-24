@@ -163,7 +163,7 @@ class WorkflowZeladoriaTest extends TestCase
             ->assertSee('Minhas Zeladorias');
     }
 
-    public function test_listagem_vistorias_mostra_workflow_header(): void
+    public function test_listagem_vistorias_renderiza_tabela_crud(): void
     {
         $ponto = Ponto::factory()->create();
 
@@ -177,7 +177,8 @@ class WorkflowZeladoriaTest extends TestCase
         $this->actingAs($this->user)
             ->get(route('vistorias.index'))
             ->assertOk()
-            ->assertSee('wf-card-header');
+            ->assertSee('vistorias-table')
+            ->assertSee('Aberta');
     }
 
     public function test_listagem_pontos_mostra_info_precaria(): void

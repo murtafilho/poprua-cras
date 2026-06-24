@@ -2,6 +2,23 @@
 
 @section('title', 'Detalhes da Zeladoria')
 
+@push('styles')
+<style>
+    .historico-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+    .historico-lista li { display: flex; justify-content: space-between; gap: var(--space-2); padding: var(--space-2) 0; border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,.08)); }
+    .historico-lista li:last-child { border-bottom: 0; }
+    .historico-lista .data { font-weight: var(--font-semibold); }
+    .historico-lista .meta { font-size: var(--text-xs); color: var(--text-muted); }
+
+    @@media print {
+        .mobile-header, .bottom-nav, #sidebar, .sidebar, .no-print, .btn, form, button { display: none !important; }
+        .page, .page-content { padding: 0 !important; margin: 0 !important; }
+        body { background: #fff !important; color: #000 !important; }
+        .card, .section-card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
+    }
+</style>
+@endpush
+
 @section('header')
     <a href="{{ route('vistorias.index') }}" class="btn btn-ghost btn-icon" style="margin-left: -8px;">
         <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,11 +34,11 @@
                 </svg>
             </a>
         @endif
-        <a href="{{ route('vistorias.report', $vistoria) }}" class="btn btn-ghost btn-icon" title="Relatorio">
+        <button type="button" onclick="window.print()" class="btn btn-ghost btn-icon no-print" title="Imprimir">
             <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
             </svg>
-        </a>
+        </button>
         @can('update', $vistoria)
             <a href="{{ route('vistorias.edit', $vistoria) }}" class="btn btn-ghost btn-icon" title="Editar">
                 <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -620,6 +637,48 @@
                 </button>
             </form>
         @endcan
+
+        {{-- Histórico do ponto (vistoria anterior + outras vistorias) --}}
+        @if($vistoriaAnterior)
+            @php
+                $vaParts = [\Carbon\Carbon::parse($vistoriaAnterior->data_abordagem)->format('d/m/Y')];
+                if ($vistoriaAnterior->user) { $vaParts[] = $vistoriaAnterior->user->name; }
+                if ($vistoriaAnterior->resultadoAcao) { $vaParts[] = $vistoriaAnterior->resultadoAcao->resultado; }
+                $vaParts[] = ($vistoriaAnterior->quantidade_pessoas ?? 0).' pessoas';
+                if (($vistoriaAnterior->qtd_kg ?? 0) > 0) { $vaParts[] = $vistoriaAnterior->qtd_kg.' kg'; }
+            @endphp
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h3 style="font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2);">Vistoria anterior neste ponto</h3>
+                    <div style="font-size: var(--text-sm); color: var(--text-muted);">{{ implode(' · ', $vaParts) }}</div>
+                </div>
+            </div>
+        @endif
+
+        @if($historicoPonto->count() > 0)
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h3 style="font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-2);">Outras vistorias neste ponto ({{ $historicoPonto->count() }})</h3>
+                    <ul class="historico-lista">
+                        @foreach($historicoPonto as $v)
+                            @php
+                                $metaParts = [$v->user->name ?? '—'];
+                                if ($v->resultadoAcao) { $metaParts[] = $v->resultadoAcao->resultado; }
+                                $dirParts = [($v->quantidade_pessoas ?? 0).' pessoas'];
+                                if (($v->qtd_kg ?? 0) > 0) { $dirParts[] = $v->qtd_kg.' kg'; }
+                            @endphp
+                            <li>
+                                <div>
+                                    <a href="{{ route('vistorias.show', $v) }}"><span class="data">{{ \Carbon\Carbon::parse($v->data_abordagem)->format('d/m/Y') }}</span></a>
+                                    <div class="meta">{{ implode(' · ', $metaParts) }}</div>
+                                </div>
+                                <div class="meta" style="text-align: right;">{{ implode(' · ', $dirParts) }}</div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
 
         {{-- Link para o Ponto --}}
         @if($vistoria->ponto)
