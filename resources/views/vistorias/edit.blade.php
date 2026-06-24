@@ -372,11 +372,11 @@
                                 <div class="grid grid-cols-2 gap-3">
                                     <div class="form-group">
                                         <label class="form-label">Data de Entrega</label>
-                                        <input type="date" name="data_comunicado" value="{{ $vistoria->data_comunicado?->format('Y-m-d') }}" class="form-input">
+                                        <input type="datetime-local" name="data_comunicado" value="{{ old('data_comunicado', $vistoria->data_comunicado?->format('Y-m-d\TH:i')) }}" class="form-input">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Data de Retorno</label>
-                                        <input type="datetime-local" name="data_prevista_zeladoria" value="{{ old('data_prevista_zeladoria', $vistoria->data_prevista_zeladoria?->format('Y-m-d\TH:i')) }}" class="form-input">
+                                        <input type="date" name="data_prevista_zeladoria" value="{{ old('data_prevista_zeladoria', $vistoria->data_prevista_zeladoria?->format('Y-m-d')) }}" class="form-input">
                                     </div>
                                 </div>
                                 <div class="form-group mt-2">

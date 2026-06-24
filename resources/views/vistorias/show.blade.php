@@ -150,7 +150,7 @@
                         </div>
                         <div class="info-item">
                             <span class="info-label">Data do Comunicado</span>
-                            <span class="info-value">{{ $vistoria->data_comunicado?->format('d/m/Y') ?? '-' }}</span>
+                            <span class="info-value">{{ $vistoria->data_comunicado?->format('d/m/Y H:i') ?? '-' }}</span>
                         </div>
                     @endif
                 </div>

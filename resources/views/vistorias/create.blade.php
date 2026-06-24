@@ -403,11 +403,11 @@
                                 <div class="grid grid-cols-2 gap-3">
                                     <div class="form-group">
                                         <label class="form-label">Data de Entrega</label>
-                                        <input type="date" name="data_comunicado" class="form-input">
+                                        <input type="datetime-local" name="data_comunicado" value="{{ old('data_comunicado', date('Y-m-d\TH:i')) }}" class="form-input">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Data de Retorno</label>
-                                        <input type="datetime-local" name="data_prevista_zeladoria" class="form-input" value="{{ old('data_prevista_zeladoria') }}">
+                                        <input type="date" name="data_prevista_zeladoria" class="form-input" value="{{ old('data_prevista_zeladoria') }}">
                                     </div>
                                 </div>
                                 <div class="form-group mt-2">
