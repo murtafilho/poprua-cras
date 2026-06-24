@@ -1,7 +1,14 @@
 ---
 name: upload-google-drive
-description: Upload de arquivos para pasta específica do Google Drive. Use para enviar arquivos via API do Google Drive com autenticação OAuth2.
+description: >
+  Upload de arquivos para uma pasta específica do Google Drive (conta
+  murtafilho@gmail.com) via API com autenticação OAuth2. Use SEMPRE que o usuário
+  pedir para enviar, subir ou fazer upload de um arquivo, relatório, backup, PDF,
+  planilha ou export para o Google Drive, sincronizar algo com o Drive, ou
+  variações como 'manda pro drive', 'sobe no google drive', 'upload pro drive',
+  'salvar no drive', 'enviar arquivo pro drive', 'guardar no google drive'.
 allowed-tools: Bash, Read, Write, Edit
+user-invocable: true
 ---
 
 # Upload Google Drive

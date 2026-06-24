@@ -1,6 +1,15 @@
 ---
 name: setup-ambiente
-description: Configurar e diagnosticar o ambiente de desenvolvimento e producao do POPRUA CRAS. Use quando o usuario pedir para verificar, configurar ou corrigir o ambiente.
+description: >
+  Configurar, diagnosticar e corrigir o ambiente de desenvolvimento (local nativo)
+  e producao (Docker) do POPRUA CRAS: PostgreSQL/PostGIS, Redis, .env, migrations,
+  dependencias (composer/npm), containers e conectividade. Use SEMPRE que o usuario
+  pedir para verificar/configurar/corrigir/preparar o ambiente, diagnosticar
+  problema de setup, subir o projeto numa maquina nova, conferir se DB/Redis/
+  containers estao no ar, ou variacoes como 'setup do ambiente', 'configurar
+  ambiente', 'preparar projeto', 'diagnosticar ambiente', 'porque nao conecta no
+  banco', 'ambiente quebrado', 'subir o projeto', 'rodar localmente', 'verificar
+  containers', 'tuning do banco', 'backup do banco'.
 user-invocable: true
 allowed-tools: Read, Grep, Bash, Write, Edit
 argument-hint: [diagnosticar|corrigir|backup|tuning]

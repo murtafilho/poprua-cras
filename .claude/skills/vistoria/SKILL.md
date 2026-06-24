@@ -1,17 +1,35 @@
+---
+name: vistoria
+description: >
+  Workflow completo de vistorias (zeladorias) no POPRUA CRAS — criar, editar,
+  listar e debugar registros de abordagem a pontos com população em situação de
+  rua em BH. Cobre dados obrigatórios/opcionais, flags de complexidade, até 6
+  encaminhamentos, upload de fotos via Spatie MediaLibrary, registro de moradores
+  via MoradorService, validação (Form Requests) e rotas. Use SEMPRE que o usuário
+  pedir para criar/editar/gerenciar uma vistoria ou zeladoria, mexer no
+  VistoriaController/Vistoria model/views de vistoria, trabalhar com
+  encaminhamentos, fotos de vistoria, presença de moradores numa abordagem, ou o
+  ciclo de vida (finalizar/reativar/cancelar). Variações: 'criar vistoria',
+  'nova zeladoria', 'editar vistoria', 'workflow de vistoria', 'cadastrar
+  abordagem', 'finalizar zeladoria', 'fotos da vistoria'.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
+user-invocable: true
+---
+
 # Skill: Vistoria - Workflow Completo
 
-Use esta skill quando o usuário quiser criar, editar ou gerenciar vistorias no sistema POPRUA v2.
+Use esta skill quando o usuário quiser criar, editar ou gerenciar vistorias no sistema POPRUA CRAS.
 
 ## Contexto do Sistema
 
-O sistema de vistorias é o coração do POPRUA v2, registrando abordagens a pontos onde há população em situação de rua em Belo Horizonte.
+O sistema de vistorias é o coração do POPRUA CRAS, registrando abordagens a pontos onde há população em situação de rua em Belo Horizonte.
 
 ### Estrutura Principal
 
 - **Model**: `app/Models/Vistoria.php`
 - **Controller**: `app/Http/Controllers/VistoriaController.php`
 - **Views**: `resources/views/vistorias/`
-- **Services**: `EnderecoService`, `MoradorService`
+- **Services**: `VistoriaService`, `EnderecoService`, `MoradorService`
 
 ### Relacionamentos da Vistoria
 
@@ -21,7 +39,7 @@ O sistema de vistorias é o coração do POPRUA v2, registrando abordagens a pon
 | `user` | Usuário que cadastrou |
 | `tipoAbordagem` | Tipo da abordagem realizada |
 | `resultadoAcao` | Resultado da ação |
-| `encaminhamento1-4` | Até 4 encaminhamentos |
+| `encaminhamento1-6` | Até 6 encaminhamentos |
 | `fotos` | Fotos via Spatie Media Library |
 | `moradoresEntrada/Saida` | Histórico de moradores |
 
@@ -71,7 +89,7 @@ $dados = [
 - `auto_fiscalizacao_aplicado`, `auto_fiscalizacao_numero`
 
 **Encaminhamentos:**
-- `e1_id`, `e2_id`, `e3_id`, `e4_id` - Até 4 encaminhamentos
+- `e1_id`, `e2_id`, `e3_id`, `e4_id`, `e5_id`, `e6_id` - Até 6 encaminhamentos
 
 ### Passo 4: Upload de Fotos
 
@@ -110,6 +128,15 @@ $moradorService->atualizarPresencaVistoria($vistoria, $moradorIds);
 2. Atualizar campos permitidos
 3. Processar fotos (remover selecionadas + upload novas)
 4. Redirect para lista com sucesso
+
+## Ciclo de Vida (ver ADR-001 e VistoriaPolicy)
+
+Estados: **aberto → finalizado → cancelado**. A autorização das transições vive em `app/Policies/VistoriaPolicy.php`, nunca inline no controller:
+
+- Dono edita/finaliza/cancela a vistoria *aberta*.
+- Admin reativa vistoria *finalizada* (volta para *aberta*) e pode cancelar *finalizada*.
+
+Rotas: `vistorias.finalizar`, `vistorias.reativar`, `vistorias.cancelar`, `vistorias.complementar`.
 
 ## Validação de Dados
 

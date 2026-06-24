@@ -12,6 +12,9 @@ description: >
   usuario', 'testar fluxos', 'navegar pelo sistema', 'quantos cliques', 'demora
   pra carregar', 'pagina pesada', 'formulario longo', 'UX do campo', 'testar no
   celular', 'viewport mobile', 'touch targets', 'audit mobile'.
+user-invocable: true
+allowed-tools: Read, Grep, Bash, Write, Edit
+argument-hint: [desktop|mobile|<fluxo>]
 ---
 
 # UX Friction Audit — POPRUA CRAS
