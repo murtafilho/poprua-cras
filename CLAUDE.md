@@ -4,15 +4,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Projeto
 
-POPRUA CRAS — sistema derivado do POPRUA Geo, focado na integracao com CRAS (Centro de Referencia de Assistencia Social). Laravel 12 / PHP 8.4 / PostgreSQL 17 + PostGIS 3.5 / Redis / Vite.
+POPRUA CRAS — sistema derivado do POPRUA Geo, focado na integração com o CRAS (Centro de Referência de Assistência Social). Laravel 12 / PHP 8.4 / PostgreSQL 17 + PostGIS 3.5 / Redis / Vite.
 
-Fork inicial baseado em [poprua-geo](https://github.com/murtafilho/poprua-geo) em 2026-05-18. A estrutura de Ponto/Vistoria/Morador foi herdada e sera adaptada para os fluxos especificos do CRAS.
+Fork inicial baseado em [poprua-geo](https://github.com/murtafilho/poprua-geo) em 2026-05-18. A estrutura de Ponto/Vistoria/Morador foi herdada e está sendo adaptada para os fluxos específicos do CRAS.
 
 ## Ambientes
 
-### Producao (Docker em vlcp-sufis01)
+### Desenvolvimento local (ambiente preferido para dev/refatoração)
 
-Comandos via `docker exec` — ver skills `setup-ambiente` e `docker/rebuild.sh`.
+PHP 8.4, PostgreSQL 18.4 + PostGIS 3.6, Redis 7 e Node 22 instalados nativamente. O `.env` aponta para localhost; todos os comandos rodam direto, sem `docker exec`.
+
+> O PG18 roda no cluster `18/main` na **porta 5433** (criado side-by-side; o cluster `16/main` na 5432 segue ativo para outros projetos da máquina). Por isso `DB_PORT=5433` no `.env` e no `phpunit.xml`.
+
+```bash
+php artisan migrate
+php artisan test
+php artisan test --filter=NomeDoTeste   # um único teste
+vendor/bin/pint --dirty                  # lint/format (rodar antes de finalizar)
+vendor/bin/phpstan analyse               # larastan level 6 com baseline
+php artisan cache:clear && php artisan config:clear
+composer install
+npm install && npm run build
+php artisan serve --port=8088
+```
+
+**DB local:** host=127.0.0.1 port=5433 db=poprua_cras user=poprua_cras password=poprua_cras
+**DB de teste:** poprua_cras_test (mesmo host/senha — configurado em `phpunit.xml`, sobrescreve o `.env`)
+
+### Produção (Docker em vlcp-sufis01)
+
+Os mesmos comandos rodam via `docker exec` (ver skill `setup-ambiente` e `docker/rebuild.sh`):
 
 ```bash
 EXEC="sudo docker exec php84-poprua-cras"
@@ -22,134 +43,90 @@ $EXEC vendor/bin/pint --dirty
 $EXEC vendor/bin/phpstan analyse
 ```
 
-### Desenvolvimento local (ambiente preferido para dev/refatoracao)
-
-O ambiente local usa PHP 8.4, PostgreSQL 16 + PostGIS 3.4, Redis 7 e Node 22 instalados nativamente. O `.env` aponta para localhost. Todos os comandos rodam direto, sem `docker exec`.
-
-```bash
-# Migrations
-php artisan migrate
-
-# Testes
-php artisan test
-php artisan test --filter=NomeDoTeste
-
-# Lint / format
-vendor/bin/pint --dirty
-
-# Analise estatica (larastan, level 6 com baseline)
-vendor/bin/phpstan analyse
-
-# Cache
-php artisan cache:clear
-php artisan config:clear
-
-# Dependencias
-composer install
-npm install && npm run build
-
-# Servidor de desenvolvimento
-php artisan serve --port=8088
-```
-
-**Conexao DB local:** host=127.0.0.1 port=5432 db=poprua_cras user=poprua_cras password=poprua_cras
-**Banco de teste:** poprua_cras_test (mesmo host, mesma senha)
+URL de produção: `https://sufis.pbh.gov.br/ginfi/poprua-cras/public`
 
 ## Acesso ao Sistema (dev)
 
-**URL:** http://localhost:8088 (servidor via `php artisan serve --port=8088`)
-**Login:** murtafilho@gmail.com / xman74102
-**Role:** admin (pode editar qualquer vistoria, acessar parametrizacao)
+**URL:** http://localhost:8088 · **Login:** murtafilho@gmail.com / xman74102 · **Role:** admin
 
-Para screenshots e testes E2E via Playwright, as paginas autenticadas redirecionam ao login. Usar `npx playwright screenshot` para capturar paginas publicas (login). Para paginas autenticadas, usar o browser MCP do Playwright com login via formulario ou testar via `php artisan test`.
+Páginas autenticadas redirecionam ao login. Para screenshots/E2E, usar `npx playwright screenshot` apenas em páginas públicas (login); para páginas autenticadas, usar o Playwright MCP com login via formulário, ou testar via `php artisan test`.
 
-**Rotas principais:**
-- `/vistorias` — listagem de zeladorias (cards com workflow)
-- `/minhas-vistorias` — zeladorias do usuario logado (reutiliza mesma view)
-- `/pontos` — listagem de pontos
-- `/mapa` — mapa georreferenciado (restrito a BH)
-- `/moradores` — gestao de pessoas em situacao de rua
-- `/admin/parametros` — parametrizacao do sistema (admin)
-
-## Infraestrutura Docker
-
-Containers na rede `poprua-cras` no host `vlcp-sufis01`:
-
-| Container | Porta Host | Uso |
-|-----------|-----------|-----|
-| `php84-poprua-cras` | 9086 | PHP-FPM 8.4 (codigo via bind mount) |
-| `pg17-poprua-cras` | 5434 | PostgreSQL 17 + PostGIS 3.5 |
-| `redis-poprua-cras` | 6380 | Cache/queue |
-| `ssh-poprua-cras` | 2226 | Sidecar SSH (acesso via `ssh sufis-poprua-cras`) |
-| `queue-poprua-cras` | — | Worker da queue Redis |
-
-O codigo-fonte fica no host em `/var/www/html/joomla_sufis/ginfi/poprua-cras/` e e bind-mounted no container. Editar no host = editar no container.
-
-**Conexao DB local (fora do container):** host=localhost port=5434 db=poprua_cras user=poprua_cras — credenciais no .env
-
-**Acesso SSH:** `ssh sufis-poprua-cras` (alias para porta 2226). Configurar no `~/.ssh/config`:
-
-```
-Host sufis-poprua-cras
-    HostName 10.0.25.8
-    Port 2226
-    User root
-    IdentityFile ~/.ssh/id_rsa_sufis
-    StrictHostKeyChecking no
-```
-
-## URL de Producao
-
-```
-https://sufis.pbh.gov.br/ginfi/poprua-cras/public
-```
+**Rotas principais:** `/mapa` (home, restrito a BH) · `/vistorias` e `/minhas-vistorias` (cards com workflow) · `/pontos` · `/moradores` · `/admin/parametros` (admin).
 
 ## Arquitetura
 
-### Dominio central: Ponto → Vistoria → Morador
+### Domínio central: Ponto → Vistoria → Morador
 
-Herdado do poprua-geo. Sera revisado conforme requisitos do CRAS.
+Herdado do poprua-geo, sendo revisado conforme requisitos do CRAS.
 
-- **Ponto** — local fisico (endereco). Coordenadas lat/lng + vinculo com `EnderecoAtualizado`.
-- **Vistoria** — registro de visita/abordagem. 16 flags booleanas de complexidade, ate 6 encaminhamentos, fotos via Spatie MediaLibrary, soft deletes.
-- **Morador** — pessoa identificada. Tracking de movimentacao via `MoradorHistorico`.
+- **Ponto** — local físico (endereço). Coordenadas lat/lng + vínculo com `EnderecoAtualizado`. `PontoObserver` reage a mudanças.
+- **Vistoria** — registro de visita/abordagem. ~30 flags booleanas de complexidade, até 6 encaminhamentos (`e1_id`..`e6_id`), fotos via Spatie MediaLibrary, soft deletes, activity log.
+- **Morador** — pessoa identificada. Tracking de movimentação via `MoradorHistorico` (entrada/saída/transferência entre pontos). Dados PII — rotas sempre autenticadas.
+
+### Camada de serviços (padrão central)
+
+Controllers são finos: injetam Services no construtor e delegam a lógica. **A lógica de negócio e as queries vivem em `app/Services/`, não nos controllers.** Um service por agregado: `VistoriaService`, `PontoService`, `MoradorService`, `EnderecoService`, `GeoService`, `FotoService`, `DashboardService`, `ProfileService`. Ao adicionar comportamento, estenda o service correspondente em vez de inflar o controller.
+
+### Ciclo de vida da Vistoria (máquina de estados)
+
+Estados: **aberto → finalizado → cancelado** (ver ADR-001). Regras de transição vivem em `VistoriaPolicy`, **não** inline nos controllers:
+
+- Dono edita/finaliza/cancela a vistoria *aberta*.
+- Admin reativa vistoria *finalizada* (volta para *aberta*) e pode cancelar *finalizada*.
+- Vistoria finalizada não pode ser alterada silenciosamente.
+
+Rotas correspondentes: `finalizar`, `reativar`, `cancelar`, `complementar`. Autorização sempre via `VistoriaPolicy` / `PontoPolicy`.
+
+### Upload de fotos offline-first
+
+Fotos de campo funcionam sem rede: o Service Worker (`public/sw.js`) + IndexedDB (`resources/js/offline-upload.js`) enfileiram uploads e fazem replay quando a conexão volta. Endpoints em `routes/api.php` (`POST /api/vistorias/fotos`, status, toggle-pública, legenda). Armazenamento via Spatie MediaLibrary (conversões processadas na queue `media-conversions`). Comando `media:clean-orphaned` remove mídia órfã.
 
 ### Dados geoespaciais (PostGIS)
 
 | Tabela | Geometria |
 |--------|-----------|
-| `pontos` | POINT |
-| `endereco_atualizados` | POINT |
-| `geo_bairros` | MULTIPOLYGON |
-| `geo_regionais` | MULTIPOLYGON |
+| `pontos`, `endereco_atualizados` | POINT |
+| `geo_bairros`, `geo_regionais` | MULTIPOLYGON |
 | `geo_limite_municipio` | GEOMETRY |
 
-Todas as geometrias usam SRID 4326 (WGS84) com indice GIST.
+Todas SRID 4326 (WGS84) com índice GIST. Queries espaciais centralizadas em `GeoService` e expostas via `Api\GeoController` / `Api\GeocodingController`. GeoJSON de referência em `public/*.json`. `proj4php` para reprojeção.
 
-### Stack
+### Parametrização
 
-| Componente | Tecnologia |
-|---|---|
-| Framework | Laravel 12 (PHP 8.4) |
-| Auth | Laravel Breeze |
-| Frontend | Vite + Blade + Leaflet + Alpine |
-| PWA | Service Worker + manifest |
-| Geo | PostGIS para queries espaciais |
-| Permissoes | Spatie laravel-permission |
-| Media | Spatie MediaLibrary (queue media-conversions) |
+O model `Parametro` (chave/valor) guarda configuração editável em runtime via `/admin/parametros`. Tabelas de domínio (`TipoAbordagem`, `ResultadoAcao`, `Encaminhamento`, `CaracteristicaAbrigo`, `TipoAbrigoDesmontado`) alimentam os selects dos formulários — não hardcodar essas opções.
 
-## Convencoes
+### Stack & frontend
 
-- Em desenvolvimento local, comandos rodam direto (sem `docker exec`); em producao, via `docker exec`
-- Usar Form Request classes para validacao
-- Usar `Model::query()` em vez de `DB::` (exceto queries otimizadas)
-- Eager loading para evitar N+1
-- PHP 8 constructor property promotion, return types explicitos, curly braces obrigatorios
-- Rodar `vendor/bin/pint --dirty` antes de finalizar
+Laravel 12 (PHP 8.4) · Breeze (auth) · Spatie: laravel-permission (roles, ex.: `admin` via `middleware('role:admin')`), medialibrary, activitylog, backup · Sanctum.
 
-## Documentacao
+Frontend é **Blade + Alpine + Leaflet**, **sem Tailwind**: design system próprio em `resources/css/app.css` ("Field Instrument", mobile-first, dark, alto contraste). PWA (manifest + service worker). Cada página tem seu próprio entry JS em `resources/js/` registrado em `vite.config.js` (ex.: `vistoria-form.js`, `mapa.js`, `dashboard.js`); ao criar uma página nova com JS, adicione o entry ao `vite.config.js`. `chart.js` é separado em chunk manual.
 
-| Documento | Descricao |
+## Convenções
+
+- Local: comandos diretos; produção: via `docker exec`.
+- Form Request classes para validação (`app/Http/Requests/`).
+- `Model::query()` em vez de `DB::` (exceto queries otimizadas).
+- Eager loading para evitar N+1.
+- PHP 8: constructor property promotion, return types explícitos, curly braces obrigatórias.
+- Autorização via Policies; nunca checar permissão inline no controller.
+- Lógica nova vai no Service, não no controller.
+- Rodar `vendor/bin/pint --dirty` antes de finalizar.
+- Sempre em pt-BR com acentuação correta (código, comentários, UI, mensagens).
+
+## ETL (Geo → CRAS)
+
+Migração one-shot do POPRUA Geo (produção temporária) para o CRAS (fonte de verdade canônica) via `etl/migrate.sql` (postgres_fdw, transação única). O schema do CRAS sempre vence. Pré-flight `etl:schema-diff` falha se houver divergência não prevista. Comandos em `app/Console/Commands/Etl/`. Ver skill `poprua-etl`.
+
+## Skills do projeto (.claude/skills/)
+
+`setup-ambiente` · `quality-audit` · `ux-friction` · `foto-audit` · `poprua-etl` · `vistoria` (workflow) · `upload-google-drive`.
+
+## Documentação
+
+| Documento | Descrição |
 |-----------|-----------|
-| [docs/ARQUITETURA_DOCKER.md](docs/ARQUITETURA_DOCKER.md) | Arquitetura Docker, fluxo de requisicoes, rede, operacoes |
-| [docs/API.md](docs/API.md) | Referencia completa da API REST |
+| [docs/adr/](docs/adr/) | Architecture Decision Records — **registrar aqui** decisões arquiteturais (ADR-001 = ciclo de vida da vistoria) |
+| [docs/casos-de-uso/](docs/casos-de-uso/) | Casos de uso (UC-001 minha-equipe, UC-002 finalização) |
+| [docs/REGRAS_NEGOCIO.md](docs/REGRAS_NEGOCIO.md) | Regras de negócio |
+| [docs/ARQUITETURA_DOCKER.md](docs/ARQUITETURA_DOCKER.md) | Arquitetura Docker, rede, operações |
+| [docs/API.md](docs/API.md) | Referência da API REST |
