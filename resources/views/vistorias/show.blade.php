@@ -120,16 +120,6 @@
                             <span class="info-value">{{ $vistoria->periodo_zeladoria === 'manha' ? 'Manha' : ($vistoria->periodo_zeladoria === 'tarde' ? 'Tarde' : '-') }}</span>
                         </div>
                     @endif
-                    @if($vistoria->houve_lavratura)
-                        <div class="info-item">
-                            <span class="info-label">Houve Lavratura</span>
-                            <span class="info-value">Sim</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Tipo de Protocolo</span>
-                            <span class="info-value">{{ ucfirst($vistoria->tipo_protocolo ?? '-') }}</span>
-                        </div>
-                    @endif
                     @if($vistoria->houve_lavacao)
                         <div class="info-item">
                             <span class="info-label">Houve Lavação</span>
@@ -138,7 +128,7 @@
                     @endif
                     @if($vistoria->houve_comunicado)
                         <div class="info-item">
-                            <span class="info-label">Houve Comunicado</span>
+                            <span class="info-label">Comunicado de Zeladoria</span>
                             <span class="info-value">Sim</span>
                         </div>
                         <div class="info-item">
@@ -387,7 +377,7 @@
 
                             @if($vistoria->auto_fiscalizacao_aplicado)
                                 <div class="info-item">
-                                    <span class="info-label">Auto de Fiscalizacao</span>
+                                    <span class="info-label">Relatório de Orientação</span>
                                     <span class="info-value">
                                         <span class="badge badge-warning">Aplicado</span>
                                         @if($vistoria->auto_fiscalizacao_numero)

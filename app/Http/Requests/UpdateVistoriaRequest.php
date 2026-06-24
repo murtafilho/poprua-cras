@@ -112,12 +112,10 @@ class UpdateVistoriaRequest extends FormRequest
             'apreensao_fiscal' => 'nullable|boolean',
             'auto_fiscalizacao_aplicado' => 'nullable|in:0,1',
             'auto_fiscalizacao_numero' => 'nullable|string|max:100',
-            // Lavratura, comunicado e protocolo
-            'houve_lavratura' => 'nullable|boolean',
+            // Lavacao e comunicado
             'houve_lavacao' => 'nullable|boolean',
             'houve_comunicado' => 'nullable|boolean',
             'data_comunicado' => 'nullable|date',
-            'tipo_protocolo' => 'nullable|in:chuva,frio,normal',
             // Data prevista zeladoria
             'data_prevista_zeladoria' => 'nullable|date',
             'periodo_zeladoria' => 'nullable|in:manha,tarde',

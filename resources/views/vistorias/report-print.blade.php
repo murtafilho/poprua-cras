@@ -541,7 +541,7 @@
                         <td>{{ $vistoria->apreensao_fiscal ? 'Sim' : 'Não' }}</td>
                     </tr>
                     <tr>
-                        <th>Auto de fiscalização</th>
+                        <th>Relatório de Orientação</th>
                         <td>{{ $vistoria->auto_fiscalizacao_aplicado ? 'Aplicado' : 'Não aplicado' }}@if($vistoria->auto_fiscalizacao_aplicado && filled($vistoria->auto_fiscalizacao_numero)) — nº {{ $vistoria->auto_fiscalizacao_numero }}@endif</td>
                     </tr>
                     @if(filled($vistoria->material_apreendido))

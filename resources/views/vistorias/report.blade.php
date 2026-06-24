@@ -410,9 +410,6 @@
                 <dt>{{ $temHora ? 'Data e hora' : 'Data' }}</dt>
                 <dd>{{ $dataAbordagem ? $dataAbordagem->format('d/m/Y') . ($temHora ? ' '.$horaAbordagem : '') : '—' }}</dd>
                 <dt>Tipo de abordagem</dt><dd>{{ $vistoria->tipoAbordagem->tipo ?? '—' }}</dd>
-                @if(filled($vistoria->tipo_protocolo))
-                    <dt>Tipo de protocolo</dt><dd>{{ $vistoria->tipo_protocolo }}</dd>
-                @endif
                 @if(filled($vistoria->data_prevista_zeladoria))
                     <dt>Data prevista</dt><dd>{{ \Carbon\Carbon::parse($vistoria->data_prevista_zeladoria)->format('d/m/Y H:i') }}</dd>
                 @endif
@@ -481,7 +478,7 @@
     </div>
 
     {{-- 4. AÇÕES E MATERIAIS --}}
-    @if($vistoria->conducao_forcas_seguranca || $vistoria->apreensao_fiscal || $vistoria->auto_fiscalizacao_aplicado || $vistoria->houve_lavratura || filled($vistoria->material_apreendido) || filled($vistoria->material_descartado))
+    @if($vistoria->conducao_forcas_seguranca || $vistoria->apreensao_fiscal || $vistoria->auto_fiscalizacao_aplicado || filled($vistoria->material_apreendido) || filled($vistoria->material_descartado))
     <div class="section-card">
         <div class="section-card-header">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -491,11 +488,10 @@
         </div>
         <div class="section-card-body">
             <dl class="info-row">
-                <dt>Houve lavratura</dt><dd>{{ $vistoria->houve_lavratura ? 'Sim' : 'Não' }}</dd>
                 <dt>Condução por forças de segurança</dt>
                 <dd>{{ $vistoria->conducao_forcas_seguranca ? 'Sim' : 'Não' }}@if($vistoria->conducao_forcas_seguranca && filled($vistoria->conducao_forcas_observacao)) — {{ $vistoria->conducao_forcas_observacao }}@endif</dd>
                 <dt>Recolhimento de Inservíveis</dt><dd>{{ $vistoria->apreensao_fiscal ? 'Sim' : 'Não' }}</dd>
-                <dt>Auto de fiscalização</dt>
+                <dt>Relatório de Orientação</dt>
                 <dd>{{ $vistoria->auto_fiscalizacao_aplicado ? 'Aplicado' : 'Não aplicado' }}@if($vistoria->auto_fiscalizacao_aplicado && filled($vistoria->auto_fiscalizacao_numero)) — nº {{ $vistoria->auto_fiscalizacao_numero }}@endif</dd>
                 @if(filled($vistoria->material_apreendido))
                     <dt>Material apreendido</dt><dd>{{ $vistoria->material_apreendido }}</dd>

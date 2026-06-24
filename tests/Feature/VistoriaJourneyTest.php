@@ -110,8 +110,6 @@ class VistoriaJourneyTest extends TestCase
             'observacao' => 'Relatório descritivo da abordagem realizada.',
             'apreensao_fiscal' => '0',
             'auto_fiscalizacao_aplicado' => '0',
-            'houve_lavratura' => '1',
-            'tipo_protocolo' => 'normal',
             'houve_comunicado' => '1',
             'data_comunicado' => '2026-05-20',
             'conducao_forcas_seguranca' => '0',
@@ -187,8 +185,6 @@ class VistoriaJourneyTest extends TestCase
         $this->assertEquals($this->resultadoAcaoId, $vistoria->resultado_acao_id);
         $this->assertEquals(30, $vistoria->qtd_kg);
         $this->assertEquals('Relatório descritivo da abordagem realizada.', $vistoria->observacao);
-        $this->assertTrue((bool) $vistoria->houve_lavratura);
-        $this->assertEquals('normal', $vistoria->tipo_protocolo);
         $this->assertTrue((bool) $vistoria->houve_comunicado);
         $this->assertNotNull($vistoria->data_comunicado);
 
@@ -226,20 +222,6 @@ class VistoriaJourneyTest extends TestCase
         $vistoria = Vistoria::latest('id')->first();
         $this->assertFalse((bool) $vistoria->houve_comunicado);
         $this->assertNull($vistoria->data_comunicado);
-    }
-
-    public function test_jornada_sem_lavratura_descarta_tipo_protocolo(): void
-    {
-        $payload = $this->fullJourneyPayload([
-            'houve_lavratura' => '0',
-            'tipo_protocolo' => 'chuva',
-        ]);
-
-        $this->actingAs($this->user)->post(route('vistorias.store'), $payload);
-
-        $vistoria = Vistoria::latest('id')->first();
-        $this->assertFalse((bool) $vistoria->houve_lavratura);
-        $this->assertNull($vistoria->tipo_protocolo);
     }
 
     public function test_exigir_comunicado_desligado_permite_agendar_sem_comunicado(): void

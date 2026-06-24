@@ -218,18 +218,6 @@ function toggleAutoNumero() {
     if (!isSim) { const n = document.getElementById('auto_fiscalizacao_numero'); if (n) n.value = ''; }
 }
 
-function toggleProtocolo() {
-    const isSim = _simNao('houve_lavratura');
-    const container = document.getElementById('tipo_protocolo_container');
-    if (container) {
-        container.classList.toggle('hidden', !isSim);
-        if (!isSim) {
-            const select = container.querySelector('select[name="tipo_protocolo"]');
-            if (select) select.value = '';
-        }
-    }
-}
-
 function toggleComunicado() {
     const isSim = _simNao('houve_comunicado');
     const container = document.getElementById('data_comunicado_container');
@@ -786,7 +774,6 @@ function restaurarRascunho() {
 
         toggleConducaoObs();
         toggleAutoNumero();
-        toggleProtocolo();
 
         return true;
     } catch (e) {
@@ -850,7 +837,6 @@ window.toggleQtdCasais = toggleQtdCasais;
 window.toggleQtdAnimais = toggleQtdAnimais;
 window.toggleConducaoObs = toggleConducaoObs;
 window.toggleAutoNumero = toggleAutoNumero;
-window.toggleProtocolo = toggleProtocolo;
 window.toggleComunicado = toggleComunicado;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
 window.atualizarLegenda = atualizarLegenda;

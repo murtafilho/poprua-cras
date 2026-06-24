@@ -357,38 +357,17 @@
                         </div>
                     </div>
 
-                    <!-- Auto de Fiscalizacao Aplicado -->
+                    <!-- Relatorio de Orientacao -->
                     <div class="card mb-3">
                         <div class="card-body">
                             <label class="switch-field">
                                 <input type="checkbox" class="switch-input" name="auto_fiscalizacao_aplicado" value="1" x-on:change="toggleAutoNumero()">
                                 <span class="switch-track"><span class="switch-thumb"></span></span>
-                                <span class="switch-text">Auto de Fiscalização Aplicado</span>
+                                <span class="switch-text">Relatório de Orientação</span>
                                 <span class="switch-state"></span>
                             </label>
                             <div id="auto_numero_container" class="mt-2 hidden">
-                                <input type="text" name="auto_fiscalizacao_numero" id="auto_fiscalizacao_numero" placeholder="Número do Auto de Fiscalização" class="form-input">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Lavratura -->
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <label class="switch-field">
-                                <input type="checkbox" class="switch-input" name="houve_lavratura" value="1" x-on:change="toggleProtocolo()">
-                                <span class="switch-track"><span class="switch-thumb"></span></span>
-                                <span class="switch-text">Houve Lavratura</span>
-                                <span class="switch-state"></span>
-                            </label>
-                            <div id="tipo_protocolo_container" class="mt-2 hidden">
-                                <label class="form-label">Tipo de Protocolo</label>
-                                <select name="tipo_protocolo" class="form-input form-select">
-                                    <option value="">Selecione...</option>
-                                    <option value="chuva">Chuva</option>
-                                    <option value="frio">Frio</option>
-                                    <option value="normal">Normal</option>
-                                </select>
+                                <input type="text" name="auto_fiscalizacao_numero" id="auto_fiscalizacao_numero" placeholder="Número Relatório Orientação" class="form-input">
                             </div>
                         </div>
                     </div>
@@ -414,7 +393,7 @@
                             <label class="switch-field">
                                 <input type="checkbox" class="switch-input" name="houve_comunicado" value="1" x-on:change="toggleComunicado()">
                                 <span class="switch-track"><span class="switch-thumb"></span></span>
-                                <span class="switch-text">Houve Comunicado entregue?</span>
+                                <span class="switch-text">Comunicado de Zeladoria</span>
                                 <span class="switch-state"></span>
                             </label>
                             <p class="form-hint" style="margin-top: var(--space-2);">
