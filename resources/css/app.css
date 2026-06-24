@@ -12,54 +12,70 @@
    1. DESIGN TOKENS
    ---------------------------------------- */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* === Color Palette === */
+  /* === Color Palette — Tema PBH (claro) ===
+     Identidade Prefeitura de Belo Horizonte:
+     azul #184186 · amarelo #FFE500 · verde #009D67 · vermelho #E8424A */
 
-  /* Background — Neutral Carbon */
-  --bg-base: #111214;
-  --bg-primary: #18191d;
-  --bg-secondary: #1d1f24;
-  --bg-tertiary: #25282e;
-  --bg-elevated: #2d3139;
-  --bg-glass: rgba(29, 31, 36, 0.96);
-  --bg-overlay: rgba(17, 18, 20, 0.82);
+  /* Background — claro */
+  --bg-base: #EDF1F8;       /* fundo de página */
+  --bg-primary: #FFFFFF;    /* superfícies brancas (footer/user/badges) */
+  --bg-secondary: #FFFFFF;  /* cards (chrome herda override azul no fim do arquivo) */
+  --bg-tertiary: #EEF2F8;   /* preenchimentos sutis / badge default */
+  --bg-elevated: #F4F7FB;   /* hover */
+  --bg-glass: rgba(255, 255, 255, 0.96);
+  --bg-overlay: rgba(15, 23, 42, 0.45);
 
-  /* Accent — Teal 400 (WCAG AA on dark, visible in sunlight) */
-  --accent-primary: #2dd4bf;
-  --accent-secondary: #14b8a6;
-  --accent-tertiary: #0d9488;
-  --accent-dim: rgba(45, 212, 191, 0.10);
-  --accent-glow: rgba(45, 212, 191, 0.20);
+  /* Accent — Azul PBH */
+  --accent-primary: #184186;
+  --accent-secondary: #2456A6;
+  --accent-tertiary: #0F2E63;
+  --accent-dim: rgba(24, 65, 134, 0.08);
+  --accent-glow: rgba(24, 65, 134, 0.16);
 
-  /* Semantic Colors */
-  --color-success: #34d399;
-  --color-success-dim: rgba(52, 211, 153, 0.14);
-  --color-warning: #fbbf24;
-  --color-warning-dim: rgba(251, 191, 36, 0.14);
-  --color-danger: #f87171;
-  --color-danger-dim: rgba(248, 113, 113, 0.14);
-  --color-info: #60a5fa;
-  --color-info-dim: rgba(96, 165, 250, 0.14);
+  /* Semantic Colors — afinadas para fundo claro, na paleta PBH */
+  --color-success: #009D67;
+  --color-success-dim: rgba(0, 157, 103, 0.12);
+  --color-warning: #B57E00;
+  --color-warning-dim: rgba(255, 193, 7, 0.20);
+  --color-danger: #E8424A;
+  --color-danger-dim: rgba(232, 66, 74, 0.12);
+  --color-info: #184186;
+  --color-info-dim: rgba(24, 65, 134, 0.12);
 
-  /* Status Colors — POPRUA domain */
-  --status-positivo: #34d399;
-  --status-negativo: #9ca3af;
-  --status-recusa: #fbbf24;
-  --status-evasao: #a78bfa;
-  --status-em-acao: #60a5fa;
+  /* Status Colors — POPRUA domain (+ aliases usados em KPIs/textos) */
+  --status-positivo: #009D67;
+  --status-negativo: #7A8597;
+  --status-recusa: #B57E00;
+  --status-evasao: #6B4FBB;
+  --status-em-acao: #184186;
+  --status-info: #184186;
+  --status-success: #009D67;
+  --status-danger: #E8424A;
+  --status-warning: #B57E00;
 
-  /* Text — high contrast for outdoor readability */
-  --text-primary: #f4f5f7;
-  --text-secondary: #a1a9b4;
-  --text-muted: #5f6874;
-  --text-inverse: #111214;
+  /* Text — azul-marinho escuro sobre claro (não preto puro) */
+  --text-primary: #16223A;
+  --text-secondary: #46566F;
+  --text-muted: #8A95A8;
+  --text-inverse: #FFFFFF;
 
-  /* Borders */
-  --border-primary: #282b33;
-  --border-secondary: #353940;
-  --border-accent: rgba(45, 212, 191, 0.28);
+  /* Borders — claras */
+  --border-primary: #E3E9F2;
+  --border-secondary: #CDD7E5;
+  --border-accent: rgba(24, 65, 134, 0.25);
   --border-focus: var(--accent-primary);
+
+  /* Chrome — header / sidebar / bottom-nav em azul institucional PBH */
+  --chrome-bg: #184186;
+  --chrome-bg-deep: #143670;
+  --chrome-text: #FFFFFF;
+  --chrome-text-dim: rgba(255, 255, 255, 0.66);
+  --chrome-hover: rgba(255, 255, 255, 0.10);
+  --chrome-active-bg: rgba(255, 255, 255, 0.16);
+  --chrome-border: rgba(255, 255, 255, 0.14);
+  --chrome-accent: #FFE500;
 
   /* === Typography — Outfit: geometric, legible, distinctive === */
   --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
@@ -114,10 +130,10 @@
   --input-radius: 4px;
 
   /* === Effects === */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.18);
-  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.22);
-  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.28);
-  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.32);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 2px 8px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 20px rgba(15, 23, 42, 0.10);
+  --shadow-xl: 0 14px 36px rgba(15, 23, 42, 0.14);
   --shadow-glow: none;
 
   /* Transitions */
@@ -5282,3 +5298,52 @@ h6 { font-size: var(--text-sm); }
   min-height: 48px;
   justify-content: center;
 }
+
+/* ============================================================
+   TEMA PBH — Chrome em azul institucional (header / sidebar / bottom-nav).
+   Mesmos seletores das regras originais; este bloco vem ao FINAL do
+   arquivo, então vence por ordem de fonte (sem !important). O conteúdo
+   permanece claro; apenas o "chrome" do app fica azul com texto branco.
+   ============================================================ */
+
+/* Superfícies do chrome */
+.mobile-header { background: var(--chrome-bg); border-color: var(--chrome-border); color: var(--chrome-text); }
+.sidebar { background: var(--chrome-bg); border-color: var(--chrome-border); color: var(--chrome-text-dim); }
+.sidebar-header { background: var(--chrome-bg); border-color: var(--chrome-border); }
+.sidebar-footer { background: var(--chrome-bg-deep); border-color: var(--chrome-border); }
+.bottom-nav { background: var(--chrome-bg); border-color: var(--chrome-border); }
+.mobile-footer-nav { background: var(--chrome-bg); border-color: var(--chrome-border); }
+
+/* Textos do chrome */
+.mobile-header-title,
+.sidebar-brand,
+.sidebar-user-name { color: var(--chrome-text); }
+.nav-section-title,
+.sidebar-user-role,
+.sidebar-user-avatar svg { color: var(--chrome-text-dim); }
+.sidebar-version { color: var(--chrome-text); background: var(--chrome-hover); }
+
+/* Botões/links dentro do header (a maioria já é branca por estilo inline) */
+.mobile-header-back,
+.mobile-header a { color: var(--chrome-text); }
+.mobile-header .btn-ghost { color: var(--chrome-text-dim); }
+.mobile-header .btn-ghost:hover:not(:disabled) { color: var(--chrome-text); background: var(--chrome-hover); }
+
+/* Itens de navegação da sidebar */
+.nav-item { color: var(--chrome-text-dim); }
+.nav-item:hover { background: var(--chrome-hover); color: var(--chrome-text); }
+.nav-item.active { background: var(--chrome-active-bg); color: var(--chrome-text); border-left-color: var(--chrome-accent); }
+.nav-item-badge { background: var(--chrome-hover); color: var(--chrome-text-dim); }
+
+/* Bloco de usuário na sidebar */
+.sidebar-user { background: var(--chrome-hover); }
+.sidebar-user-avatar,
+.user-avatar-lg { background: #FFFFFF; color: var(--chrome-bg); }
+
+/* Bottom-nav (mobile) — indicador ativo em amarelo PBH */
+.bottom-nav-item { color: var(--chrome-text-dim); }
+.bottom-nav-item.active { color: var(--chrome-text); }
+.bottom-nav-item.active::before { background: var(--chrome-accent); }
+.mobile-footer-nav-item { color: var(--chrome-text-dim); }
+.mobile-footer-nav-item:hover,
+.mobile-footer-nav-item.active { color: var(--chrome-text); }
