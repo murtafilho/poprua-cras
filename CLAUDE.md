@@ -1,27 +1,41 @@
-# CLAUDE.md
+# CLAUDE.md — PopRua CRAS (repositorio)
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Fonte da verdade
 
-## Projeto
+**GitHub** (`git@github.com:murtafilho/poprua-cras.git`, branch `main`) e a autoridade canonica do codigo.
 
-POPRUA CRAS — sistema derivado do POPRUA Geo, focado na integração com o CRAS (Centro de Referência de Assistência Social). Laravel 12 / PHP 8.4 / PostgreSQL 17 + PostGIS 3.5 / Redis / Vite.
+```
+maquina local  --git push-->  GitHub  --git pull-->  vlcp-sufis01 (deploy.sh)
+```
 
-Fork inicial baseado em [poprua-geo](https://github.com/murtafilho/poprua-geo) em 2026-05-18. A estrutura de Ponto/Vistoria/Morador foi herdada e está sendo adaptada para os fluxos específicos do CRAS.
+Clone de trabalho: este repositorio. Producao recebe via `bash poprua deploy` (na RMI).
+
+```bash
+bash poprua st              # git status local
+bash poprua push            # envia para GitHub
+bash poprua deploy          # git pull em producao + build (na RMI)
+bash poprua release "msg"   # commit + push + deploy
+bash poprua setup-server    # configura origin no servidor (1x)
+```
+
+POPRUA CRAS — sistema derivado do POPRUA Geo, focado na integracao com CRAS (Zeladoria Urbana). Laravel 12 / PHP 8.4 / PostgreSQL + PostGIS / Redis / Vite.
+
+Fork inicial baseado em [poprua-geo](https://github.com/murtafilho/poprua-geo) em 2026-05-18.
 
 ## Ambientes
 
-### Desenvolvimento local (ambiente preferido para dev/refatoração)
+### Desenvolvimento local (ambiente preferido para dev/refatoracao)
 
 PHP 8.4, PostgreSQL 18.4 + PostGIS 3.6, Redis 7 e Node 22 instalados nativamente. O `.env` aponta para localhost; todos os comandos rodam direto, sem `docker exec`.
 
-> O PG18 roda no cluster `18/main` na **porta 5433** (criado side-by-side; o cluster `16/main` na 5432 segue ativo para outros projetos da máquina). Por isso `DB_PORT=5433` no `.env` e no `phpunit.xml`.
+> O PG18 roda no cluster `18/main` na **porta 5433** (criado side-by-side; o cluster `16/main` na 5432 segue ativo para outros projetos da maquina). Por isso `DB_PORT=5433` no `.env` e no `phpunit.xml`.
 
 ```bash
 php artisan migrate
 php artisan test
-php artisan test --filter=NomeDoTeste   # um único teste
-vendor/bin/pint --dirty                  # lint/format (rodar antes de finalizar)
-vendor/bin/phpstan analyse               # larastan level 6 com baseline
+php artisan test --filter=NomeDoTeste
+vendor/bin/pint --dirty
+vendor/bin/phpstan analyse
 php artisan cache:clear && php artisan config:clear
 composer install
 npm install && npm run build
@@ -29,104 +43,74 @@ php artisan serve --port=8088
 ```
 
 **DB local:** host=127.0.0.1 port=5433 db=poprua_cras user=poprua_cras password=poprua_cras
-**DB de teste:** poprua_cras_test (mesmo host/senha — configurado em `phpunit.xml`, sobrescreve o `.env`)
+**DB de teste:** poprua_cras_test (mesmo host/senha — configurado em `phpunit.xml`)
 
-### Produção (Docker em vlcp-sufis01)
+### Producao (Docker em vlcp-sufis01)
 
-Os mesmos comandos rodam via `docker exec` (ver skill `setup-ambiente` e `docker/rebuild.sh`):
+Publicar: `bash poprua push` (da maquina local) + `bash poprua deploy` (na RMI).
 
-```bash
-EXEC="sudo docker exec php84-poprua-cras"
-$EXEC php artisan migrate --no-interaction
-$EXEC php artisan test
-$EXEC vendor/bin/pint --dirty
-$EXEC vendor/bin/phpstan analyse
-```
+Os mesmos comandos artisan rodam via `docker exec` (ver `docker/rebuild.sh` e `../CLAUDE.md`).
 
-URL de produção: `https://sufis.pbh.gov.br/ginfi/poprua-cras/public`
+URL de producao: `https://sufis.pbh.gov.br/ginfi/poprua-cras/public`
 
 ## Acesso ao Sistema (dev)
 
 **URL:** http://localhost:8088 · **Login:** murtafilho@gmail.com / xman74102 · **Role:** admin
 
-Páginas autenticadas redirecionam ao login. Para screenshots/E2E, usar `npx playwright screenshot` apenas em páginas públicas (login); para páginas autenticadas, usar o Playwright MCP com login via formulário, ou testar via `php artisan test`.
-
-**Rotas principais:** `/mapa` (home, restrito a BH) · `/vistorias` e `/minhas-vistorias` (cards com workflow) · `/pontos` · `/moradores` · `/admin/parametros` (admin).
+**Rotas principais:** `/mapa` · `/vistorias` e `/minhas-vistorias` · `/pontos` · `/moradores` · `/admin/parametros`
 
 ## Arquitetura
 
-### Domínio central: Ponto → Vistoria → Morador
+### Dominio central: Ponto → Vistoria → Morador
 
-Herdado do poprua-geo, sendo revisado conforme requisitos do CRAS.
+- **Ponto** — local fisico (endereco). Coordenadas lat/lng + vinculo com `EnderecoAtualizado`.
+- **Vistoria** — registro de visita/abordagem. Flags de complexidade, encaminhamentos, fotos via Spatie MediaLibrary.
+- **Morador** — pessoa identificada. Tracking via `MoradorHistorico`.
 
-- **Ponto** — local físico (endereço). Coordenadas lat/lng + vínculo com `EnderecoAtualizado`. `PontoObserver` reage a mudanças.
-- **Vistoria** — registro de visita/abordagem. ~30 flags booleanas de complexidade, até 6 encaminhamentos (`e1_id`..`e6_id`), fotos via Spatie MediaLibrary, soft deletes, activity log.
-- **Morador** — pessoa identificada. Tracking de movimentação via `MoradorHistorico` (entrada/saída/transferência entre pontos). Dados PII — rotas sempre autenticadas.
+### Camada de servicos
 
-### Camada de serviços (padrão central)
+Controllers finos; logica em `app/Services/` (`VistoriaService`, `PontoService`, `MoradorService`, etc.).
 
-Controllers são finos: injetam Services no construtor e delegam a lógica. **A lógica de negócio e as queries vivem em `app/Services/`, não nos controllers.** Um service por agregado: `VistoriaService`, `PontoService`, `MoradorService`, `EnderecoService`, `GeoService`, `FotoService`, `DashboardService`, `ProfileService`. Ao adicionar comportamento, estenda o service correspondente em vez de inflar o controller.
+### Ciclo de vida da Vistoria
 
-### Ciclo de vida da Vistoria (máquina de estados)
-
-Estados: **aberto → finalizado → cancelado** (ver ADR-001). Regras de transição vivem em `VistoriaPolicy`, **não** inline nos controllers:
-
-- Dono edita/finaliza/cancela a vistoria *aberta*.
-- Admin reativa vistoria *finalizada* (volta para *aberta*) e pode cancelar *finalizada*.
-- Vistoria finalizada não pode ser alterada silenciosamente.
-
-Rotas correspondentes: `finalizar`, `reativar`, `cancelar`, `complementar`. Autorização sempre via `VistoriaPolicy` / `PontoPolicy`.
+Estados: **aberto → finalizado → cancelado** (ADR-001). Regras em `VistoriaPolicy`.
 
 ### Upload de fotos offline-first
 
-Fotos de campo funcionam sem rede: o Service Worker (`public/sw.js`) + IndexedDB (`resources/js/offline-upload.js`) enfileiram uploads e fazem replay quando a conexão volta. Endpoints em `routes/api.php` (`POST /api/vistorias/fotos`, status, toggle-pública, legenda). Armazenamento via Spatie MediaLibrary (conversões processadas na queue `media-conversions`). Comando `media:clean-orphaned` remove mídia órfã.
+Service Worker + IndexedDB (`offline-upload.js`). Spatie MediaLibrary na queue `media-conversions`.
 
 ### Dados geoespaciais (PostGIS)
 
-| Tabela | Geometria |
-|--------|-----------|
-| `pontos`, `endereco_atualizados` | POINT |
-| `geo_bairros`, `geo_regionais` | MULTIPOLYGON |
-| `geo_limite_municipio` | GEOMETRY |
-
-Todas SRID 4326 (WGS84) com índice GIST. Queries espaciais centralizadas em `GeoService` e expostas via `Api\GeoController` / `Api\GeocodingController`. GeoJSON de referência em `public/*.json`. `proj4php` para reprojeção.
-
-### Parametrização
-
-O model `Parametro` (chave/valor) guarda configuração editável em runtime via `/admin/parametros`. Tabelas de domínio (`TipoAbordagem`, `ResultadoAcao`, `Encaminhamento`, `CaracteristicaAbrigo`, `TipoAbrigoDesmontado`) alimentam os selects dos formulários — não hardcodar essas opções.
+Queries em `GeoService`. SRID 4326.
 
 ### Stack & frontend
 
-Laravel 12 (PHP 8.4) · Breeze (auth) · Spatie: laravel-permission (roles, ex.: `admin` via `middleware('role:admin')`), medialibrary, activitylog, backup · Sanctum.
+Laravel 12 · Breeze · Spatie (permission, medialibrary, activitylog) · Sanctum.
 
-Frontend é **Blade + Alpine + Leaflet**, **sem Tailwind**: design system próprio em `resources/css/app.css` ("Field Instrument", mobile-first, dark, alto contraste). PWA (manifest + service worker). Cada página tem seu próprio entry JS em `resources/js/` registrado em `vite.config.js` (ex.: `vistoria-form.js`, `mapa.js`, `dashboard.js`); ao criar uma página nova com JS, adicione o entry ao `vite.config.js`. `chart.js` é separado em chunk manual.
+Frontend: Blade + Alpine + Leaflet. Design system em `resources/css/app.css` (tema PBH claro). PWA com service worker. Entries JS em `vite.config.js`.
 
-## Convenções
+## Convencoes
 
-- Local: comandos diretos; produção: via `docker exec`.
-- Form Request classes para validação (`app/Http/Requests/`).
-- `Model::query()` em vez de `DB::` (exceto queries otimizadas).
-- Eager loading para evitar N+1.
-- PHP 8: constructor property promotion, return types explícitos, curly braces obrigatórias.
-- Autorização via Policies; nunca checar permissão inline no controller.
-- Lógica nova vai no Service, não no controller.
-- Rodar `vendor/bin/pint --dirty` antes de finalizar.
-- Sempre em pt-BR com acentuação correta (código, comentários, UI, mensagens).
+- Form Request classes para validacao.
+- Autorizacao via Policies.
+- Logica nova no Service, nao no controller.
+- `vendor/bin/pint --dirty` antes de finalizar.
+- UI/relatorios: nomenclatura **Zeladoria** quando aplicavel.
+- Service Worker: incrementar `CACHE_VERSION` em `public/sw.js` ao mudar assets offline.
+- Sempre em pt-BR com acentuacao correta.
 
 ## ETL (Geo → CRAS)
 
-Migração one-shot do POPRUA Geo (produção temporária) para o CRAS (fonte de verdade canônica) via `etl/migrate.sql` (postgres_fdw, transação única). O schema do CRAS sempre vence. Pré-flight `etl:schema-diff` falha se houver divergência não prevista. Comandos em `app/Console/Commands/Etl/`. Ver skill `poprua-etl`.
+`etl/migrate.sql` via postgres_fdw. Skill `poprua-etl`.
 
 ## Skills do projeto (.claude/skills/)
 
-`setup-ambiente` · `quality-audit` · `ux-friction` · `foto-audit` · `poprua-etl` · `vistoria` (workflow).
+`setup-ambiente` · `quality-audit` · `ux-friction` · `foto-audit` · `poprua-etl` · `vistoria`
 
-## Documentação
+## Documentacao
 
-| Documento | Descrição |
+| Documento | Descricao |
 |-----------|-----------|
-| [docs/adr/](docs/adr/) | Architecture Decision Records — **registrar aqui** decisões arquiteturais (ADR-001 = ciclo de vida da vistoria) |
-| [docs/casos-de-uso/](docs/casos-de-uso/) | Casos de uso (UC-001…UC-010 implementados) |
-| [docs/REGRAS_NEGOCIO.md](docs/REGRAS_NEGOCIO.md) | Regras de negócio |
-| [docs/ARQUITETURA_DOCKER.md](docs/ARQUITETURA_DOCKER.md) | Arquitetura Docker, rede, operações |
-| [docs/API.md](docs/API.md) | Referência da API REST |
+| [docs/adr/](docs/adr/) | Architecture Decision Records |
+| [docs/casos-de-uso/](docs/casos-de-uso/) | Casos de uso |
+| [../CLAUDE.md](../CLAUDE.md) | Infra, SSH, banco, diagnostico |

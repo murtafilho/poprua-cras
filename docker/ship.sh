@@ -1,8 +1,11 @@
 #!/bin/bash
 # ============================================
-# ship.sh — deploy LOCAL do PopRua (sem GitHub).
+# ship.sh — [LEGADO] hotfix direto no servidor (sem passar pelo git local).
 #
-# Servidor = fonte da verdade. Sem remoto, sem branch paralela.
+# OBSOLETO para o fluxo normal do poprua-cras (desde 30/06/2026):
+# fonte da verdade = clone git local -> push -> deploy.sh / deploy-bundle.
+# Mantido apenas para emergencias no host (poprua-geo ainda pode usar).
+#
 # Faz, em UMA passada: commit do que estiver pendente -> build Vite ->
 # caches (view/config/route) -> smoke-test.
 #

@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# ============================================
+# poprua — ciclo de dev do PopRua CRAS (git = fonte da verdade)
+#
+# Hub: GitHub (origin/main). Producao recebe via git pull no deploy.
+#
+#   LOCAL (dev)                    GITHUB                 PRODUCAO (RMI)
+#   clone poprua-cras  --push-->   origin/main  <--pull--  vlcp-sufis01
+#
+# Uso:
+#   bash poprua st                         # git status LOCAL
+#   bash poprua push                       # git push origin main
+#   bash poprua pull                       # git pull origin main
+#   bash poprua deploy                     # git pull no servidor + build + smoke
+#   bash poprua release ["mensagem"]       # commit + push + deploy
+#   bash poprua setup-server               # configura origin no servidor (1x)
+#   bash poprua art  <args artisan...>     # artisan (precisa RMI)
+#   bash poprua logs                       # tail laravel.log (precisa RMI)
+#
+# Fluxo tipico:
+#   git add -A && git commit -m "feat: ..."
+#   bash poprua release "feat: ..."        # push + pull em producao
+# ============================================
+set -uo pipefail
+
+BASE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ORIGIN="${POPRUA_ORIGIN:-git@github.com:murtafilho/poprua-cras.git}"
+BRANCH="${POPRUA_BRANCH:-main}"
+
+SSH="ssh -o ConnectTimeout=20 sufis"
+DIR=/var/www/html/joomla_sufis/ginfi/poprua-cras
+C=php84-poprua-cras
+RGIT="sudo git -C $DIR -c safe.directory=*"
+LGIT="git -C $BASE"
+
+ensure_origin() {
+  if ! $LGIT remote get-url origin &>/dev/null; then
+    $LGIT remote add origin "$ORIGIN"
+    echo "origin local configurado: $ORIGIN"
+  fi
+}
+
+cmd="${1:-}"; arg="${2:-}"
+
+case "$cmd" in
+  st)
+    $LGIT status -sb ;;
+
+  push)
+    ensure_origin
+    $LGIT push -u origin "$BRANCH" ;;
+
+  pull)
+    ensure_origin
+    $LGIT pull --ff-only origin "$BRANCH" ;;
+
+  deploy)
+    $SSH "sudo bash $DIR/docker/deploy.sh" ;;
+
+  release)
+    if [ -n "$($LGIT status --porcelain --untracked-files=no)" ]; then
+      $LGIT add -A
+      $LGIT commit -m "${arg:-wip: $(date +%F_%H%M)}"
+    fi
+    ensure_origin
+    $LGIT push -u origin "$BRANCH"
+    $SSH "sudo bash $DIR/docker/deploy.sh" ;;
+
+  setup-server)
+    echo "Configurando origin no servidor ($DIR)..."
+    $SSH "sudo git -C $DIR -c safe.directory=* remote remove origin 2>/dev/null || true
+      sudo git -C $DIR -c safe.directory=* remote add origin '$ORIGIN'
+      sudo git -C $DIR -c safe.directory=* remote -v"
+    echo ""
+    echo "Testando git fetch origin/$BRANCH no servidor..."
+    if $SSH "sudo git -C $DIR -c safe.directory=* fetch origin $BRANCH" 2>&1; then
+      echo "OK — servidor alcanca o GitHub. Use: bash poprua deploy"
+    else
+      echo ""
+      echo "FALHOU — o servidor precisa de chave SSH de deploy no GitHub."
+      echo "No host vlcp-sufis01 (como root):"
+      echo "  ssh-keygen -t ed25519 -f /root/.ssh/poprua_cras_deploy -N ''"
+      echo "  cat /root/.ssh/poprua_cras_deploy.pub   # adicionar em GitHub > repo > Deploy keys"
+      echo "  GIT_SSH_COMMAND='ssh -i /root/.ssh/poprua_cras_deploy' git -C $DIR fetch origin"
+      exit 1
+    fi ;;
+
+  art)
+    shift
+    $SSH "sudo docker exec -u www-data $C php $DIR/artisan $*" ;;
+
+  logs)
+    $SSH "sudo tail -40 $DIR/storage/logs/laravel.log" ;;
+
+  bootstrap|deploy-bundle|get|put|ship)
+    echo "OBSOLETO: use git + GitHub."
+    echo "  bash poprua pull          # sincronizar local com GitHub"
+    echo "  bash poprua release \"...\"  # commit + push + pull em producao"
+    exit 1 ;;
+
+  *)
+    sed -n '7,22p' "$0" ;;
+esac
