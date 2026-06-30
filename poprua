@@ -14,6 +14,7 @@
 #   bash poprua deploy                     # git pull no servidor + build + smoke
 #   bash poprua release ["mensagem"]       # commit + push + deploy
 #   bash poprua setup-server               # configura origin no servidor (1x)
+#   bash poprua install-auto-deploy        # cron: deploy apos push (poll 3 min)
 #   bash poprua art  <args artisan...>     # artisan (precisa RMI)
 #   bash poprua logs                       # tail laravel.log (precisa RMI)
 #
@@ -84,6 +85,9 @@ case "$cmd" in
       echo "  GIT_SSH_COMMAND='ssh -i /root/.ssh/poprua_cras_deploy -o IdentitiesOnly=yes' git -C $DIR fetch origin"
       exit 1
     fi ;;
+
+  install-auto-deploy)
+    $SSH "sudo bash $DIR/docker/install-auto-deploy-cron.sh" ;;
 
   art)
     shift
