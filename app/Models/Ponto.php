@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\GeoService;
 use Database\Factories\PontoFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -104,7 +104,7 @@ class Ponto extends Model
      */
     public function scopeInBounds(Builder $query, float $north, float $south, float $east, float $west): Builder
     {
-        return $query->whereRaw('geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)', [$west, $south, $east, $north]);
+        return $query->whereRaw(GeoService::sqlEnvelopeBounds(), [$west, $south, $east, $north]);
     }
 
     /**
@@ -257,14 +257,8 @@ class Ponto extends Model
     public function scopeNearby(Builder $query, float $lat, float $lng, float $distancia = 50): Builder
     {
         return $query
-            ->whereRaw(
-                'ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) < ?',
-                [$lng, $lat, $distancia]
-            )
-            ->orderByRaw(
-                'ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography)',
-                [$lng, $lat]
-            );
+            ->whereRaw(GeoService::sqlWithinDistance(), [$lng, $lat, $distancia])
+            ->orderByRaw(GeoService::sqlDistanceOrder(), [$lng, $lat]);
     }
 
     /**
@@ -273,10 +267,7 @@ class Ponto extends Model
     public function updateGeom(): void
     {
         if ($this->lat && $this->lng) {
-            DB::statement(
-                'UPDATE pontos SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE id = ?',
-                [$this->lng, $this->lat, $this->id]
-            );
+            GeoService::atualizarGeomPonto((int) $this->id, (float) $this->lng, (float) $this->lat);
         }
     }
 

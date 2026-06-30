@@ -119,6 +119,16 @@ function isTempRecord(foto) {
     return typeof vid === 'string' && vid.indexOf('temp_') === 0;
 }
 
+function blobFromFotoRecord(foto) {
+    if (foto.data) {
+        return new Blob([foto.data], { type: foto.type || 'application/octet-stream' });
+    }
+    if (foto.blob) {
+        return foto.blob;
+    }
+    return null;
+}
+
 async function getXsrfToken() {
     try {
         if (self.cookieStore) {
@@ -168,10 +178,14 @@ async function syncPendingPhotos() {
     for (var i = 0; i < fotos.length; i++) {
         var foto = fotos[i];
         try {
-            var blob = new Blob([foto.data], { type: foto.type || 'application/octet-stream' });
+            var blob = blobFromFotoRecord(foto);
+            if (!blob) continue;
             var form = new FormData();
-            form.append('vistoria_id', foto.vistoria_id);
-            form.append('foto', blob, foto.name || 'foto.webp');
+            form.append('vistoria_id', foto.vistoria_id || foto.vistoriaId);
+            form.append('foto', blob, foto.name || foto.filename || 'foto.webp');
+            if (foto.legenda) {
+                form.append('legenda', foto.legenda);
+            }
             var headers = {};
             if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
             var resp = await fetch(endpoint, {

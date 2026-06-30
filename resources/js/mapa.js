@@ -32,6 +32,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     map.whenReady(() => map.invalidateSize());
+    map.getContainer().addEventListener('click', (e) => {
+        const link = e.target.closest('.popup-abrir-relatorio');
+        if (link) {
+            e.preventDefault();
+            e.stopPropagation();
+            abrirRelatorio(Number(link.dataset.vistoriaId));
+        }
+    });
     window.addEventListener('resize', () => map.invalidateSize());
     window.addEventListener('orientationchange', () => {
         setTimeout(() => map.invalidateSize(), 200);
@@ -470,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             const complexidadeCor = complexidade >= 8 ? '#dc2626' : complexidade >= 4 ? '#f59e0b' : '#6b7280';
                             const btnPonto = `<a href="${APP_BASE}/pontos/${p.id}" class="popup-btn popup-btn-primary">Relatório do ponto</a>`;
                             const btnVistoria = p.ultima_vistoria_id
-                                ? `<a href="#" onclick="event.stopPropagation(); abrirRelatorio(${p.ultima_vistoria_id}); return false;" class="popup-btn popup-btn-secondary">Última vistoria</a>`
+                                ? `<a href="#" class="popup-btn popup-btn-secondary popup-abrir-relatorio" data-vistoria-id="${p.ultima_vistoria_id}">Última vistoria</a>`
                                 : '';
                             return `<strong>${escapeHtml(p.logradouro)}, ${escapeHtml(p.numero)}</strong><br>
                                 <small>${escapeHtml(p.bairro)} - ${escapeHtml(p.regional)}</small><br>

@@ -1,5 +1,19 @@
 import { imgType, imgExt, imgName } from "./img-format";
 import "./date-ptbr";
+import {
+    initTempPhotoSession,
+    removePendingPhotoById,
+    removePendingPhotoByName,
+    savePendingPhoto,
+    updatePendingPhotoLegenda,
+    MAX_FILE_SIZE_BYTES,
+} from './offline-upload';
+import { initDynamicClickHandlers, initStepperNavigation } from './vistoria-delegation';
+
+const fotoTempId = initTempPhotoSession();
+
+const APP_BASE = document.querySelector('meta[name="app-base"]')?.content || '';
+const RASCUNHO_DEBOUNCE_MS = Number(window.VISTORIA_RASCUNHO_CTX?.debounce_ms) || 5000;
 // Impedir saída acidental sem confirmação (só quando há alterações)
 let formSubmitting = false;
 let formDirty = false;
@@ -16,6 +30,7 @@ let recognition = null;
 let activeInput = null;
 let fotosSelecionadas = [];
 let novosMoradores = [];
+const pessoasVinculadas = [];
 const tiposAbrigo = window.VISTORIA_TIPOS_ABRIGO;
 
 const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Encam.', 'Pessoas', 'Fotos', 'Revisar'];
@@ -25,12 +40,39 @@ const checkmarkSVG = '<svg class="stepper-check" fill="none" stroke="currentColo
 document.addEventListener('DOMContentLoaded', function() {
     showTab(0);
 
-    // Selecionar conteúdo ao focar + forçar teclado numérico
     document.querySelectorAll('input[type="number"]').forEach(input => {
         input.addEventListener('focus', function() { this.select(); });
         input.setAttribute('inputmode', 'numeric');
         input.setAttribute('pattern', '[0-9]*');
     });
+
+    initRascunho();
+
+    const btnSalvar = document.getElementById('btn-salvar-rascunho');
+    if (btnSalvar) {
+        btnSalvar.addEventListener('click', () => {
+            clearTimeout(rascunhoSaveTimeout);
+            salvarRascunho();
+        });
+    }
+
+    initBuscaPessoa();
+
+    initStepperNavigation({ goToStep, getCurrentTab: () => currentTab, totalTabs });
+    initDynamicClickHandlers({
+        goToStep,
+        removerFoto,
+        abrirModalMorador,
+        removerMorador,
+        desvincularPessoa,
+        vincularPessoa,
+    });
+
+    const tipoSel = document.getElementById('tipo_abordagem_id');
+    if (tipoSel) {
+        tipoSel.addEventListener('change', toggleZeladoriaCampos);
+        toggleZeladoriaCampos();
+    }
 });
 
 function updateStepper(currentIndex) {
@@ -72,6 +114,7 @@ function showTab(index) {
 }
 
 function goToStep(index) {
+    salvarRascunho();
     showTab(index);
 }
 
@@ -139,7 +182,7 @@ function buildReviewChecklist() {
                 : '<svg style="width:20px;height:20px;color:var(--color-danger);flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>';
 
         const tag = !ok && !item.optional
-            ? `<span class="badge badge-danger" style="font-size:10px;cursor:pointer;" onclick="goToStep(${item.step})">Ir para etapa ${item.step + 1}</span>`
+            ? `<span class="badge badge-danger review-go-step" data-go-step="${item.step}" style="font-size:10px;cursor:pointer;">Ir para etapa ${item.step + 1}</span>`
             : item.optional && !ok
                 ? '<span class="badge" style="font-size:10px;">Opcional</span>'
                 : '';
@@ -227,6 +270,32 @@ function toggleComunicado() {
             const input = container.querySelector('input[name="data_comunicado"]');
             if (input) input.value = '';
         }
+    }
+}
+
+function isTipoComunicacaoZeladoria() {
+    const sel = document.getElementById('tipo_abordagem_id');
+    if (!sel?.value) {
+        return false;
+    }
+    const opt = sel.options[sel.selectedIndex];
+    const tipo = (opt?.dataset?.tipo || opt?.textContent || '').toLowerCase();
+
+    return tipo.includes('comunic') && tipo.includes('zeladoria');
+}
+
+function toggleZeladoriaCampos() {
+    const container = document.getElementById('zeladoria-campos');
+    if (!container) {
+        return;
+    }
+    const show = isTipoComunicacaoZeladoria();
+    container.classList.toggle('hidden', !show);
+    if (!show) {
+        const dataRetorno = container.querySelector('[name="data_prevista_zeladoria"]');
+        const periodo = container.querySelector('[name="periodo_zeladoria"]');
+        if (dataRetorno) dataRetorno.value = '';
+        if (periodo) periodo.value = '';
     }
 }
 
@@ -347,7 +416,6 @@ function processPhotoFile(file) {
     if (!file.type.startsWith('image/')) return;
 
     // Limite client-side (ver MAX_FILE_SIZE_BYTES em offline-upload.js).
-    const MAX_FILE_SIZE_BYTES = 30 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE_BYTES) {
         const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
         if (typeof window.showToast === 'function') {
@@ -381,10 +449,15 @@ function processPhotoFile(file) {
         canvas.toBlob(function(blob) {
             const compressed = new File([blob], imgName(file.name), { type: imgType(), lastModified: Date.now() });
             const preview = canvas.toDataURL(imgType(), 0.5);
-            fotosSelecionadas.push({ file: compressed, preview, id: Date.now() + Math.random() });
+            const entry = { file: compressed, preview, id: Date.now() + Math.random(), legenda: '', pendingId: null };
+            fotosSelecionadas.push(entry);
             formDirty = true;
             renderFotosPreview();
-            salvarFotoLocal(compressed);
+            savePendingPhoto(fotoTempId, compressed, { name: compressed.name })
+                .then((pendingId) => { entry.pendingId = pendingId; })
+                .catch((err) => {
+                    console.error('Erro ao salvar foto localmente:', err);
+                });
         }, imgType(), QUALITY);
     };
     img.src = URL.createObjectURL(file);
@@ -448,7 +521,7 @@ function renderFotosPreview() {
         div.className = 'photo-preview';
         div.innerHTML = `
             <img src="${foto.preview}" alt="Foto ${index + 1}">
-            <button type="button" onclick="removerFoto(${index})" class="photo-remove-btn">
+            <button type="button" data-foto-index="${index}" class="photo-remove-btn">
                 <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -463,84 +536,35 @@ function renderFotosPreview() {
 }
 
 function atualizarLegenda(index, legenda) {
-    if (fotosSelecionadas[index]) {
-        fotosSelecionadas[index].legenda = legenda;
+    const foto = fotosSelecionadas[index];
+    if (!foto) {
+        return;
+    }
+    foto.legenda = legenda;
+    formDirty = true;
+    if (foto.pendingId != null) {
+        updatePendingPhotoLegenda(foto.pendingId, legenda).catch((err) => {
+            console.error('Erro ao atualizar legenda local:', err);
+        });
     }
 }
 
 function removerFoto(index) {
     const foto = fotosSelecionadas[index];
-    if (foto) removerFotoLocal(foto.file.name);
+    if (foto) {
+        const removePromise = foto.pendingId != null
+            ? removePendingPhotoById(foto.pendingId)
+            : removePendingPhotoByName(fotoTempId, foto.file.name);
+        removePromise.catch((err) => {
+            console.error('Erro ao remover foto local:', err);
+        });
+    }
     fotosSelecionadas.splice(index, 1);
     formDirty = true;
     renderFotosPreview();
 }
 
-// IndexedDB para fotos pendentes
-// Gera um tempId único para esta sessão de criação
-const fotoTempId = 'temp_' + Date.now();
-sessionStorage.setItem('poprua_fotos_temp_id', fotoTempId);
-
-// Schema espelha o de offline-upload.js (poprua_fotos v1, store 'pendentes'
-// com indices 'status' e 'vistoriaId'). Manter ambos sincronizados evita
-// a race condition antes apontada em ux-004 do foto-audit.
-function openFotosDB() {
-    return new Promise((resolve, reject) => {
-        const req = indexedDB.open('poprua_fotos', 1);
-        req.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('pendentes')) {
-                const store = db.createObjectStore('pendentes', { keyPath: 'id', autoIncrement: true });
-                store.createIndex('status', 'status', { unique: false });
-                store.createIndex('vistoriaId', 'vistoriaId', { unique: false });
-            }
-        };
-        req.onsuccess = (e) => resolve(e.target.result);
-        req.onerror = (e) => reject(e.target.error);
-    });
-}
-
-// Salva foto no IndexedDB imediatamente ao tirar
-async function salvarFotoLocal(file) {
-    try {
-        const buffer = await file.arrayBuffer();
-        const db = await openFotosDB();
-        const tx = db.transaction('pendentes', 'readwrite');
-        tx.objectStore('pendentes').add({
-            vistoria_id: fotoTempId,
-            name: file.name,
-            type: file.type,
-            data: buffer,
-            created_at: new Date().toISOString()
-        });
-        await new Promise((resolve, reject) => {
-            tx.oncomplete = resolve;
-            tx.onerror = reject;
-        });
-        console.log('Foto salva no dispositivo:', file.name);
-    } catch (err) {
-        console.error('Erro ao salvar foto localmente:', err);
-    }
-}
-
-// Remove foto do IndexedDB ao remover do preview
-async function removerFotoLocal(fileName) {
-    try {
-        const db = await openFotosDB();
-        const tx = db.transaction('pendentes', 'readonly');
-        const store = tx.objectStore('pendentes');
-        const all = await new Promise(r => { const req = store.getAll(); req.onsuccess = () => r(req.result); });
-        const foto = all.find(f => f.vistoria_id === fotoTempId && f.name === fileName);
-        if (foto) {
-            const delTx = db.transaction('pendentes', 'readwrite');
-            delTx.objectStore('pendentes').delete(foto.id);
-        }
-    } catch (err) {
-        console.error('Erro ao remover foto local:', err);
-    }
-}
-
-document.getElementById('vistoria-form').addEventListener('submit', function(e) {
+document.getElementById('vistoria-form').addEventListener('submit', function() {
     formSubmitting = true;
     // Fotos já estão no IndexedDB — form submete sem elas
 });
@@ -684,12 +708,12 @@ function renderNovosMoradores() {
                 <span class="badge badge-success">Novo</span>
             </div>
             <div class="morador-actions">
-                <button type="button" onclick="abrirModalMorador(${index})" class="btn btn-ghost btn-icon btn-sm">
+                <button type="button" data-edit-morador="${index}" class="btn btn-ghost btn-icon btn-sm">
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                 </button>
-                <button type="button" onclick="removerMorador(${index})" class="btn btn-ghost btn-icon btn-sm text-danger">
+                <button type="button" data-remove-morador="${index}" class="btn btn-ghost btn-icon btn-sm text-danger">
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
@@ -708,16 +732,41 @@ function renderNovosMoradores() {
     document.getElementById('morador-count').textContent = novosMoradores.length;
 }
 
-// Salvamento parcial por etapa (localStorage)
+// Salvamento parcial por etapa (servidor + localStorage como fallback offline)
 const DRAFT_KEY = 'poprua_vistoria_draft';
+let rascunhoSaveTimeout = null;
+let rascunhoSaving = false;
 
-function salvarRascunho() {
+function getRascunhoContexto() {
+    const ctx = window.VISTORIA_RASCUNHO_CTX || {};
     const form = document.getElementById('vistoria-form');
-    if (!form) return;
+    const pontoInput = form?.querySelector('input[name="ponto_id"]');
+    const latInput = form?.querySelector('input[name="lat"]');
+    const lngInput = form?.querySelector('input[name="lng"]');
+
+    return {
+        ponto_id: pontoInput?.value ? parseInt(pontoInput.value, 10) : (ctx.ponto_id ?? null),
+        lat: latInput?.value ? parseFloat(latInput.value) : (ctx.lat ?? null),
+        lng: lngInput?.value ? parseFloat(lngInput.value) : (ctx.lng ?? null),
+    };
+}
+
+function buildRascunhoQuery(ctx) {
+    const params = new URLSearchParams();
+    if (ctx.ponto_id) {
+        params.set('ponto_id', String(ctx.ponto_id));
+    } else if (ctx.lat != null && ctx.lng != null) {
+        params.set('lat', String(ctx.lat));
+        params.set('lng', String(ctx.lng));
+    }
+    return params;
+}
+
+function serializeFormToPayload(form) {
     const data = new FormData(form);
     const draft = {};
     for (const [key, value] of data.entries()) {
-        if (key === 'fotos[]' || key.startsWith('fotos')) continue;
+        if (key === 'fotos[]' || key.startsWith('fotos') || key === '_token') continue;
         if (draft[key]) {
             if (!Array.isArray(draft[key])) draft[key] = [draft[key]];
             draft[key].push(value);
@@ -725,15 +774,127 @@ function salvarRascunho() {
             draft[key] = value;
         }
     }
-    draft._step = currentTab;
-    draft._timestamp = Date.now();
-    draft._moradores = JSON.stringify(novosMoradores);
+    draft._moradores = novosMoradores;
+    draft._pessoas_vinculadas = pessoasVinculadas;
+    return draft;
+}
+
+function setRascunhoStatus(state, savedAt = null) {
+    const el = document.getElementById('rascunho-status');
+    if (!el) return;
+    el.style.display = 'block';
+
+    if (state === 'saving') {
+        el.textContent = 'Salvando rascunho...';
+        el.style.color = 'var(--text-muted)';
+    } else if (state === 'saved' && savedAt) {
+        const time = savedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        el.textContent = `Rascunho salvo às ${time}`;
+        el.style.color = 'var(--status-success, #10b981)';
+    } else if (state === 'error') {
+        el.textContent = 'Não foi possível salvar — tentará novamente';
+        el.style.color = 'var(--status-danger, #ef4444)';
+    } else {
+        el.style.display = 'none';
+    }
+}
+
+function salvarRascunhoLocal(payload, step) {
     try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+            ...payload,
+            _step: step,
+            _timestamp: Date.now(),
+        }));
     } catch (e) {}
 }
 
-function restaurarRascunho() {
+function salvarRascunho() {
+    const form = document.getElementById('vistoria-form');
+    if (!form || rascunhoSaving) return;
+
+    const payload = serializeFormToPayload(form);
+    salvarRascunhoLocal(payload, currentTab);
+
+    const ctx = getRascunhoContexto();
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrf) return;
+
+    rascunhoSaving = true;
+    setRascunhoStatus('saving');
+
+    fetch(`${APP_BASE}/api/vistorias/rascunho`, {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': csrf,
+        },
+        body: JSON.stringify({
+            payload,
+            etapa_atual: currentTab,
+            ponto_id: ctx.ponto_id,
+            lat: ctx.lat,
+            lng: ctx.lng,
+        }),
+    })
+        .then(resp => {
+            if (!resp.ok) throw new Error('save failed');
+            return resp.json();
+        })
+        .then(data => {
+            formDirty = false;
+            const savedAt = data.rascunho?.updated_at ? new Date(data.rascunho.updated_at) : new Date();
+            setRascunhoStatus('saved', savedAt);
+        })
+        .catch(() => setRascunhoStatus('error'))
+        .finally(() => { rascunhoSaving = false; });
+}
+
+function aplicarRascunho(draft, step) {
+    const form = document.getElementById('vistoria-form');
+    if (!form || !draft) return false;
+
+    Object.entries(draft).forEach(([key, value]) => {
+        if (key.startsWith('_')) return;
+        const elements = form.querySelectorAll(`[name="${key}"]`);
+        elements.forEach(el => {
+            if (el.type === 'radio') {
+                el.checked = el.value === value;
+            } else if (el.type === 'checkbox') {
+                const values = Array.isArray(value) ? value : [value];
+                el.checked = values.includes(el.value);
+            } else if (el.tagName === 'SELECT' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.value = value;
+            }
+        });
+    });
+
+    if (draft._moradores) {
+        novosMoradores = Array.isArray(draft._moradores) ? draft._moradores : [];
+        renderMoradores();
+    }
+
+    if (draft._pessoas_vinculadas && Array.isArray(draft._pessoas_vinculadas)) {
+        pessoasVinculadas.length = 0;
+        draft._pessoas_vinculadas.forEach(p => pessoasVinculadas.push(p));
+        renderPessoasVinculadas();
+    }
+
+    const stepIndex = typeof step === 'number' ? step : (draft._step ?? 0);
+    if (stepIndex > 0) {
+        for (let i = 0; i <= stepIndex; i++) visitedSteps.add(i);
+        showTab(stepIndex);
+    }
+
+    toggleConducaoObs();
+    toggleAutoNumero();
+
+    return true;
+}
+
+function restaurarRascunhoLocal() {
     try {
         const raw = localStorage.getItem(DRAFT_KEY);
         if (!raw) return false;
@@ -742,67 +903,82 @@ function restaurarRascunho() {
             localStorage.removeItem(DRAFT_KEY);
             return false;
         }
-        const form = document.getElementById('vistoria-form');
-        if (!form) return false;
-
-        Object.entries(draft).forEach(([key, value]) => {
-            if (key.startsWith('_') || key === 'fotos[]') return;
-            const elements = form.querySelectorAll(`[name="${key}"]`);
-            elements.forEach(el => {
-                if (el.type === 'radio') {
-                    el.checked = el.value === value;
-                } else if (el.type === 'checkbox') {
-                    const values = Array.isArray(value) ? value : [value];
-                    el.checked = values.includes(el.value);
-                } else if (el.tagName === 'SELECT' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                    el.value = value;
-                }
-            });
-        });
-
-        if (draft._moradores) {
-            try {
-                novosMoradores = JSON.parse(draft._moradores);
-                renderMoradores();
-            } catch (e) {}
-        }
-
-        if (draft._step > 0) {
-            for (let i = 0; i <= draft._step; i++) visitedSteps.add(i);
-            showTab(draft._step);
-        }
-
-        toggleConducaoObs();
-        toggleAutoNumero();
-
-        return true;
+        return aplicarRascunho(draft, draft._step);
     } catch (e) {
         return false;
     }
 }
 
+async function descartarRascunhoServidor() {
+    const ctx = getRascunhoContexto();
+    const params = buildRascunhoQuery(ctx);
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrf) return;
+
+    await fetch(`${APP_BASE}/api/vistorias/rascunho?${params}`, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
+    }).catch(() => {});
+}
+
 function limparRascunho() {
     localStorage.removeItem(DRAFT_KEY);
+    descartarRascunhoServidor();
 }
 
-const restored = restaurarRascunho();
-if (restored) {
-    formDirty = true;
-    const banner = document.createElement('div');
-    banner.style.cssText = 'padding: 8px 16px; background: var(--bg-warning-subtle, rgba(234,179,8,0.15)); border-radius: var(--radius-md); font-size: var(--text-xs); color: var(--text-primary); margin-bottom: var(--space-3); display: flex; align-items: center; justify-content: space-between;';
-    banner.innerHTML = `
-        <span>Rascunho restaurado automaticamente.</span>
-        <button type="button" onclick="limparRascunho(); location.reload();" style="background:none; border:none; color:var(--status-danger); cursor:pointer; font-size:var(--text-xs); text-decoration:underline;">Descartar</button>
-    `;
-    const formContent = document.querySelector('.form-content');
-    if (formContent) formContent.prepend(banner);
+async function initRascunho() {
+    const ctx = getRascunhoContexto();
+    const params = buildRascunhoQuery(ctx);
+
+    try {
+        const resp = await fetch(`${APP_BASE}/api/vistorias/rascunho?${params}`, {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+        });
+
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data.rascunho?.payload) {
+                const updated = new Date(data.rascunho.updated_at);
+                const msg = `Continuar rascunho de ${updated.toLocaleString('pt-BR')}?`;
+                if (confirm(msg)) {
+                    aplicarRascunho(data.rascunho.payload, data.rascunho.etapa_atual);
+                    formDirty = false;
+                    setRascunhoStatus('saved', updated);
+                    return;
+                }
+                await descartarRascunhoServidor();
+                localStorage.removeItem(DRAFT_KEY);
+                return;
+            }
+        }
+    } catch (e) {}
+
+    if (restaurarRascunhoLocal()) {
+        formDirty = true;
+        const banner = document.createElement('div');
+        banner.style.cssText = 'padding: 8px 16px; background: var(--bg-warning-subtle, rgba(234,179,8,0.15)); border-radius: var(--radius-md); font-size: var(--text-xs); color: var(--text-primary); margin-bottom: var(--space-3); display: flex; align-items: center; justify-content: space-between;';
+        const label = document.createElement('span');
+        label.textContent = 'Rascunho local restaurado (sem conexão anterior).';
+        const discardBtn = document.createElement('button');
+        discardBtn.type = 'button';
+        discardBtn.textContent = 'Descartar';
+        discardBtn.style.cssText = 'background:none; border:none; color:var(--status-danger); cursor:pointer; font-size:var(--text-xs); text-decoration:underline;';
+        discardBtn.addEventListener('click', () => {
+            limparRascunho();
+            location.reload();
+        });
+        banner.append(label, discardBtn);
+        const formContent = document.querySelector('.form-content');
+        if (formContent) formContent.prepend(banner);
+    }
 }
 
-const origShowTab = showTab;
-const _showTabWithSave = function(index) {
-    salvarRascunho();
-    origShowTab(index);
-};
+function scheduleSalvarRascunho() {
+    clearTimeout(rascunhoSaveTimeout);
+    rascunhoSaveTimeout = setTimeout(salvarRascunho, RASCUNHO_DEBOUNCE_MS);
+}
 
 const formEl = document.getElementById('vistoria-form');
 if (formEl) {
@@ -811,19 +987,17 @@ if (formEl) {
         limparRascunho();
     });
 
-    let saveTimeout;
     formEl.addEventListener('change', () => {
         formDirty = true;
-        clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(salvarRascunho, 1000);
+        scheduleSalvarRascunho();
     });
     formEl.addEventListener('input', () => {
         formDirty = true;
-        clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(salvarRascunho, 2000);
+        scheduleSalvarRascunho();
     });
 }
 
+window.salvarRascunho = salvarRascunho;
 window.limparRascunho = limparRascunho;
 window.goToStep = goToStep;
 window.openCamera = openCamera;
@@ -838,12 +1012,11 @@ window.toggleQtdAnimais = toggleQtdAnimais;
 window.toggleConducaoObs = toggleConducaoObs;
 window.toggleAutoNumero = toggleAutoNumero;
 window.toggleComunicado = toggleComunicado;
+window.toggleZeladoriaCampos = toggleZeladoriaCampos;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
 window.atualizarLegenda = atualizarLegenda;
 
 // === Busca e vinculação de pessoas existentes ===
-const pessoasVinculadas = [];
-
 function initBuscaPessoa() {
     const input = document.getElementById('busca-pessoa-existente');
     const resultados = document.getElementById('busca-pessoa-resultados');
@@ -889,12 +1062,19 @@ async function buscarPessoas(termo) {
 
         resultados.innerHTML = data
             .filter(m => !idsJaPresentes.includes(m.id))
-            .map(m => `
-                <button type="button" class="autocomplete-item" onclick="vincularPessoa(${m.id}, '${(m.nome_social || '').replace(/'/g, "\\'")}', '${(m.apelido || '').replace(/'/g, "\\'")}', '${(m.ponto_endereco || '').replace(/'/g, "\\'")}')">
+            .map(m => {
+                const payload = JSON.stringify({
+                    id: m.id,
+                    nome: m.nome_social || '',
+                    apelido: m.apelido || '',
+                    pontoOrigem: m.ponto_endereco || '',
+                });
+                return `
+                <button type="button" class="autocomplete-item" data-vincular-pessoa='${payload.replace(/'/g, '&#39;')}'>
                     <div class="autocomplete-item-title">${m.nome_social}${m.apelido ? ' — "' + m.apelido + '"' : ''}</div>
                     <div class="autocomplete-item-subtitle">${m.ponto_endereco || 'Sem ponto atual'}</div>
-                </button>
-            `).join('') || '<div class="autocomplete-empty">Todas as pessoas encontradas já estão neste ponto</div>';
+                </button>`;
+            }).join('') || '<div class="autocomplete-empty">Todas as pessoas encontradas já estão neste ponto</div>';
     } catch {
         resultados.innerHTML = '<div class="autocomplete-error">Erro na busca</div>';
     }
@@ -933,7 +1113,7 @@ function renderPessoasVinculadas() {
                 <p class="morador-nickname" style="font-size: 10px; color: var(--color-info);">Transferido de: ${p.pontoOrigem || 'sem ponto'}</p>
             </div>
             <input type="hidden" name="moradores_presentes[]" value="${p.id}">
-            <button type="button" onclick="desvincularPessoa(${p.id})" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-danger);">
+            <button type="button" data-desvincular-pessoa="${p.id}" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-danger);">
                 <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -942,6 +1122,5 @@ function renderPessoasVinculadas() {
     `).join('');
 }
 
-document.addEventListener('DOMContentLoaded', initBuscaPessoa);
 window.vincularPessoa = vincularPessoa;
 window.desvincularPessoa = desvincularPessoa;

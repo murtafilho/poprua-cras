@@ -21,11 +21,7 @@ class PontoController extends Controller
             'numero' => 'nullable|string|max:20',
             'bairro' => 'nullable|string|max:200',
             'regional' => 'nullable|string|max:100',
-            'resultado' => ['nullable', function (string $attribute, mixed $value, \Closure $fail) {
-                if ($value !== 'info_precaria' && ! \DB::table('resultados_acoes')->where('id', $value)->exists()) {
-                    $fail('Resultado inválido.');
-                }
-            }],
+            'resultado' => ['nullable', fn ($attr, $value, $fail) => $this->pontoService->resultadoFiltroValido($value) || $fail('Resultado inválido.')],
             'per_page' => 'nullable|integer|min:1|max:100',
         ]);
 

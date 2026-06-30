@@ -16,3 +16,5 @@ Artisan::command('inspire', function () {
 Schedule::command('backup:clean')->dailyAt('03:00');
 Schedule::command('backup:run')->dailyAt('03:00');
 Schedule::command('backup:monitor')->dailyAt('03:00');
+Schedule::command('rascunhos:limpar')->dailyAt('03:00');
+Schedule::command('media:clean-orphaned')->dailyAt('03:00');

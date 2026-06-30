@@ -1,7 +1,7 @@
 # ADR-009: Eliminar Google Drive — fotos somente em Spatie MediaLibrary
 
 **Data:** 2026-05-20
-**Status:** Implementado (F0-F3 executadas; F2 consolidacao JS deixada como debito documentado)
+**Status:** Implementado (F0–F3 + erradicação final de config/docs em 2026-06-24)
 
 ## Contexto
 
@@ -130,3 +130,14 @@ Fases independentemente reversíveis (cada uma um commit).
 6. **UX validation:** subir foto em mobile com WiFi off, ver na galeria
    da app, reconectar, foto continua visível e swap pra server URL é
    transparente
+
+## Erradicação final (2026-06-24)
+
+Removidos os últimos vestígios operacionais:
+
+- `config/services.php` — bloco `google_drive`
+- `config/filesystems.php` — disco `r2_fotos`
+- Documentação: `REGRAS_NEGOCIO`, `API.md`, `README`, `ARQUITETURA_DOCKER`, `CLAUDE.md`
+- Skill `foto-audit` v1.1 — rubricas sem cloud sync / Drive
+
+Código PHP (Job, Service, `google/apiclient`) já havia sido removido na Fase 1.

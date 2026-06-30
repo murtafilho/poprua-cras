@@ -10,13 +10,16 @@
             </svg>
         </a>
         <span class="mobile-header-title flex-1 text-center">Nova Vistoria</span>
-        <div style="width: 44px;"></div>
+        <button type="button" id="btn-salvar-rascunho" class="btn btn-ghost btn-sm" style="font-size: var(--text-xs); white-space: nowrap;">
+            Salvar rascunho
+        </button>
     </div>
+    <div id="rascunho-status" class="text-muted" style="font-size: var(--text-xs); text-align: center; padding: 0 var(--space-3) var(--space-1); display: none;"></div>
 @endsection
 
 @section('content')
     <div class="form-page">
-        <form id="vistoria-form" action="{{ route('vistorias.store') }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate x-data="{}">
+        <form id="vistoria-form" action="{{ route('vistorias.store') }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate x-data="{}" x-cloak>
             @csrf
             <input type="hidden" name="lat" value="{{ $lat }}">
             <input type="hidden" name="lng" value="{{ $lng }}">
@@ -26,31 +29,31 @@
 
             <!-- Progress Stepper -->
             <div class="progress-stepper" id="progress-stepper" role="tablist" aria-label="Etapas da vistoria">
-                <div class="stepper-item active" data-step="0" onclick="goToStep(0)">
+                <div class="stepper-item active" data-step="0" role="tab" tabindex="0">
                     <div class="stepper-circle">1</div>
                     <span class="stepper-label">Dados</span>
                 </div>
-                <div class="stepper-item" data-step="1" onclick="goToStep(1)">
+                <div class="stepper-item" data-step="1" role="tab" tabindex="0">
                     <div class="stepper-circle">2</div>
                     <span class="stepper-label">Caract.</span>
                 </div>
-                <div class="stepper-item" data-step="2" onclick="goToStep(2)">
+                <div class="stepper-item" data-step="2" role="tab" tabindex="0">
                     <div class="stepper-circle">3</div>
                     <span class="stepper-label">Relatorio</span>
                 </div>
-                <div class="stepper-item" data-step="3" onclick="goToStep(3)">
+                <div class="stepper-item" data-step="3" role="tab" tabindex="0">
                     <div class="stepper-circle">4</div>
                     <span class="stepper-label">Encam.</span>
                 </div>
-                <div class="stepper-item" data-step="4" onclick="goToStep(4)">
+                <div class="stepper-item" data-step="4" role="tab" tabindex="0">
                     <div class="stepper-circle">5</div>
                     <span class="stepper-label">Pessoas</span>
                 </div>
-                <div class="stepper-item" data-step="5" onclick="goToStep(5)">
+                <div class="stepper-item" data-step="5" role="tab" tabindex="0">
                     <div class="stepper-circle">6</div>
                     <span class="stepper-label">Fotos</span>
                 </div>
-                <div class="stepper-item" data-step="6" onclick="goToStep(6)">
+                <div class="stepper-item" data-step="6" role="tab" tabindex="0">
                     <div class="stepper-circle">7</div>
                     <span class="stepper-label">Revisar</span>
                 </div>
@@ -115,12 +118,32 @@
 
                             <div class="form-group">
                                 <label class="form-label required">Tipo de Abordagem</label>
-                                <select name="tipo_abordagem_id" id="tipo_abordagem_id" required class="form-input form-select">
+                                <select name="tipo_abordagem_id" id="tipo_abordagem_id" required class="form-input form-select" x-on:change="toggleZeladoriaCampos()">
                                     <option value="">Selecione...</option>
                                     @foreach($tiposAbordagem as $tipo)
                                         <option value="{{ $tipo->id }}" data-tipo="{{ $tipo->tipo }}">{{ $tipo->tipo }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+
+                            <div id="zeladoria-campos" class="mt-3 hidden">
+                                <p class="form-hint" style="margin-bottom: var(--space-2);">
+                                    Agendamento de retorno para zeladoria (tipo Comunicação de Zeladoria).
+                                </p>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Data de Retorno</label>
+                                        <input type="date" name="data_prevista_zeladoria" class="form-input" value="{{ old('data_prevista_zeladoria') }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Período de Retorno</label>
+                                        <select name="periodo_zeladoria" class="form-input form-select">
+                                            <option value="">Selecione...</option>
+                                            <option value="manha" {{ old('periodo_zeladoria') === 'manha' ? 'selected' : '' }}>Manhã</option>
+                                            <option value="tarde" {{ old('periodo_zeladoria') === 'tarde' ? 'selected' : '' }}>Tarde</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                         </div>
@@ -137,13 +160,10 @@
                                 </p>
 
                                 <div class="flex flex-col gap-1">
-                                    @foreach($usuariosEquipe as $u)
-                                        @php($checked = in_array($u->id, old('participantes', $participantesPreSelecionados ?? [])))
-                                        <label class="checkbox-option" style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm);">
-                                            <input type="checkbox" name="participantes[]" value="{{ $u->id }}" class="form-checkbox" {{ $checked ? 'checked' : '' }}>
-                                            <span>{{ $u->name }}@if($u->email) <span class="text-muted" style="font-size: var(--text-xs);">— {{ $u->email }}</span>@endif</span>
-                                        </label>
-                                    @endforeach
+                                    @include('vistorias.partials.participantes-checklist', [
+                                        'usuariosEquipe' => $usuariosEquipe,
+                                        'participantesSelecionados' => old('participantes', $participantesPreSelecionados ?? []),
+                                    ])
                                 </div>
                             </div>
                         </div>
@@ -400,23 +420,9 @@
                                 Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
                             </p>
                             <div id="data_comunicado_container" class="mt-3 hidden">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="form-group">
-                                        <label class="form-label">Data de Entrega</label>
-                                        <input type="datetime-local" name="data_comunicado" value="{{ old('data_comunicado', date('Y-m-d\TH:i')) }}" class="form-input">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Data de Retorno</label>
-                                        <input type="date" name="data_prevista_zeladoria" class="form-input" value="{{ old('data_prevista_zeladoria') }}">
-                                    </div>
-                                </div>
-                                <div class="form-group mt-2">
-                                    <label class="form-label">Período de Retorno</label>
-                                    <select name="periodo_zeladoria" class="form-input form-select">
-                                        <option value="">Selecione...</option>
-                                        <option value="manha">Manhã</option>
-                                        <option value="tarde">Tarde</option>
-                                    </select>
+                                <div class="form-group">
+                                    <label class="form-label">Data de Entrega</label>
+                                    <input type="datetime-local" name="data_comunicado" value="{{ old('data_comunicado', date('Y-m-d\TH:i')) }}" class="form-input">
                                 </div>
                             </div>
                         </div>
@@ -736,5 +742,13 @@
 @endsection
 
 @push('scripts')
+<script>
+    window.VISTORIA_RASCUNHO_CTX = {
+        ponto_id: {{ $pontoProximo?->id ?? 'null' }},
+        lat: {{ $lat !== null && $lat !== '' ? json_encode((float) $lat) : 'null' }},
+        lng: {{ $lng !== null && $lng !== '' ? json_encode((float) $lng) : 'null' }},
+        debounce_ms: {{ (int) \App\Models\Parametro::get('rascunho_debounce_ms', 5000) }},
+    };
+</script>
 @vite('resources/js/vistoria-form.js')
 @endpush

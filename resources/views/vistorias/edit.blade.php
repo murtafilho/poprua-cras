@@ -16,37 +16,37 @@
 
 @section('content')
     <div class="form-page">
-        <form id="vistoria-form" action="{{ route('vistorias.update', $vistoria) }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate x-data="{}">
+        <form id="vistoria-form" action="{{ route('vistorias.update', $vistoria) }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate x-data="{}" x-cloak>
             @csrf
             @method('PUT')
 
             <!-- Progress Stepper -->
             <div class="progress-stepper" id="progress-stepper">
-                <div class="stepper-item active" data-step="0" onclick="goToStep(0)">
+                <div class="stepper-item active" data-step="0" role="tab" tabindex="0">
                     <div class="stepper-circle">1</div>
                     <span class="stepper-label">Dados</span>
                 </div>
-                <div class="stepper-item" data-step="1" onclick="goToStep(1)">
+                <div class="stepper-item" data-step="1" role="tab" tabindex="0">
                     <div class="stepper-circle">2</div>
                     <span class="stepper-label">Caract.</span>
                 </div>
-                <div class="stepper-item" data-step="2" onclick="goToStep(2)">
+                <div class="stepper-item" data-step="2" role="tab" tabindex="0">
                     <div class="stepper-circle">3</div>
                     <span class="stepper-label">Relatorio</span>
                 </div>
-                <div class="stepper-item" data-step="3" onclick="goToStep(3)">
+                <div class="stepper-item" data-step="3" role="tab" tabindex="0">
                     <div class="stepper-circle">4</div>
                     <span class="stepper-label">Encam.</span>
                 </div>
-                <div class="stepper-item" data-step="4" onclick="goToStep(4)">
+                <div class="stepper-item" data-step="4" role="tab" tabindex="0">
                     <div class="stepper-circle">5</div>
                     <span class="stepper-label">Pessoas</span>
                 </div>
-                <div class="stepper-item" data-step="5" onclick="goToStep(5)">
+                <div class="stepper-item" data-step="5" role="tab" tabindex="0">
                     <div class="stepper-circle">6</div>
                     <span class="stepper-label">Fotos</span>
                 </div>
-                <div class="stepper-item" data-step="6" onclick="goToStep(6)">
+                <div class="stepper-item" data-step="6" role="tab" tabindex="0">
                     <div class="stepper-circle">7</div>
                     <span class="stepper-label">Revisar</span>
                 </div>
@@ -117,7 +117,7 @@
 
                             <div class="form-group">
                                 <label class="form-label required">Tipo de Abordagem</label>
-                                <select name="tipo_abordagem_id" id="tipo_abordagem_id" required class="form-input form-select">
+                                <select name="tipo_abordagem_id" id="tipo_abordagem_id" required class="form-input form-select" x-on:change="toggleZeladoriaCampos()">
                                     <option value="">Selecione...</option>
                                     @foreach($tiposAbordagem as $tipo)
                                         <option value="{{ $tipo->id }}" data-tipo="{{ $tipo->tipo }}" {{ $vistoria->tipo_abordagem_id == $tipo->id ? 'selected' : '' }}>
@@ -125,6 +125,30 @@
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+
+                            @php
+                                $exibirCamposZeladoria = ($vistoria->tipoAbordagem?->isComunicacaoZeladoria() ?? false)
+                                    || $vistoria->data_prevista_zeladoria;
+                            @endphp
+                            <div id="zeladoria-campos" class="mt-3 {{ $exibirCamposZeladoria ? '' : 'hidden' }}">
+                                <p class="form-hint" style="margin-bottom: var(--space-2);">
+                                    Agendamento de retorno para zeladoria (tipo Comunicação de Zeladoria).
+                                </p>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Data de Retorno</label>
+                                        <input type="date" name="data_prevista_zeladoria" value="{{ old('data_prevista_zeladoria', $vistoria->data_prevista_zeladoria?->format('Y-m-d')) }}" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Período de Retorno</label>
+                                        <select name="periodo_zeladoria" class="form-input form-select">
+                                            <option value="">Selecione...</option>
+                                            <option value="manha" {{ old('periodo_zeladoria', $vistoria->periodo_zeladoria) === 'manha' ? 'selected' : '' }}>Manhã</option>
+                                            <option value="tarde" {{ old('periodo_zeladoria', $vistoria->periodo_zeladoria) === 'tarde' ? 'selected' : '' }}>Tarde</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                         </div>
@@ -142,15 +166,10 @@
                                     $participanteIds = $vistoria->participantes->pluck('id')->toArray();
                                 @endphp
 
-                                <div class="flex flex-col gap-1">
-                                    @foreach($usuariosEquipe as $u)
-                                        <label class="checkbox-option" style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm);">
-                                            <input type="checkbox" name="participantes[]" value="{{ $u->id }}"
-                                                   {{ in_array($u->id, old('participantes', $participanteIds)) ? 'checked' : '' }} class="form-checkbox">
-                                            <span>{{ $u->name }}@if($u->email) <span class="text-muted" style="font-size: var(--text-xs);">— {{ $u->email }}</span>@endif</span>
-                                        </label>
-                                    @endforeach
-                                </div>
+                                @include('vistorias.partials.participantes-checklist', [
+                                    'usuariosEquipe' => $usuariosEquipe,
+                                    'participantesSelecionados' => old('participantes', $participanteIds),
+                                ])
                             </div>
                         </div>
                     @endif
@@ -369,23 +388,9 @@
                                 Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
                             </p>
                             <div id="data_comunicado_container" class="mt-3 {{ $vistoria->houve_comunicado ? '' : 'hidden' }}">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="form-group">
-                                        <label class="form-label">Data de Entrega</label>
-                                        <input type="datetime-local" name="data_comunicado" value="{{ old('data_comunicado', $vistoria->data_comunicado?->format('Y-m-d\TH:i')) }}" class="form-input">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Data de Retorno</label>
-                                        <input type="date" name="data_prevista_zeladoria" value="{{ old('data_prevista_zeladoria', $vistoria->data_prevista_zeladoria?->format('Y-m-d')) }}" class="form-input">
-                                    </div>
-                                </div>
-                                <div class="form-group mt-2">
-                                    <label class="form-label">Período de Retorno</label>
-                                    <select name="periodo_zeladoria" class="form-input form-select">
-                                        <option value="">Selecione...</option>
-                                        <option value="manha" {{ $vistoria->periodo_zeladoria === 'manha' ? 'selected' : '' }}>Manhã</option>
-                                        <option value="tarde" {{ $vistoria->periodo_zeladoria === 'tarde' ? 'selected' : '' }}>Tarde</option>
-                                    </select>
+                                <div class="form-group">
+                                    <label class="form-label">Data de Entrega</label>
+                                    <input type="datetime-local" name="data_comunicado" value="{{ old('data_comunicado', $vistoria->data_comunicado?->format('Y-m-d\TH:i')) }}" class="form-input">
                                 </div>
                             </div>
                         </div>
@@ -555,8 +560,7 @@
                                                        placeholder="Legenda (opcional)"
                                                        maxlength="255"
                                                        value="{{ $fotoLegenda }}"
-                                                       data-media-id="{{ $foto->id }}"
-                                                       onchange="salvarLegendaFoto({{ $foto->id }}, this.value)">
+                                                       data-media-id="{{ $foto->id }}">
                                             </div>
                                         @endforeach
                                     </div>
@@ -604,68 +608,6 @@
                                         transition: border-color 1.5s;
                                     }
                                 </style>
-                                <script>
-                                    async function togglePublicaFoto(mediaId) {
-                                        const wrapper = document.getElementById(`foto-existente-${mediaId}`);
-                                        if (!wrapper) return;
-                                        const vistoriaId = wrapper.dataset.vistoriaId;
-                                        const btn = wrapper.querySelector('.photo-publica-btn');
-                                        btn.disabled = true;
-                                        try {
-                                            const resp = await fetch(`/ginfi/poprua-cras/public/api/vistorias/${vistoriaId}/fotos/${mediaId}/toggle-publica`, {
-                                                method: 'POST',
-                                                headers: {
-                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                                    'Accept': 'application/json',
-                                                },
-                                                credentials: 'same-origin',
-                                            });
-                                            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                                            const data = await resp.json();
-                                            const publica = data.publica;
-                                            btn.dataset.publica = publica ? '1' : '0';
-                                            btn.title = publica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app';
-                                            wrapper.classList.toggle('foto-publica', publica);
-                                            btn.innerHTML = publica
-                                                ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-                                                : '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>';
-                                        } catch (e) {
-                                            console.error('Falha ao alternar pública:', e);
-                                            alert('Não foi possível atualizar. Tente novamente.');
-                                        } finally {
-                                            btn.disabled = false;
-                                        }
-                                    }
-
-                                    async function salvarLegendaFoto(mediaId, legenda) {
-                                        const wrapper = document.getElementById(`foto-existente-${mediaId}`);
-                                        if (!wrapper) return;
-                                        const vistoriaId = wrapper.dataset.vistoriaId;
-                                        const input = wrapper.querySelector('.photo-legenda-input');
-                                        input.classList.remove('saved');
-                                        input.classList.add('saving');
-                                        try {
-                                            const resp = await fetch(`/ginfi/poprua-cras/public/api/vistorias/${vistoriaId}/fotos/${mediaId}/legenda`, {
-                                                method: 'PATCH',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                                    'Accept': 'application/json',
-                                                },
-                                                credentials: 'same-origin',
-                                                body: JSON.stringify({ legenda: legenda || '' }),
-                                            });
-                                            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                                            input.classList.add('saved');
-                                            setTimeout(() => input.classList.remove('saved'), 1500);
-                                        } catch (e) {
-                                            console.error('Falha ao salvar legenda:', e);
-                                            alert('Não foi possível salvar a legenda. Tente novamente.');
-                                        } finally {
-                                            input.classList.remove('saving');
-                                        }
-                                    }
-                                </script>
                             @endif
 
                             <input type="file" id="camera-input-back" accept="image/*" capture="environment" class="hidden">
@@ -749,11 +691,11 @@
 
             <!-- Navegação entre abas -->
             <div class="form-step-nav" id="form-step-nav">
-                <button type="button" id="btn-prev" class="btn btn-secondary" onclick="goToStep(Math.max(0, window.__currentTab - 1))" style="display: none;">
+                <button type="button" id="btn-prev" class="btn btn-secondary" style="display: none;">
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     Anterior
                 </button>
-                <button type="button" id="btn-next" class="btn btn-primary" onclick="goToStep(Math.min(6, window.__currentTab + 1))">
+                <button type="button" id="btn-next" class="btn btn-primary">
                     Próximo
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>

@@ -33,8 +33,14 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                 </svg>
             </a>
+            <a href="{{ route('mapa.index', ['lat' => $vistoria->ponto->lat, 'lng' => $vistoria->ponto->lng, 'zoom' => 19, 'ponto_id' => $vistoria->ponto_id, 'ajustar' => 1]) }}" class="btn btn-ghost btn-icon" title="Ajustar localização">
+                <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </a>
         @endif
-        <button type="button" onclick="window.print()" class="btn btn-ghost btn-icon no-print" title="Imprimir">
+        <button type="button" id="btn-print-vistoria" class="btn btn-ghost btn-icon no-print" title="Imprimir">
             <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
             </svg>
@@ -50,6 +56,10 @@
 @endsection
 
 @section('content')
+    @php
+        use App\Enums\TipoEquipe;
+        use App\Support\FormatoData;
+    @endphp
     <div class="page-content">
         {{-- Cabecalho --}}
         <div class="card mb-4">
@@ -62,15 +72,9 @@
                             </svg>
                             @php
                                 $dataAbordagem = \Carbon\Carbon::parse($vistoria->data_abordagem);
-                                $horaAbordagem = $dataAbordagem->format('H:i');
                             @endphp
                             <h2 style="font-size: var(--text-lg); font-weight: var(--font-semibold);">
-                                {{ $dataAbordagem->format('d/m/Y') }}
-                                @if ($horaAbordagem !== '00:00')
-                                    <span class="text-muted" style="font-weight: var(--font-normal);">
-                                        {{ $horaAbordagem }}
-                                    </span>
-                                @endif
+                                {{ FormatoData::exibir($dataAbordagem) }}
                             </h2>
                         </div>
 
@@ -130,7 +134,7 @@
                     @if($vistoria->data_prevista_zeladoria)
                         <div class="info-item">
                             <span class="info-label">Data Prevista Zeladoria</span>
-                            <span class="info-value">{{ $vistoria->data_prevista_zeladoria->format('d/m/Y H:i') }}</span>
+                            <span class="info-value">{{ FormatoData::exibir($vistoria->data_prevista_zeladoria) }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Periodo</span>
@@ -150,7 +154,7 @@
                         </div>
                         <div class="info-item">
                             <span class="info-label">Data do Comunicado</span>
-                            <span class="info-value">{{ $vistoria->data_comunicado?->format('d/m/Y H:i') ?? '-' }}</span>
+                            <span class="info-value">{{ $vistoria->data_comunicado ? FormatoData::exibir($vistoria->data_comunicado) : '-' }}</span>
                         </div>
                     @endif
                 </div>
@@ -161,7 +165,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                         <span style="font-size: var(--text-xs); color: var(--status-danger, #ef4444); font-weight: var(--font-medium);">
-                            Cancelada em {{ $vistoria->cancelada_em?->format('d/m/Y H:i') }}
+                            Cancelada em {{ FormatoData::exibir($vistoria->cancelada_em) }}
                         </span>
                     </div>
                 @elseif($vistoria->finalizada)
@@ -170,7 +174,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         <span style="font-size: var(--text-xs); color: var(--status-success); font-weight: var(--font-medium);">
-                            Finalizada em {{ $vistoria->finalizada_em?->format('d/m/Y H:i') }}
+                            Finalizada em {{ FormatoData::exibir($vistoria->finalizada_em) }}
                         </span>
                     </div>
                 @endif
@@ -188,21 +192,14 @@
                         Participantes
                     </h3>
                     @php
-                        $equipeLabels = [
-                            'supervisores' => 'Supervisores',
-                            'coordenadores' => 'Coordenadores',
-                            'gcm' => 'GCM',
-                            'slu' => 'SLU',
-                            'agentes_campo' => 'Agentes de Campo',
-                        ];
-                        $grouped = $vistoria->participantes->groupBy('equipe');
+                        $grouped = $vistoria->participantes->groupBy(fn ($u) => TipoEquipe::fromUser($u)->value);
                     @endphp
-                    @foreach($equipeLabels as $key => $label)
-                        @if(isset($grouped[$key]))
+                    @foreach (TipoEquipe::ordenados() as $tipo)
+                        @if ($grouped->has($tipo->value))
                             <div style="margin-bottom: var(--space-2);">
-                                <span class="info-label" style="display: block;">{{ $label }}</span>
-                                @foreach($grouped[$key] as $p)
-                                    <span class="badge badge-secondary" style="margin-right: var(--space-1); margin-bottom: var(--space-1);">{{ $p->nome }}</span>
+                                <span class="info-label" style="display: block;">{{ $tipo->label() }}</span>
+                                @foreach ($grouped[$tipo->value] as $p)
+                                    <span class="badge badge-secondary" style="margin-right: var(--space-1); margin-bottom: var(--space-1);">{{ $p->name }}</span>
                                 @endforeach
                             </div>
                         @endif

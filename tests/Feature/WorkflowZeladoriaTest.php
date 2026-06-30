@@ -91,7 +91,7 @@ class WorkflowZeladoriaTest extends TestCase
         $this->assertEquals('Fenômeno deixou de ocorrer', $result->resultado_acao);
     }
 
-    public function test_owner_pode_editar_qualquer_vistoria_propria(): void
+    public function test_owner_pode_editar_apenas_vistoria_aberta_propria(): void
     {
         $ponto = Ponto::factory()->create();
 
@@ -109,7 +109,7 @@ class WorkflowZeladoriaTest extends TestCase
         ]);
 
         $this->actingAs($this->user)->get(route('vistorias.edit', $aberta))->assertOk();
-        $this->actingAs($this->user)->get(route('vistorias.edit', $finalizada))->assertOk();
+        $this->actingAs($this->user)->get(route('vistorias.edit', $finalizada))->assertForbidden();
     }
 
     public function test_admin_pode_editar_vistoria_de_outro_usuario(): void
@@ -148,11 +148,13 @@ class WorkflowZeladoriaTest extends TestCase
             ->assertSee('id="map"', false);
     }
 
-    public function test_mapa_js_tem_restricao_bh(): void
+    public function test_mapa_js_centraliza_em_bh_sem_max_bounds(): void
     {
         $jsContent = file_get_contents(base_path('resources/js/mapa.js'));
-        $this->assertStringContainsString('maxBoundsViscosity: 1.0', $jsContent);
-        $this->assertStringContainsString('BH_BOUNDS', $jsContent);
+        $this->assertStringContainsString('BH_CENTER', $jsContent);
+        $this->assertStringContainsString('DEFAULT_ZOOM', $jsContent);
+        $this->assertStringNotContainsString('maxBoundsViscosity: 1.0', $jsContent);
+        $this->assertStringNotContainsString('BH_BOUNDS', $jsContent);
     }
 
     public function test_minhas_vistorias_reutiliza_index(): void
@@ -195,5 +197,62 @@ class WorkflowZeladoriaTest extends TestCase
             ->get(route('pontos.index'))
             ->assertOk()
             ->assertSee('Informação Precária');
+    }
+
+    public function test_data_prevista_zeladoria_so_persiste_para_tipo_comunicacao(): void
+    {
+        $this->actingAs($this->user)->post(route('vistorias.store'), [
+            'lat' => -19.9200,
+            'lng' => -43.9400,
+            'data_abordagem' => now()->format('Y-m-d\TH:i'),
+            'tipo_abordagem_id' => 1,
+            'resultado_acao_id' => 1,
+            'data_prevista_zeladoria' => '2026-07-01',
+            'periodo_zeladoria' => 'manha',
+        ])->assertRedirect();
+
+        $vistoriaOrientativa = Vistoria::query()->orderByDesc('id')->first();
+        $this->assertNull($vistoriaOrientativa->data_prevista_zeladoria);
+        $this->assertNull($vistoriaOrientativa->periodo_zeladoria);
+
+        $this->actingAs($this->user)->post(route('vistorias.store'), [
+            'lat' => -19.9210,
+            'lng' => -43.9410,
+            'data_abordagem' => now()->format('Y-m-d\TH:i'),
+            'tipo_abordagem_id' => 5,
+            'resultado_acao_id' => 1,
+            'data_prevista_zeladoria' => '2026-07-15',
+            'periodo_zeladoria' => 'tarde',
+        ])->assertRedirect();
+
+        $vistoriaComunicacao = Vistoria::query()->orderByDesc('id')->first();
+        $this->assertNotNull($vistoriaComunicacao->data_prevista_zeladoria);
+        $this->assertSame('tarde', $vistoriaComunicacao->periodo_zeladoria);
+    }
+
+    public function test_exportar_roteiro_csv(): void
+    {
+        $ponto = Ponto::factory()->create();
+
+        Vistoria::factory()->create([
+            'ponto_id' => $ponto->id,
+            'user_id' => $this->user->id,
+            'tipo_abordagem_id' => 5,
+            'resultado_acao_id' => 1,
+            'data_prevista_zeladoria' => '2026-07-10',
+            'periodo_zeladoria' => 'manha',
+            'data_abordagem' => now(),
+        ]);
+
+        $response = $this->actingAs($this->user)->get(route('vistorias.roteiro', [
+            'data_prevista_inicio' => '2026-07-01',
+            'data_prevista_fim' => '2026-07-31',
+            'format' => 'csv',
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('Data Prevista', $response->streamedContent());
+        $this->assertStringContainsString('10/07/2026', $response->streamedContent());
     }
 }

@@ -11,12 +11,14 @@
 
 | Status | Qtd | Itens |
 |--------|-----|-------|
-| ✅ Implementado | 8 | 1.1, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9 |
+| ✅ Implementado | 10 | 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10 |
 | 🟢 Corrigido nesta auditoria | 1 | 1.11 |
-| ⚠️ Parcial / depende de decisao | 1 | 1.10 (dados legados) |
-| 🔴 Pendente | 1 | 1.2 |
+| ⚠️ Parcial / depende de decisao | 0 | — |
+| 🔴 Pendente | 0 | — |
 
-**Conclusao:** 9 de 11 itens (82%) ja estao implementados ou foram resolvidos nesta auditoria. So 1.2 (salvamento parcial) requer trabalho novo significativo.
+**Conclusao:** 11 de 11 itens (100%) implementados ou corrigidos.
+
+> **Atualizacao 2026-06-24:** item 1.2 (salvamento parcial) implementado — ver UC-006 e secao 1.2 abaixo.
 
 ---
 
@@ -32,30 +34,44 @@
 | Persistencia | `Vistoria::participantes()` (BelongsToMany) — `MembroEquipe::vistorias()` |
 | UI | seletor em `resources/views/vistorias/create.blade.php` e `edit.blade.php` |
 
-**Gaps menores:** o PDF cita equipes nomeadas (Supervisores, Coordenadores, GCM, SLU, Agentes de Campo). O model atual usa o campo `equipe` (texto livre). Recomenda-se:
+**Gaps menores (atualizado 2026-06-24):**
 
-1. Criar enum/lookup `tipos_equipe` (Supervisor, Coordenador, GCM, SLU, AgenteCampo) para garantir categorizacao consistente.
-2. Pre-popular `membros_equipe` com os nomes/matriculas listados no PDF (`Eliane Mesquita`, `Hudson Abner Pinto`, etc.) via seeder.
+- ~~Categorizar participantes na UI por tipo de equipe~~ — **Entregue:** enum `TipoEquipe` mapeia roles Spatie (`supervisor`, `coordenador`, `guardas-municipais`, etc.) para grupos na create/edit/show e Minha Equipe.
+- Seeder com nomes do PDF permanece opcional (usuarios ja vem de `users` + roles).
 
-**Esforco para gaps:** ~2h (seeder + lookup table).
+**Esforco gaps restantes:** nenhum critico neste item.
 
 ---
 
-## 1.2 — Salvamento Parcial por Etapa 🔴
+## 1.2 — Salvamento Parcial por Etapa ✅
 
-**Status:** **Nao implementado.**
+**Status:** **Implementado** (2026-06-24).
 
-A busca por `autosave`, `save-draft`, `salvarParcial`, `partial_save`, `draft_id` em `app/` e `resources/` retornou zero ocorrencias.
+| Componente | Local |
+|-----------|-------|
+| UC | `docs/casos-de-uso/UC-006-rascunho-zeladoria.md` |
+| Migration | `2026_06_24_000000_create_vistorias_rascunhos_table.php` |
+| Model | `app/Models/VistoriaRascunho.php` |
+| Service | `app/Services/VistoriaRascunhoService.php` |
+| API | `app/Http/Controllers/Api/VistoriaRascunhoController.php` |
+| Policy | `app/Policies/VistoriaRascunhoPolicy.php` |
+| Frontend | `resources/js/vistoria-form.js` — autosave 5s, botao "Salvar rascunho", retomada via `confirm()` |
+| UI | Header em `resources/views/vistorias/create.blade.php` + indicador de status |
+| Limpeza | `VistoriaController::store` descarta rascunho apos criacao definitiva |
+| Testes | `tests/Feature/Api/VistoriaRascunhoControllerTest.php` (7 testes) |
 
-**Implementacao sugerida:**
+**Comportamento entregue:**
 
-1. **Backend:** nova tabela `vistorias_rascunhos` (ou coluna `rascunho_payload jsonb` em `vistorias`) com `user_id`, `ponto_id`, `payload jsonb`, `updated_at`.
-2. **Endpoint:** `PATCH /api/vistorias/rascunho/{ponto?}` que upsert um rascunho do usuario.
-3. **Frontend:** debounce de 5s nos inputs do wizard de criacao chamando o endpoint. Indicador "Salvo HH:MM" no header.
-4. **Retomada:** ao abrir `vistorias/create`, se existir rascunho do usuario para aquele ponto, pre-popular form com confirmacao "Continuar rascunho de DD/MM HH:MM?".
-5. **Limpeza:** ao registrar a vistoria definitiva (`store`), deletar rascunho.
+1. Tabela `vistorias_rascunhos` com `payload` jsonb, `etapa_atual` (0–6) e `context_key` (`ponto:{id}` ou `coords:lat,lng`).
+2. `PATCH /api/vistorias/rascunho` — upsert do rascunho do usuario autenticado.
+3. Autosave com debounce de 5s + botao manual no header; indicador "Rascunho salvo as HH:MM".
+4. Ao abrir `vistorias/create`, modal de confirmacao para retomar rascunho existente.
+5. Rascunho removido ao registrar zeladoria definitiva (`POST /vistorias`).
+6. localStorage mantido como fallback offline quando a API nao responde.
 
-**Esforco:** 6-8h.
+**Fora do escopo v1:** fotos no payload (continuam via fila offline); rascunho na edicao de zeladoria existente.
+
+**Esforco realizado:** ~6–8h (conforme estimativa original).
 
 ---
 
@@ -74,10 +90,10 @@ A busca por `autosave`, `save-draft`, `salvarParcial`, `partial_save`, `draft_id
 
 **Gaps:**
 
-- Nao ha condicional UI "se `tipo_abordagem` = Comunicacao de Zeladoria, mostrar os campos data_prevista + periodo". Atualmente os campos aparecem sempre. **Recomendado:** adicionar `x-show` no formulario condicionado ao `tipo_abordagem_id` da opcao "Comunicacao de Zeladoria".
-- Exportacao **Excel** nao existe (so PDF/HTML via `roteiro.blade.php`).
+- ~~Condicional UI por tipo de abordagem~~ — **Entregue 2026-06-24:** bloco `#zeladoria-campos` em create/edit, visível só para tipo "Comunicação de Zeladoria"; backend descarta agendamento se tipo divergente (`prepareForValidation` + `TipoAbordagem::isComunicacaoZeladoria()`).
+- ~~Exportacao **Excel** nao existe (so PDF/HTML via `roteiro.blade.php`).~~ **Entregue 2026-06-24:** export CSV UTF-8 (`format=csv`, separador `;`) compativel com Excel.
 
-**Esforco gaps:** 1-2h (condicional + Excel via Spatie SimpleExcel ou Laravel Excel).
+**Esforco gaps restantes:** nenhum neste item.
 
 ---
 
@@ -132,9 +148,9 @@ Equivalente em `vistorias/edit.blade.php`, `moradores/create.blade.php`, `morado
 - UI: `resources/js/mapa.js` tem o fluxo "ajustar coordenadas" — botao "Confirmar ajuste" chama o endpoint PATCH com novas lat/lng.
 - Acionavel pela URL `/mapa?ponto_id=N&ajustar=1`.
 
-**Sem gaps no nucleo.** Recomendacao: adicionar link "Ajustar localizacao deste ponto" na `vistorias/show.blade.php` para facilitar acesso pos-cadastro (atualmente requer entrar pelo mapa).
+**Gap fechado 2026-06-24:** atalho **Ajustar localização** no header de `vistorias/show.blade.php` (mesmo padrão de `pontos/show`).
 
-**Esforco:** 15min.
+**Sem gaps no nucleo.**
 
 ---
 
@@ -179,38 +195,19 @@ $table->boolean('houve_lavacao')->default(false)->after('houve_lavratura');
 
 ---
 
-## 1.10 — Bug "00:00" no horario ⚠️
+## 1.10 — Bug "00:00" no horario ✅
 
-**Status:** **Parcial — comportamento esperado para dados legados.**
+**Status:** **Implementado** (mascara UI via `App\Support\FormatoData`).
 
-Diagnostico via SQL:
+Diagnostico via SQL: 98% dos registros legados tem hora `00:00:00` (migracao pre-2026). Vistorias novas salvam hora real via `datetime-local`.
 
-```
-sem_hora |  total | com_data
----------+--------+---------
-   41664 | 42435  | 42435
-```
+**Entregue 2026-06-24:**
 
-- 41.664 de 42.435 vistorias (98%) tem hora `00:00:00`.
-- Vistorias mais antigas (id=1) sao de **2017-09-29 00:00:00**, vindas do sistema legado pre-fork.
-- Vistorias recentes (id=43694) tem hora real (`18:46:00`).
+- Helper `FormatoData::exibir()` omite `H:i` quando `00:00`
+- Aplicado em `vistorias/show` (abordagem, retorno, comunicado, finalizacao, cancelamento)
+- Index/minhas e pontos/show ja mascaravam inline
 
-**O sistema novo salva a hora corretamente.** O `<input type="datetime-local">` em `create.blade.php:113` envia `Y-m-d\TH:i` e `StoreVistoriaRequest` valida com `date_format:Y-m-d\TH:i`.
-
-**Acoes recomendadas:**
-
-A. **Aceitar** que vistorias pre-2026 nao tem hora (e a realidade do dado migrado).
-
-B. **Mascarar UI:** na `show.blade.php` linhas 47-49, omitir o `H:i` quando for `00:00:00`, exibindo so a data:
-   ```blade
-   @php $hora = $vistoria->data_abordagem->format('H:i'); @endphp
-   {{ $vistoria->data_abordagem->format('d/m/Y') }}
-   @if($hora !== '00:00') as {{ $hora }} @endif
-   ```
-
-C. **Backfill** opcional: marcar vistorias antigas com `data_abordagem` em fim de tarde generico (15:00) via migration de dados — **nao recomendado** (perde informacao "sem hora").
-
-**Esforco opcao B:** 30min em 4 views (show, index, minhas, partials).
+**Backfill** de hora generica permanece **nao recomendado** (perde informacao "sem hora").
 
 ---
 
@@ -245,17 +242,18 @@ Ordenado por valor/esforco:
 
 | # | Acao | Item | Esforco | Valor |
 |---|------|------|---------|-------|
-| 1 | Adicionar `houve_lavacao` separado de `houve_lavratura` | 1.9 | 30min | Alto (metrica solicitada) |
-| 2 | Mascarar `00:00` na UI quando hora ausente | 1.10 | 30min | Medio (cosmetico) |
-| 3 | Condicional UI: data/periodo zeladoria so para tipo "Comunicacao de Zeladoria" | 1.3 | 1h | Medio |
-| 4 | Link "Ajustar localizacao" na `show.blade.php` | 1.7 | 15min | Baixo |
-| 5 | Seeder de membros das equipes (nomes do PDF) | 1.1 | 1h | Alto |
-| 6 | Tabela lookup `tipos_equipe` (Supervisor/Coordenador/GCM/SLU/Agente) | 1.1 | 1h | Medio |
-| 7 | Export PDF nativo do roteiro (Laravel-DomPDF) | 1.6 | 1h | Medio |
-| 8 | Complementacao com justificativa pos-finalizacao | 1.8 | 3-4h | Alto |
-| 9 | **Salvamento parcial por etapa (autosave)** | 1.2 | 6-8h | Alto |
+| ~~1~~ | ~~Adicionar `houve_lavacao` separado de `houve_lavratura`~~ | ~~1.9~~ | — | ✅ Entregue |
+| ~~2~~ | ~~Mascarar `00:00` na UI quando hora ausente (dados legados)~~ | ~~1.10~~ | — | ✅ Entregue (2026-06-24) |
+| ~~3~~ | ~~Condicional UI: data/periodo zeladoria so para tipo "Comunicacao de Zeladoria"~~ | ~~1.3~~ | — | ✅ Entregue (2026-06-24) |
+| ~~4~~ | ~~Link "Ajustar localizacao" na `show.blade.php`~~ | ~~1.7~~ | — | ✅ Entregue (2026-06-24) |
+| ~~5~~ | ~~Categorizar participantes por papel na UI~~ | ~~1.1~~ | — | ✅ Entregue (2026-06-24) |
+| ~~6~~ | ~~Export Excel do roteiro~~ | ~~1.3/1.6~~ | — | ✅ Entregue (2026-06-24) |
+| ~~7~~ | ~~Export PDF nativo do roteiro (Laravel-DomPDF)~~ | ~~1.6~~ | — | ✅ Entregue |
+| ~~8~~ | ~~Complementacao com justificativa pos-finalizacao~~ | ~~1.8~~ | — | ✅ Entregue |
+| ~~9~~ | ~~Salvamento parcial por etapa (autosave)~~ | ~~1.2~~ | — | ✅ Entregue (2026-06-24) |
+| ~~10~~ | ~~Consolidar IndexedDB duplicado (ADR-009)~~ | UC-007 | — | ✅ Entregue (2026-06-24) |
 
-**Total para 100% de cobertura:** ~16h de desenvolvimento.
+**Total para gaps restantes:** nenhum item pendente da auditoria GFAES/PBH.
 
 ---
 

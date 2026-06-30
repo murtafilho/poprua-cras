@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POPRUA CRAS · Estudo de logo (zeladoria) — direções</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#184186; --blue-deep:#0F2E63; --yellow:#FFC400; --green:#009D67;
+    --red:#E8424A; --ink:#16223A; --muted:#6B7689; --line:#E3E9F2; --bg:#EDF1F8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ font-family:'Outfit',system-ui,sans-serif; background:var(--bg); color:var(--ink);
+    -webkit-font-smoothing:antialiased; padding:48px 40px 72px; }
+  .wrap{ max-width:1160px; margin:0 auto; }
+  .topbar{ display:flex; align-items:center; gap:16px; margin-bottom:8px; }
+  .topbar .stripe{ height:6px; flex:1; border-radius:3px;
+    background:linear-gradient(90deg,var(--blue) 0 25%,var(--yellow) 25% 50%,var(--red) 50% 75%,var(--green) 75% 100%); }
+  h1{ font-size:24px; font-weight:800; letter-spacing:-.01em; }
+  .sub{ color:var(--muted); font-size:14px; margin:6px 0 36px; max-width:760px; line-height:1.5; }
+
+  .concept{ background:#fff; border:1px solid var(--line); border-radius:14px;
+    padding:30px 32px; margin-bottom:24px; box-shadow:0 6px 18px rgba(15,23,42,.05); }
+  .concept-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:24px; }
+  .tag{ font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:#fff; background:var(--blue); padding:4px 9px; border-radius:5px; }
+  .cname{ font-size:18px; font-weight:700; }
+  .cidea{ color:var(--muted); font-size:13.5px; line-height:1.5; margin-left:auto; max-width:520px; }
+
+  .row{ display:grid; grid-template-columns: 150px 1fr 96px 96px; gap:28px; align-items:center; }
+  .cell-label{ font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+    text-align:center; margin-top:10px; }
+  .symbol svg{ width:120px; height:120px; display:block; margin:0 auto; }
+
+  /* lockup */
+  .lockup{ display:flex; align-items:center; gap:16px; }
+  .lockup svg{ width:60px; height:60px; flex-shrink:0; }
+  .wordmark .pop{ font-weight:800; font-size:30px; letter-spacing:-.02em; line-height:.9; color:var(--blue); }
+  .wordmark .cras{ font-weight:600; font-size:30px; letter-spacing:-.02em; color:var(--ink); }
+  .wordmark .tag2{ font-size:11px; font-weight:600; letter-spacing:.34em; text-transform:uppercase;
+    color:var(--muted); margin-top:3px; }
+
+  /* app icon */
+  .appicon{ width:84px; height:84px; border-radius:20px; background:var(--blue);
+    display:flex; align-items:center; justify-content:center; margin:0 auto;
+    box-shadow:0 8px 18px rgba(24,65,134,.30); }
+  .appicon svg{ width:54px; height:54px; }
+
+  /* mono */
+  .mono{ width:84px; height:84px; display:flex; align-items:center; justify-content:center; margin:0 auto; }
+  .mono svg{ width:60px; height:60px; }
+
+  /* endorsement lockup */
+  .endorse{ display:flex; align-items:center; gap:18px; padding:18px 22px;
+    border:1px dashed var(--line); border-radius:12px; background:#F7FAFE; margin-top:4px; }
+  .brasao{ width:46px; height:46px; border-radius:8px; background:var(--blue); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px;
+    flex-shrink:0; }
+  .divider{ width:1px; height:42px; background:var(--line); }
+  .endorse small{ display:block; color:var(--muted); font-size:11px; line-height:1.4; }
+  .endorse .pbhname{ font-weight:700; font-size:13px; color:var(--ink); letter-spacing:.02em; }
+  .note{ font-size:12px; color:var(--muted); margin-top:14px; line-height:1.5; }
+  .foot{ color:var(--muted); font-size:11px; text-align:center; margin-top:30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar"><div class="stripe"></div></div>
+  <h1>POPRUA CRAS · estudo de logo — tema zeladoria</h1>
+  <p class="sub">Três direções de símbolo, na paleta PBH, no modelo de <b>submarca endossada</b>: símbolo próprio para app/PWA, desenhado para travar com o brasão da PBH em peças formais. Tons buscados: institucional + humano + movimento. Cada direção mostrada como símbolo, lockup, ícone de app e versão monocromática.</p>
+
+  <!-- ============ CONCEITO 1 ============ -->
+  <div class="concept">
+    <div class="concept-head">
+      <span class="tag">Direção A</span>
+      <span class="cname">Ponto que cuida</span>
+      <span class="cidea">O alfinete de mapa (território/geo — o coração do sistema) com um <b>coração</b> no miolo (as pessoas, o cuidado). Une o que o POPRUA faz: localizar e cuidar. Eco do coração da “Prefeitura do Povo”.</span>
+    </div>
+    <div class="row">
+      <div>
+        <div class="symbol">
+          <svg viewBox="0 0 64 64" aria-label="Ponto que cuida">
+            <path d="M32 5 C20.4 5 11 14.1 11 25.4 C11 39.5 30.2 57.5 31.1 58.3 C31.6 58.8 32.4 58.8 32.9 58.3 C33.8 57.5 53 39.5 53 25.4 C53 14.1 43.6 5 32 5 Z" fill="#184186"/>
+            <path d="M32 36.8 C25 31.4 20.8 27.6 20.8 23.2 C20.8 19.6 23.6 17.7 26.4 18.9 C28 19.6 29.4 21 32 23.7 C34.6 21 36 19.6 37.6 18.9 C40.4 17.7 43.2 19.6 43.2 23.2 C43.2 27.6 39 31.4 32 36.8 Z" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="cell-label">Símbolo</div>
+      </div>
+      <div>
+        <div class="lockup">
+          <svg viewBox="0 0 64 64"><path d="M32 5 C20.4 5 11 14.1 11 25.4 C11 39.5 30.2 57.5 31.1 58.3 C31.6 58.8 32.4 58.8 32.9 58.3 C33.8 57.5 53 39.5 53 25.4 C53 14.1 43.6 5 32 5 Z" fill="#184186"/><path d="M32 36.8 C25 31.4 20.8 27.6 20.8 23.2 C20.8 19.6 23.6 17.7 26.4 18.9 C28 19.6 29.4 21 32 23.7 C34.6 21 36 19.6 37.6 18.9 C40.4 17.7 43.2 19.6 43.2 23.2 C43.2 27.6 39 31.4 32 36.8 Z" fill="#fff"/></svg>
+          <div class="wordmark"><span class="pop">POPRUA</span><span class="cras"> CRAS</span><div class="tag2">zeladoria</div></div>
+        </div>
+        <div class="cell-label">Lockup horizontal</div>
+      </div>
+      <div>
+        <div class="appicon"><svg viewBox="0 0 64 64"><path d="M32 8 C22 8 14 15.6 14 25 C14 37.5 32 54 32 54 C32 54 50 37.5 50 25 C50 15.6 42 8 32 8 Z" fill="#fff"/><path d="M32 36 C26 31.4 22.4 28.1 22.4 24.3 C22.4 21.2 24.8 19.6 27.2 20.6 C28.6 21.2 29.8 22.4 32 24.7 C34.2 22.4 35.4 21.2 36.8 20.6 C39.2 19.6 41.6 21.2 41.6 24.3 C41.6 28.1 38 31.4 32 36 Z" fill="#184186"/></svg></div>
+        <div class="cell-label">Ícone do app</div>
+      </div>
+      <div>
+        <div class="mono"><svg viewBox="0 0 64 64"><path d="M32 5 C20.4 5 11 14.1 11 25.4 C11 39.5 30.2 57.5 31.1 58.3 C31.6 58.8 32.4 58.8 32.9 58.3 C33.8 57.5 53 39.5 53 25.4 C53 14.1 43.6 5 32 5 Z" fill="#16223A"/><path d="M32 36.8 C25 31.4 20.8 27.6 20.8 23.2 C20.8 19.6 23.6 17.7 26.4 18.9 C28 19.6 29.4 21 32 23.7 C34.6 21 36 19.6 37.6 18.9 C40.4 17.7 43.2 19.6 43.2 23.2 C43.2 27.6 39 31.4 32 36.8 Z" fill="#fff"/></svg></div>
+        <div class="cell-label">Monocromático</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONCEITO 2 ============ -->
+  <div class="concept">
+    <div class="concept-head">
+      <span class="tag">Direção B</span>
+      <span class="cname">Ronda contínua</span>
+      <span class="cidea">Um ponto central (a cidade / o ponto monitorado) e um percurso que <b>circula sem parar</b> — a ronda, o acompanhamento longitudinal, “o trabalho não para”. O ponto amarelo é a ação em movimento.</span>
+    </div>
+    <div class="row">
+      <div>
+        <div class="symbol">
+          <svg viewBox="0 0 64 64" aria-label="Ronda contínua">
+            <path d="M32 11 A21 21 0 1 1 13.8 21.5" fill="none" stroke="#184186" stroke-width="6.5" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="7.5" fill="#184186"/>
+            <circle cx="32" cy="11" r="5.5" fill="#FFC400"/>
+          </svg>
+        </div>
+        <div class="cell-label">Símbolo</div>
+      </div>
+      <div>
+        <div class="lockup">
+          <svg viewBox="0 0 64 64"><path d="M32 11 A21 21 0 1 1 13.8 21.5" fill="none" stroke="#184186" stroke-width="6.5" stroke-linecap="round"/><circle cx="32" cy="32" r="7.5" fill="#184186"/><circle cx="32" cy="11" r="5.5" fill="#FFC400"/></svg>
+          <div class="wordmark"><span class="pop">POPRUA</span><span class="cras"> CRAS</span><div class="tag2">zeladoria</div></div>
+        </div>
+        <div class="cell-label">Lockup horizontal</div>
+      </div>
+      <div>
+        <div class="appicon"><svg viewBox="0 0 64 64"><path d="M32 12 A20 20 0 1 1 15 22" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="32" cy="32" r="7" fill="#fff"/><circle cx="32" cy="12" r="5" fill="#FFC400"/></svg></div>
+        <div class="cell-label">Ícone do app</div>
+      </div>
+      <div>
+        <div class="mono"><svg viewBox="0 0 64 64"><path d="M32 11 A21 21 0 1 1 13.8 21.5" fill="none" stroke="#16223A" stroke-width="6.5" stroke-linecap="round"/><circle cx="32" cy="32" r="7.5" fill="#16223A"/><circle cx="32" cy="11" r="5.5" fill="#16223A"/></svg></div>
+        <div class="cell-label">Monocromático</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONCEITO 3 ============ -->
+  <div class="concept">
+    <div class="concept-head">
+      <span class="tag">Direção C</span>
+      <span class="cname">Abrigo</span>
+      <span class="cidea">Um arco que <b>acolhe/protege</b> (cuidado, abrigo, gesto de mão) sobre uma figura — a pessoa em situação de rua, o foco humano da política. Institucional na forma, humano no conteúdo.</span>
+    </div>
+    <div class="row">
+      <div>
+        <div class="symbol">
+          <svg viewBox="0 0 64 64" aria-label="Abrigo">
+            <path d="M11 36 C11 20.5 20.4 11 32 11 C43.6 11 53 20.5 53 36" fill="none" stroke="#184186" stroke-width="6.5" stroke-linecap="round"/>
+            <circle cx="32" cy="35" r="6" fill="#E8424A"/>
+            <path d="M21 53 C21 44.7 25.9 40 32 40 C38.1 40 43 44.7 43 53 Z" fill="#E8424A"/>
+          </svg>
+        </div>
+        <div class="cell-label">Símbolo</div>
+      </div>
+      <div>
+        <div class="lockup">
+          <svg viewBox="0 0 64 64"><path d="M11 36 C11 20.5 20.4 11 32 11 C43.6 11 53 20.5 53 36" fill="none" stroke="#184186" stroke-width="6.5" stroke-linecap="round"/><circle cx="32" cy="35" r="6" fill="#E8424A"/><path d="M21 53 C21 44.7 25.9 40 32 40 C38.1 40 43 44.7 43 53 Z" fill="#E8424A"/></svg>
+          <div class="wordmark"><span class="pop">POPRUA</span><span class="cras"> CRAS</span><div class="tag2">zeladoria</div></div>
+        </div>
+        <div class="cell-label">Lockup horizontal</div>
+      </div>
+      <div>
+        <div class="appicon"><svg viewBox="0 0 64 64"><path d="M13 37 C13 22.4 21.6 13 32 13 C42.4 13 51 22.4 51 37" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="32" cy="36" r="5.5" fill="#FFC400"/><path d="M22 52 C22 44.3 26.5 40 32 40 C37.5 40 42 44.3 42 52 Z" fill="#FFC400"/></svg></div>
+        <div class="cell-label">Ícone do app</div>
+      </div>
+      <div>
+        <div class="mono"><svg viewBox="0 0 64 64"><path d="M11 36 C11 20.5 20.4 11 32 11 C43.6 11 53 20.5 53 36" fill="none" stroke="#16223A" stroke-width="6.5" stroke-linecap="round"/><circle cx="32" cy="35" r="6" fill="#16223A"/><path d="M21 53 C21 44.7 25.9 40 32 40 C38.1 40 43 44.7 43 53 Z" fill="#16223A"/></svg></div>
+        <div class="cell-label">Monocromático</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ENDOSSO PBH ============ -->
+  <div class="concept">
+    <div class="concept-head">
+      <span class="tag" style="background:var(--ink)">Endosso</span>
+      <span class="cname">Lockup institucional com a PBH</span>
+      <span class="cidea">Em peças formais (relatórios A4, ofícios), a marca do sistema trava ao lado do brasão oficial — submarca endossada. Exemplo com a Direção A (o brasão real entra no lugar do placeholder).</span>
+    </div>
+    <div class="endorse">
+      <div class="brasao">brasão</div>
+      <div>
+        <div class="pbhname">PREFEITURA DE BELO HORIZONTE</div>
+        <small>Prefeitura do Povo</small>
+      </div>
+      <div class="divider"></div>
+      <svg viewBox="0 0 64 64" style="width:42px;height:42px;flex-shrink:0"><path d="M32 5 C20.4 5 11 14.1 11 25.4 C11 39.5 30.2 57.5 31.1 58.3 C31.6 58.8 32.4 58.8 32.9 58.3 C33.8 57.5 53 39.5 53 25.4 C53 14.1 43.6 5 32 5 Z" fill="#184186"/><path d="M32 36.8 C25 31.4 20.8 27.6 20.8 23.2 C20.8 19.6 23.6 17.7 26.4 18.9 C28 19.6 29.4 21 32 23.7 C34.6 21 36 19.6 37.6 18.9 C40.4 17.7 43.2 19.6 43.2 23.2 C43.2 27.6 39 31.4 32 36.8 Z" fill="#fff"/></svg>
+      <div>
+        <div class="pbhname" style="color:var(--blue)">POPRUA CRAS</div>
+        <small>Sistema de zeladoria · população em situação de rua</small>
+      </div>
+    </div>
+    <p class="note">Placeholder “brasão”: o brasão oficial da PBH (vetor limpo) entra aqui — você me passa o SVG/PNG ou eu extraio de fonte oficial.</p>
+  </div>
+
+  <p class="foot">Estudo de direções · POPRUA CRAS / PBH · SVG vetorial, escalável · paleta institucional PBH</p>
+</div>
+</body>
+</html>

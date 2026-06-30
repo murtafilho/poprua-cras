@@ -27,7 +27,7 @@ EXEC="sudo docker exec -u root php84-poprua-cras"
 # 1. Clonar e configurar
 git clone <repo-url> && cd poprua-cras
 cp .env.example .env
-# Editar .env: DB_PASSWORD, APP_KEY (depois), credenciais opcionais (Google Drive, R2)
+# Editar .env: DB_PASSWORD, APP_KEY (depois)
 
 # 2. Subir containers
 docker compose up -d

@@ -12,14 +12,15 @@ use Illuminate\Support\Facades\Schema;
  * de fora do commit. Quando o autor (murtafilho) empurrar a migration oficial,
  * remover ESTE arquivo antes do próximo pull para evitar duplicação.
  */
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('vistorias', function (Blueprint $table) {
-            if (!Schema::hasColumn('vistorias', 'houve_comunicado')) {
+            if (! Schema::hasColumn('vistorias', 'houve_comunicado')) {
                 $table->boolean('houve_comunicado')->default(false)->after('houve_lavratura');
             }
-            if (!Schema::hasColumn('vistorias', 'data_comunicado')) {
+            if (! Schema::hasColumn('vistorias', 'data_comunicado')) {
                 $table->date('data_comunicado')->nullable()->after('houve_comunicado');
             }
         });

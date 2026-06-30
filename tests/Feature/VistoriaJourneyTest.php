@@ -31,6 +31,8 @@ class VistoriaJourneyTest extends TestCase
 
     private int $tipoAbordagemId;
 
+    private int $tipoComunicacaoZeladoriaId;
+
     private int $resultadoAcaoId;
 
     private int $tipoAbrigoId;
@@ -50,6 +52,7 @@ class VistoriaJourneyTest extends TestCase
 
         // Lookups exigidos pelas regras de validação
         $this->tipoAbordagemId = DB::table('tipo_abordagem')->insertGetId(['tipo' => 'Rotina']);
+        $this->tipoComunicacaoZeladoriaId = DB::table('tipo_abordagem')->insertGetId(['tipo' => 'Comunicação de Zeladoria']);
         $this->resultadoAcaoId = DB::table('resultados_acoes')->insertGetId(['resultado' => 'Orientação']);
         $this->tipoAbrigoId = DB::table('tipo_abrigo_desmontado')->insertGetId(['tipo_abrigo' => 'Barraca']);
 
@@ -75,7 +78,7 @@ class VistoriaJourneyTest extends TestCase
             'lat' => -19.9167,
             'lng' => -43.9345,
             'data_abordagem' => '2026-05-25T10:30',
-            'tipo_abordagem_id' => $this->tipoAbordagemId,
+            'tipo_abordagem_id' => $this->tipoComunicacaoZeladoriaId,
             'quantidade_pessoas' => 4,
             'nomes_pessoas' => 'João, Maria, Pedro, Ana',
             'data_prevista_zeladoria' => '2026-06-01',
@@ -168,7 +171,7 @@ class VistoriaJourneyTest extends TestCase
 
         // Aba 0: Dados
         $this->assertEquals($this->user->id, $vistoria->user_id);
-        $this->assertEquals($this->tipoAbordagemId, $vistoria->tipo_abordagem_id);
+        $this->assertEquals($this->tipoComunicacaoZeladoriaId, $vistoria->tipo_abordagem_id);
         $this->assertEquals(4, $vistoria->quantidade_pessoas);
         $this->assertNotNull($vistoria->data_prevista_zeladoria);
         $this->assertEquals('manha', $vistoria->periodo_zeladoria);

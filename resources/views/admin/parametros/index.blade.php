@@ -132,6 +132,8 @@
                                 'app_orgao' => 'Exibido no rodapé e nos relatórios impressos',
                                 'info_precaria_dias' => 'Listagem de pontos e zeladorias: pontos sem vistoria há mais de N dias recebem status "Informação Precária" e prioridade de visita',
                                 'exigir_comunicado' => 'Formulário de vistoria: se Sim, o sistema impede agendar zeladoria sem comunicado prévio entregue',
+                                'rascunho_debounce_ms' => 'Formulário de nova zeladoria: intervalo de autosave do rascunho (milissegundos)',
+                                'rascunho_dias_expiracao' => 'Job rascunhos:limpar — dias sem atualização para expirar rascunhos salvos',
                                 'mapa_centro_lat' => 'Mapa: latitude inicial ao abrir a tela de mapa',
                                 'mapa_centro_lng' => 'Mapa: longitude inicial ao abrir a tela de mapa',
                                 'mapa_zoom_padrao' => 'Mapa: nível de zoom ao abrir (12 = cidade inteira, 18 = rua)',

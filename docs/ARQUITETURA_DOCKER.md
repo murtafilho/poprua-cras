@@ -17,7 +17,6 @@ Funcionalidades principais:
 - **Dados GIS** — bairros, regionais e limite do municipio (PostGIS)
 - **Admin** — gestao de usuarios, roles e permissoes (Spatie)
 - **Power BI** — dashboard publico integrado
-- **Google Drive** — integracao para upload de arquivos
 
 ---
 
@@ -348,7 +347,6 @@ networks:
 | Spatie MediaLibrary | 11.x | Upload e gestao de fotos |
 | Laravel Sanctum | 4.x | Autenticacao API (tokens) |
 | Laravel Breeze | 2.x | Autenticacao web (login/registro) |
-| Google API Client | 2.x | Integracao Google Drive |
 | proj4php | 2.x | Conversao de projecoes cartograficas |
 
 ### Frontend

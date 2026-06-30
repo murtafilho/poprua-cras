@@ -114,21 +114,10 @@
                 @method('PUT')
 
                 <div class="equipe-membros">
-                    @forelse($usuarios as $u)
-                        <label class="equipe-membro">
-                            <input type="checkbox" name="membros[]" value="{{ $u->id }}"
-                                   {{ in_array($u->id, $marcados) ? 'checked' : '' }}>
-                            <span class="checkbox" aria-hidden="true"></span>
-                            <span class="info">
-                                <span class="nome">{{ $u->name }}</span>
-                                @if($u->email)
-                                    <span class="email">{{ $u->email }}</span>
-                                @endif
-                            </span>
-                        </label>
-                    @empty
-                        <p class="text-muted">Nenhum outro usuário cadastrado no sistema.</p>
-                    @endforelse
+                    @include('partials.equipe-checklist', [
+                        'usuarios' => $usuarios,
+                        'marcados' => $marcados,
+                    ])
                 </div>
 
                 <div class="equipe-actions">

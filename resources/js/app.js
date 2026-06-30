@@ -1,5 +1,13 @@
 import './bootstrap';
 import './debug-panel';
+import {
+    cleanupOrphanedTempRecords,
+    countSyncablePhotos,
+    getSyncablePhotos,
+    openFotosDB,
+    removePendingPhotoById,
+    uploadPendingPhoto,
+} from './offline-upload';
 
 // Alpine.js (usado pelo Breeze)
 import Alpine from 'alpinejs';
@@ -133,63 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const APP_BASE = document.querySelector('meta[name="app-base"]')?.content || '';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-    function openFotosDB() {
-        return new Promise((resolve, reject) => {
-            const req = indexedDB.open('poprua_fotos', 1);
-            req.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('pendentes')) {
-                    const store = db.createObjectStore('pendentes', { keyPath: 'id', autoIncrement: true });
-                    store.createIndex('status', 'status', { unique: false });
-                    store.createIndex('vistoriaId', 'vistoriaId', { unique: false });
-                }
-            };
-            req.onsuccess = (e) => resolve(e.target.result);
-            req.onerror = (e) => reject(e.target.error);
-        });
-    }
-
-    function isTempRecord(foto) {
-        const vid = foto.vistoria_id || foto.vistoriaId;
-        return typeof vid === 'string' && vid.startsWith('temp_');
-    }
-
-    async function cleanupOrphanedRecords(db) {
-        const ONE_HOUR = 60 * 60 * 1000;
-        const tx = db.transaction('pendentes', 'readwrite');
-        const store = tx.objectStore('pendentes');
-        const req = store.getAll();
-        req.onsuccess = () => {
-            for (const foto of req.result) {
-                if (!isTempRecord(foto)) continue;
-                const createdAt = foto.created_at ? new Date(foto.created_at).getTime()
-                    : foto.createdAt || 0;
-                if (Date.now() - createdAt > ONE_HOUR) {
-                    store.delete(foto.id);
-                }
-            }
-        };
-    }
-
-    async function getSyncableFotos() {
-        const db = await openFotosDB();
-        return new Promise((resolve) => {
-            const tx = db.transaction('pendentes', 'readonly');
-            const req = tx.objectStore('pendentes').getAll();
-            req.onsuccess = () => resolve(req.result.filter(f => !isTempRecord(f)));
-            req.onerror = () => resolve([]);
-        });
-    }
-
-    async function countPendingPhotos() {
-        try {
-            const fotos = await getSyncableFotos();
-            return fotos.length;
-        } catch { return 0; }
-    }
-
     async function updateSyncBadge() {
-        const count = await countPendingPhotos();
+        const count = await countSyncablePhotos();
         const badge = document.getElementById('sync-badge');
         if (badge) {
             badge.textContent = count;
@@ -198,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.syncAllPendingPhotos = async function() {
-        const fotos = await getSyncableFotos();
+        const fotos = await getSyncablePhotos();
 
         if (fotos.length === 0) {
             showToast('Nenhuma foto pendente para sincronizar.', 'info');
@@ -207,32 +160,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!confirm(`Enviar ${fotos.length} foto(s) pendente(s)?`)) return;
 
-        const db = await openFotosDB();
         let enviadas = 0;
         let erros = 0;
 
         for (const foto of fotos) {
             try {
-                const blob = new Blob([foto.data], { type: foto.type });
-                const file = new File([blob], foto.name, { type: foto.type });
-                const formData = new FormData();
-                formData.append('vistoria_id', foto.vistoria_id);
-                formData.append('foto', file);
-
-                const resp = await fetch(`${APP_BASE}/api/vistorias/fotos`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrfToken },
-                    body: formData
-                });
-
-                if (resp.ok) {
-                    const delTx = db.transaction('pendentes', 'readwrite');
-                    delTx.objectStore('pendentes').delete(foto.id);
-                    await new Promise(r => { delTx.oncomplete = r; });
-                    enviadas++;
-                } else {
-                    erros++;
-                }
+                await uploadPendingPhoto(foto, { appBase: APP_BASE, csrfToken });
+                await removePendingPhotoById(foto.id);
+                enviadas++;
             } catch {
                 erros++;
             }
@@ -242,6 +177,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast(`${enviadas} foto(s) enviada(s)` + (erros > 0 ? `, ${erros} erro(s)` : ''), erros > 0 ? 'warning' : 'success');
     };
 
-    openFotosDB().then(db => cleanupOrphanedRecords(db)).catch(() => {});
+    openFotosDB().then(() => cleanupOrphanedTempRecords()).catch(() => {});
     updateSyncBadge();
 });

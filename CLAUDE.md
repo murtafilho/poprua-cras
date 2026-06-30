@@ -119,14 +119,14 @@ Migração one-shot do POPRUA Geo (produção temporária) para o CRAS (fonte de
 
 ## Skills do projeto (.claude/skills/)
 
-`setup-ambiente` · `quality-audit` · `ux-friction` · `foto-audit` · `poprua-etl` · `vistoria` (workflow) · `upload-google-drive`.
+`setup-ambiente` · `quality-audit` · `ux-friction` · `foto-audit` · `poprua-etl` · `vistoria` (workflow).
 
 ## Documentação
 
 | Documento | Descrição |
 |-----------|-----------|
 | [docs/adr/](docs/adr/) | Architecture Decision Records — **registrar aqui** decisões arquiteturais (ADR-001 = ciclo de vida da vistoria) |
-| [docs/casos-de-uso/](docs/casos-de-uso/) | Casos de uso (UC-001 minha-equipe, UC-002 finalização) |
+| [docs/casos-de-uso/](docs/casos-de-uso/) | Casos de uso (UC-001…UC-010 implementados) |
 | [docs/REGRAS_NEGOCIO.md](docs/REGRAS_NEGOCIO.md) | Regras de negócio |
 | [docs/ARQUITETURA_DOCKER.md](docs/ARQUITETURA_DOCKER.md) | Arquitetura Docker, rede, operações |
 | [docs/API.md](docs/API.md) | Referência da API REST |

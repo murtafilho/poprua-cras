@@ -42,8 +42,39 @@ Base URL: `/api`
 | Metodo | Rota | Descricao |
 |--------|------|-----------|
 | GET | `/vistorias/logradouros?q=&numero=` | Autocomplete de logradouros com vistorias |
+| GET | `/vistorias/rascunho?ponto_id=&lat=&lng=` | Recupera rascunho de criacao do usuario |
+| PATCH | `/vistorias/rascunho` | Salva/atualiza rascunho (body JSON, throttle 30/min) |
+| DELETE | `/vistorias/rascunho?ponto_id=&lat=&lng=` | Descarta rascunho |
 | POST | `/vistorias/fotos` | Upload de foto (body: `vistoria_id`, `foto`) |
-| GET | `/vistorias/{vistoria}/fotos/status` | Status das fotos (urls, cloud_status) |
+| GET | `/vistorias/{vistoria}/fotos/status` | Lista fotos da vistoria (urls, thumb, legenda, publica) |
+
+### Rascunho de criacao (UC-006)
+
+Salvamento parcial do wizard de nova zeladoria. Nao cria registro em `vistorias`.
+
+```
+PATCH /api/vistorias/rascunho
+Content-Type: application/json
+
+{
+  "payload": { "data_abordagem": "2026-06-24T10:00", "observacao": "..." },
+  "etapa_atual": 2,
+  "ponto_id": 123,
+  "lat": -19.9135,
+  "lng": -43.9514
+}
+```
+
+Resposta 200:
+```json
+{
+  "success": true,
+  "message": "Rascunho salvo.",
+  "rascunho": { "id": 1, "updated_at": "2026-06-24T15:30:00+00:00" }
+}
+```
+
+O rascunho e removido automaticamente apos `POST /vistorias` bem-sucedido.
 
 ### Upload de fotos
 

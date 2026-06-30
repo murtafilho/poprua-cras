@@ -8,23 +8,27 @@ use App\Models\Ponto;
 use App\Models\Vistoria;
 use App\Services\MoradorService;
 use App\Services\PontoService;
+use App\Services\VistoriaRascunhoService;
 use App\Services\VistoriaService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class VistoriaController extends Controller
 {
     public function __construct(
         private MoradorService $moradorService,
         private PontoService $pontoService,
-        private VistoriaService $vistoriaService
+        private VistoriaService $vistoriaService,
+        private VistoriaRascunhoService $rascunhoService,
     ) {}
 
     public function show(Vistoria $vistoria): View
@@ -50,6 +54,7 @@ class VistoriaController extends Controller
             'encaminhamento6',
             'moradoresEntrada.morador',
             'participantes',
+            'participantes.roles',
             'media',
         ]);
 
@@ -398,7 +403,7 @@ class VistoriaController extends Controller
             'data_prevista_fim' => 'nullable|date|after_or_equal:data_prevista_inicio',
             'supervisor' => 'nullable|integer|exists:users,id',
             'regional' => 'nullable|string|max:50',
-            'format' => 'nullable|string|in:pdf',
+            'format' => 'nullable|string|in:pdf,csv',
         ]);
 
         $vistorias = $this->vistoriaService->listarRoteiro(
@@ -418,7 +423,67 @@ class VistoriaController extends Controller
             return $pdf->download('roteiro-zeladoria-'.now()->format('Y-m-d').'.pdf');
         }
 
+        if ($request->get('format') === 'csv') {
+            return $this->downloadRoteiroCsv($vistorias);
+        }
+
         return view('vistorias.roteiro', $viewData);
+    }
+
+    /**
+     * @param  Collection<int, \stdClass>  $vistorias
+     */
+    private function downloadRoteiroCsv(Collection $vistorias): StreamedResponse
+    {
+        $filename = 'roteiro-zeladoria-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($vistorias): void {
+            $out = fopen('php://output', 'w');
+            if ($out === false) {
+                return;
+            }
+
+            // BOM UTF-8 para Excel abrir acentos corretamente
+            fprintf($out, "\xEF\xBB\xBF");
+            fputcsv($out, [
+                'Data Prevista',
+                'Período',
+                'Endereço',
+                'Bairro',
+                'Regional',
+                'Supervisor',
+                'Resultado',
+            ], ';');
+
+            foreach ($vistorias as $v) {
+                $periodo = match ($v->periodo_zeladoria) {
+                    'manha' => 'Manhã',
+                    'tarde' => 'Tarde',
+                    default => '-',
+                };
+                $endereco = trim(sprintf(
+                    '%s %s, %s%s',
+                    $v->tipo ?? '',
+                    $v->logradouro ?? '',
+                    $v->numero ?? '',
+                    $v->complemento ? ' - '.$v->complemento : ''
+                ));
+
+                fputcsv($out, [
+                    Carbon::parse($v->data_prevista_zeladoria)->format('d/m/Y'),
+                    $periodo,
+                    $endereco,
+                    $v->bairro ?? '',
+                    $v->regional ?? '',
+                    $v->usuario ?? '',
+                    $v->resultado_acao ?? '-',
+                ], ';');
+            }
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     public function store(StoreVistoriaRequest $request): RedirectResponse
@@ -504,6 +569,13 @@ class VistoriaController extends Controller
         Cache::forget('dashboard:total_pontos');
         Cache::forget('dashboard:totais');
         Cache::forget('dashboard:dados_mensais');
+
+        $this->rascunhoService->descartarAposStore(
+            $request->user(),
+            isset($validated['ponto_id']) ? (int) $validated['ponto_id'] : (int) $vistoria->ponto_id,
+            isset($validated['lat']) ? (float) $validated['lat'] : null,
+            isset($validated['lng']) ? (float) $validated['lng'] : null,
+        );
 
         return redirect()->route('vistorias.show', $vistoria)->with('success', 'Zeladoria registrada com sucesso!');
     }

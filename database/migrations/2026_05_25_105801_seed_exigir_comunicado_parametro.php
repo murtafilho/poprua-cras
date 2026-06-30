@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\DB;
  * existentes sem aviso ao operador. SUFIS habilita pelo admin quando
  * decidir adotar a regra.
  */
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         $exists = DB::table('parametros')->where('chave', 'exigir_comunicado')->exists();

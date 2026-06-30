@@ -42,7 +42,7 @@ class VistoriaService
             'tiposAbrigo' => DB::table('tipo_abrigo_desmontado')->orderBy('id')->get(),
             'resultadosAcao' => DB::table('resultados_acoes')->orderBy('id')->get(),
             'encaminhamentos' => DB::table('encaminhamentos')->orderBy('id')->get(),
-            'usuariosEquipe' => $usuariosQuery->get(['id', 'name', 'email']),
+            'usuariosEquipe' => $usuariosQuery->with('roles')->get(['id', 'name', 'email']),
             'participantesPreSelecionados' => $participantesPreSelecionados,
         ];
     }
@@ -226,6 +226,10 @@ class VistoriaService
     /**
      * Roteiro de zeladorias com data prevista.
      *
+     * @param  array<string, mixed>  $filtros
+     * @return Collection<int, \stdClass>
+     */
+    /**
      * @param  array<string, mixed>  $filtros
      * @return Collection<int, \stdClass>
      */

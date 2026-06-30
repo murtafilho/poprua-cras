@@ -24,4 +24,20 @@ class TipoAbordagem extends Model
     {
         return $this->tipo;
     }
+
+    public function isComunicacaoZeladoria(): bool
+    {
+        return self::tipoEhComunicacaoZeladoria($this->tipo);
+    }
+
+    public static function tipoEhComunicacaoZeladoria(?string $tipo): bool
+    {
+        if ($tipo === null || $tipo === '') {
+            return false;
+        }
+
+        $normalizado = mb_strtolower($tipo);
+
+        return str_contains($normalizado, 'comunic') && str_contains($normalizado, 'zeladoria');
+    }
 }

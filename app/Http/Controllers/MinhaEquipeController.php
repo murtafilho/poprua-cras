@@ -28,6 +28,7 @@ class MinhaEquipeController extends Controller
             ->permission('participar de equipes vistoria')
             ->where('id', '!=', $me->id)
             ->orderBy('name')
+            ->with('roles')
             ->get(['id', 'name', 'email']);
 
         $marcados = $me->team()->pluck('users.id')->all();

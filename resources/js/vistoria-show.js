@@ -1,3 +1,13 @@
+import {
+    blobFromRecord,
+    clearTempPhotoId,
+    getPendingPhotosFor,
+    getTempPhotoId,
+    reconcileTempId,
+    removePendingPhotoById,
+    uploadPendingPhoto,
+} from './offline-upload';
+
 // Slideshow
 const slideshowUrls = window.SLIDESHOW_URLS;
 let slideIndex = 0;
@@ -46,67 +56,34 @@ document.addEventListener('keydown', function(e) {
         }
     }, { passive: true });
 })();
+
 (function() {
     const VISTORIA_ID = window.VISTORIA_ID;
     const APP_BASE = document.querySelector('meta[name="app-base"]').content;
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    function openFotosDB() {
-        return new Promise((resolve, reject) => {
-            const req = indexedDB.open('poprua_fotos', 1);
-            req.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('pendentes')) {
-                    db.createObjectStore('pendentes', { keyPath: 'id', autoIncrement: true });
-                }
-            };
-            req.onsuccess = (e) => resolve(e.target.result);
-            req.onerror = (e) => reject(e.target.error);
-        });
-    }
-
     async function getFotosPendentes() {
-        const db = await openFotosDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction('pendentes', 'readonly');
-            const store = tx.objectStore('pendentes');
-            const req = store.getAll();
-            req.onsuccess = () => {
-                // Filtra fotos desta vistoria ou do tempId da sessão
-                const tempId = sessionStorage.getItem('poprua_fotos_temp_id');
-                const fotos = req.result.filter(f =>
-                    f.vistoria_id === VISTORIA_ID || f.vistoria_id === tempId
-                );
-                resolve(fotos);
-            };
-            req.onerror = () => reject(req.error);
-        });
+        const tempId = getTempPhotoId();
+        const ids = [VISTORIA_ID];
+        if (tempId) {
+            ids.push(tempId);
+        }
+
+        const fotos = [];
+        for (const id of ids) {
+            const batch = await getPendingPhotosFor(id);
+            fotos.push(...batch);
+        }
+        return fotos;
     }
 
     async function vincularTempId() {
-        const tempId = sessionStorage.getItem('poprua_fotos_temp_id');
-        if (!tempId) return;
-        const db = await openFotosDB();
-        const tx = db.transaction('pendentes', 'readwrite');
-        const store = tx.objectStore('pendentes');
-        const req = store.getAll();
-        req.onsuccess = () => {
-            req.result.forEach(f => {
-                if (f.vistoria_id === tempId) {
-                    f.vistoria_id = VISTORIA_ID;
-                    store.put(f);
-                }
-            });
-        };
-        await new Promise((resolve) => { tx.oncomplete = resolve; });
-        sessionStorage.removeItem('poprua_fotos_temp_id');
-    }
-
-    async function removerFotoLocal(id) {
-        const db = await openFotosDB();
-        const tx = db.transaction('pendentes', 'readwrite');
-        tx.objectStore('pendentes').delete(id);
-        return new Promise((resolve) => { tx.oncomplete = resolve; });
+        const tempId = getTempPhotoId();
+        if (!tempId) {
+            return;
+        }
+        await reconcileTempId(tempId, VISTORIA_ID);
+        clearTempPhotoId();
     }
 
     async function renderPendentes() {
@@ -125,7 +102,7 @@ document.addEventListener('keydown', function(e) {
         preview.innerHTML = '';
 
         fotos.forEach(foto => {
-            const blob = new Blob([foto.data], { type: foto.type });
+            const blob = blobFromRecord(foto);
             const url = URL.createObjectURL(blob);
             const div = document.createElement('div');
             div.className = 'photo-item';
@@ -157,34 +134,17 @@ document.addEventListener('keydown', function(e) {
             bar.style.width = `${(enviadas / fotos.length) * 100}%`;
 
             try {
-                const blob = new Blob([foto.data], { type: foto.type });
-                const file = new File([blob], foto.name, { type: foto.type });
-                const formData = new FormData();
-                formData.append('vistoria_id', VISTORIA_ID);
-                formData.append('foto', file);
+                const data = await uploadPendingPhoto(foto, { appBase: APP_BASE, csrfToken });
+                await removePendingPhotoById(foto.id);
+                enviadas++;
 
-                const resp = await fetch(`${APP_BASE}/api/vistorias/fotos`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrfToken },
-                    body: formData
-                });
-
-                if (resp.ok) {
-                    await removerFotoLocal(foto.id);
-                    enviadas++;
-
-                    // Adiciona thumb ao grid
-                    const data = await resp.json();
-                    const grid = document.getElementById('fotos-grid');
-                    const a = document.createElement('a');
-                    a.href = data.url;
-                    a.target = '_blank';
-                    a.className = 'photo-item';
-                    a.innerHTML = `<img src="${data.thumb || data.url}" alt="Foto" loading="lazy">`;
-                    grid.appendChild(a);
-                } else {
-                    console.error('Erro ao enviar foto:', await resp.text());
-                }
+                const grid = document.getElementById('fotos-grid');
+                const a = document.createElement('a');
+                a.href = data.url;
+                a.target = '_blank';
+                a.className = 'photo-item';
+                a.innerHTML = `<img src="${data.thumb || data.url}" alt="Foto" loading="lazy">`;
+                grid.appendChild(a);
             } catch (err) {
                 console.error('Erro ao sincronizar:', err);
             }
@@ -206,9 +166,10 @@ document.addEventListener('keydown', function(e) {
 
     document.getElementById('btn-sync-fotos').addEventListener('click', sincronizarFotos);
 
-    // Inicialização
     vincularTempId().then(renderPendentes);
 })();
+
+document.getElementById('btn-print-vistoria')?.addEventListener('click', () => window.print());
 
 window.openSlideshow = openSlideshow;
 window.closeSlideshow = closeSlideshow;

@@ -1,6 +1,6 @@
 # Regras de Negocio — POPRUA CRAS
 
-Audiencia: equipe de desenvolvimento e time de produto. Descreve o comportamento esperado do sistema extraido diretamente do codigo-fonte. Atualizado em 2026-05-20.
+Audiencia: equipe de desenvolvimento e time de produto. Descreve o comportamento esperado do sistema extraido diretamente do codigo-fonte. Atualizado em 2026-06-24.
 
 ---
 
@@ -237,9 +237,7 @@ As fotos de Vistoria sao gerenciadas pela biblioteca Spatie MediaLibrary na cole
 | `thumb` | 300x300 | webp | 80% |
 | `preview` | 800x600 | webp | 85% |
 
-### Sincronizacao com Google Drive
-
-Se `GOOGLE_DRIVE_CLIENT_ID` estiver configurado, o sistema dispara o job `UploadMediaToDriveJob` para cada foto salva, tanto na criacao quanto na edicao.
+Fotos persistem exclusivamente no disco local (`storage/app/public/` via Spatie MediaLibrary). Backup operacional via `spatie/laravel-backup` e/ou `tar` do diretorio de midia (ADR-009).
 
 ### Tabela legada `vistoria_fotos`
 
@@ -339,6 +337,18 @@ Todas as rotas de Vistoria requerem autenticacao (middleware `auth`).
 | GET | `/minhas-vistorias` | `vistorias.minhas` | Listagem das vistorias do usuario autenticado |
 | GET | `/vistorias/roteiro` | `vistorias.roteiro` | Exportacao de roteiro por data prevista e regional |
 | GET | `/pontos/{ponto}/vistorias/create` | `pontos.vistorias.create` | Redireciona para criacao pre-populada com coordenadas do Ponto |
+
+### API — Rascunho de criacao
+
+Rotas em `/api/vistorias/rascunho` (session auth). Ver `docs/API.md` e UC-006.
+
+| Metodo | URI | Descricao |
+|---|---|---|
+| GET | `/api/vistorias/rascunho` | Recupera rascunho do usuario (`ponto_id` ou `lat`+`lng`) |
+| PATCH | `/api/vistorias/rascunho` | Upsert do payload parcial + `etapa_atual` (0–6) |
+| DELETE | `/api/vistorias/rascunho` | Descarta rascunho do contexto |
+
+Rascunho nao e vistoria: nao aparece em listagens. Removido apos `POST /vistorias` bem-sucedido.
 
 ---
 

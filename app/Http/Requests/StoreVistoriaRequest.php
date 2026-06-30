@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Parametro;
+use App\Models\TipoAbordagem;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -12,6 +13,22 @@ class StoreVistoriaRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $tipoId = $this->input('tipo_abordagem_id');
+        if (! $tipoId) {
+            return;
+        }
+
+        $tipo = TipoAbordagem::query()->find($tipoId);
+        if ($tipo && ! $tipo->isComunicacaoZeladoria()) {
+            $this->merge([
+                'data_prevista_zeladoria' => null,
+                'periodo_zeladoria' => null,
+            ]);
+        }
     }
 
     /**

@@ -60,22 +60,6 @@ return [
             'report' => false,
         ],
 
-        // Cloudflare R2 - fotos de vistorias (Spatie MediaLibrary)
-        // Credenciais sao injetadas via .env (R2_KEY, R2_SECRET, R2_ENDPOINT)
-        // Bucket: poprua-cras-fotos (privado, versionamento ON)
-        'r2_fotos' => [
-            'driver' => 's3',
-            'key' => env('R2_KEY'),
-            'secret' => env('R2_SECRET'),
-            'region' => 'auto',
-            'bucket' => env('R2_BUCKET_FOTOS', 'poprua-cras-fotos'),
-            'endpoint' => env('R2_ENDPOINT'),
-            'use_path_style_endpoint' => true,
-            'visibility' => 'private',
-            'throw' => false,
-            'report' => false,
-        ],
-
     ],
 
     /*

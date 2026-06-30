@@ -1,5 +1,16 @@
 import { imgType, imgExt, imgName } from "./img-format";
 import "./date-ptbr";
+import {
+    removePendingPhotoById,
+    removePendingPhotoByName,
+    savePendingPhoto,
+    updatePendingPhotoLegenda,
+    MAX_FILE_SIZE_BYTES,
+} from './offline-upload';
+import { initDynamicClickHandlers, initStepperNavigation } from './vistoria-delegation';
+
+const vistoriaId = window.VISTORIA_ID;
+
 const APP_BASE = document.querySelector('meta[name="app-base"]')?.content || '';
 
 // Impedir saída acidental sem confirmação (só quando há alterações)
@@ -29,6 +40,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (parseInt(document.getElementById('qtd_abrigos').value) > 0) {
         atualizarCamposAbrigos();
     }
+
+    initStepperNavigation({
+        goToStep,
+        getCurrentTab: () => currentTab,
+        totalTabs,
+        withPrevNext: true,
+    });
+    initFotosExistentes();
+    initDynamicClickHandlers({
+        goToStep,
+        removerFoto,
+        abrirModalMorador,
+        removerMorador,
+        desvincularPessoa,
+        vincularPessoa,
+    });
 
     // Selecionar conteúdo ao focar + forçar teclado numérico
     document.querySelectorAll('input[type="number"]').forEach(input => {
@@ -140,7 +167,7 @@ function buildReviewChecklist() {
                 : '<svg style="width:20px;height:20px;color:var(--color-danger);flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>';
 
         const tag = !ok && !item.optional
-            ? `<span class="badge badge-danger" style="font-size:10px;cursor:pointer;" onclick="goToStep(${item.step})">Ir para etapa ${item.step + 1}</span>`
+            ? `<span class="badge badge-danger review-go-step" data-go-step="${item.step}" style="font-size:10px;cursor:pointer;">Ir para etapa ${item.step + 1}</span>`
             : item.optional && !ok
                 ? '<span class="badge" style="font-size:10px;">Opcional</span>'
                 : '';
@@ -262,6 +289,94 @@ function atualizarCamposAbrigos() {
     }
 }
 
+function fotoExistenteWrapper(mediaId) {
+    return document.getElementById(`foto-existente-${mediaId}`);
+}
+
+function fotoApiHeaders(contentType) {
+    const headers = {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'application/json',
+    };
+    if (contentType) {
+        headers['Content-Type'] = contentType;
+    }
+
+    return headers;
+}
+
+async function requestFotoApi(vistoriaId, mediaId, action, options = {}) {
+    const resp = await fetch(`${APP_BASE}/api/vistorias/${vistoriaId}/fotos/${mediaId}/${action}`, {
+        credentials: 'same-origin',
+        headers: fotoApiHeaders(options.contentType),
+        ...options,
+    });
+    if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status}`);
+    }
+
+    return resp.json();
+}
+
+function initFotosExistentes() {
+    document.getElementById('fotos-existentes')?.addEventListener('change', (e) => {
+        const input = e.target.closest('.photo-legenda-input');
+        if (input?.dataset.mediaId) {
+            salvarLegendaFoto(Number(input.dataset.mediaId), input.value);
+        }
+    });
+}
+
+async function togglePublicaFoto(mediaId) {
+    const wrapper = fotoExistenteWrapper(mediaId);
+    if (!wrapper) {
+        return;
+    }
+    const btn = wrapper.querySelector('.photo-publica-btn');
+    btn.disabled = true;
+    try {
+        const data = await requestFotoApi(wrapper.dataset.vistoriaId, mediaId, 'toggle-publica', {
+            method: 'POST',
+        });
+        const publica = data.publica;
+        btn.dataset.publica = publica ? '1' : '0';
+        btn.title = publica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app';
+        wrapper.classList.toggle('foto-publica', publica);
+        btn.innerHTML = publica
+            ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+            : '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>';
+    } catch (e) {
+        console.error('Falha ao alternar pública:', e);
+        alert('Não foi possível atualizar. Tente novamente.');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function salvarLegendaFoto(mediaId, legenda) {
+    const wrapper = fotoExistenteWrapper(mediaId);
+    if (!wrapper) {
+        return;
+    }
+    const input = wrapper.querySelector('.photo-legenda-input');
+    input.classList.remove('saved');
+    input.classList.add('saving');
+    try {
+        await requestFotoApi(wrapper.dataset.vistoriaId, mediaId, 'legenda', {
+            method: 'PATCH',
+            contentType: 'application/json',
+            body: JSON.stringify({ legenda: legenda || '' }),
+        });
+        input.classList.add('saved');
+        setTimeout(() => input.classList.remove('saved'), 1500);
+    } catch (e) {
+        console.error('Falha ao salvar legenda:', e);
+        alert('Não foi possível salvar a legenda. Tente novamente.');
+    } finally {
+        input.classList.remove('saving');
+    }
+}
+
 function marcarRemoverFoto(fotoId) {
     if (confirm('Remover esta foto?')) {
         fotosParaRemover.push(fotoId);
@@ -326,10 +441,15 @@ function processPhotoFile(file) {
         canvas.toBlob(function(blob) {
             const compressed = new File([blob], imgName(file.name), { type: imgType(), lastModified: Date.now() });
             const preview = canvas.toDataURL(imgType(), 0.5);
-            fotosSelecionadas.push({ file: compressed, preview, id: Date.now() + Math.random() });
+            const entry = { file: compressed, preview, id: Date.now() + Math.random(), legenda: '', pendingId: null };
+            fotosSelecionadas.push(entry);
             formDirty = true;
             renderFotosPreview();
-            salvarFotoLocal(compressed);
+            savePendingPhoto(vistoriaId, compressed, { name: compressed.name })
+                .then((pendingId) => { entry.pendingId = pendingId; })
+                .catch((err) => {
+                    console.error('Erro ao salvar foto localmente:', err);
+                });
         }, imgType(), QUALITY);
     };
     img.src = URL.createObjectURL(file);
@@ -392,7 +512,7 @@ function renderFotosPreview() {
         div.className = 'photo-preview';
         div.innerHTML = `
             <img src="${foto.preview}" alt="Foto ${index + 1}">
-            <button type="button" onclick="removerFoto(${index})" class="photo-remove-btn">
+            <button type="button" data-foto-index="${index}" class="photo-remove-btn">
                 <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -407,74 +527,32 @@ function renderFotosPreview() {
 }
 
 function atualizarLegenda(index, legenda) {
-    if (fotosSelecionadas[index]) {
-        fotosSelecionadas[index].legenda = legenda;
+    const foto = fotosSelecionadas[index];
+    if (!foto) {
+        return;
+    }
+    foto.legenda = legenda;
+    formDirty = true;
+    if (foto.pendingId != null) {
+        updatePendingPhotoLegenda(foto.pendingId, legenda).catch((err) => {
+            console.error('Erro ao atualizar legenda local:', err);
+        });
     }
 }
 
 function removerFoto(index) {
     const foto = fotosSelecionadas[index];
-    if (foto) removerFotoLocal(foto.file.name);
+    if (foto) {
+        const removePromise = foto.pendingId != null
+            ? removePendingPhotoById(foto.pendingId)
+            : removePendingPhotoByName(vistoriaId, foto.file.name);
+        removePromise.catch((err) => {
+            console.error('Erro ao remover foto local:', err);
+        });
+    }
     fotosSelecionadas.splice(index, 1);
     formDirty = true;
     renderFotosPreview();
-}
-
-// IndexedDB para fotos pendentes
-const vistoriaId = window.VISTORIA_ID;
-
-function openFotosDB() {
-    return new Promise((resolve, reject) => {
-        const req = indexedDB.open('poprua_fotos', 1);
-        req.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('pendentes')) {
-                db.createObjectStore('pendentes', { keyPath: 'id', autoIncrement: true });
-            }
-        };
-        req.onsuccess = (e) => resolve(e.target.result);
-        req.onerror = (e) => reject(e.target.error);
-    });
-}
-
-// Salva foto no IndexedDB imediatamente ao tirar
-async function salvarFotoLocal(file) {
-    try {
-        const buffer = await file.arrayBuffer();
-        const db = await openFotosDB();
-        const tx = db.transaction('pendentes', 'readwrite');
-        tx.objectStore('pendentes').add({
-            vistoria_id: vistoriaId,
-            name: file.name,
-            type: file.type,
-            data: buffer,
-            created_at: new Date().toISOString()
-        });
-        await new Promise((resolve, reject) => {
-            tx.oncomplete = resolve;
-            tx.onerror = reject;
-        });
-        console.log('Foto salva no dispositivo:', file.name);
-    } catch (err) {
-        console.error('Erro ao salvar foto localmente:', err);
-    }
-}
-
-// Remove foto do IndexedDB ao remover do preview
-async function removerFotoLocal(fileName) {
-    try {
-        const db = await openFotosDB();
-        const tx = db.transaction('pendentes', 'readonly');
-        const store = tx.objectStore('pendentes');
-        const all = await new Promise(r => { const req = store.getAll(); req.onsuccess = () => r(req.result); });
-        const foto = all.find(f => f.vistoria_id === vistoriaId && f.name === fileName);
-        if (foto) {
-            const delTx = db.transaction('pendentes', 'readwrite');
-            delTx.objectStore('pendentes').delete(foto.id);
-        }
-    } catch (err) {
-        console.error('Erro ao remover foto local:', err);
-    }
 }
 
 const formEl = document.getElementById('vistoria-form');
@@ -624,12 +702,12 @@ function renderNovosMoradores() {
                 <span class="badge badge-success">Novo</span>
             </div>
             <div class="morador-actions">
-                <button type="button" onclick="abrirModalMorador(${index})" class="btn btn-ghost btn-icon btn-sm">
+                <button type="button" data-edit-morador="${index}" class="btn btn-ghost btn-icon btn-sm">
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                 </button>
-                <button type="button" onclick="removerMorador(${index})" class="btn btn-ghost btn-icon btn-sm">
+                <button type="button" data-remove-morador="${index}" class="btn btn-ghost btn-icon btn-sm">
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
@@ -701,12 +779,19 @@ async function buscarPessoas(termo) {
 
         resultados.innerHTML = data
             .filter(m => !idsJaPresentes.includes(m.id))
-            .map(m => `
-                <button type="button" class="autocomplete-item" onclick="vincularPessoa(${m.id}, '${(m.nome_social || '').replace(/'/g, "\\'")}', '${(m.apelido || '').replace(/'/g, "\\'")}', '${(m.ponto_endereco || '').replace(/'/g, "\\'")}')">
+            .map(m => {
+                const payload = JSON.stringify({
+                    id: m.id,
+                    nome: m.nome_social || '',
+                    apelido: m.apelido || '',
+                    pontoOrigem: m.ponto_endereco || '',
+                });
+                return `
+                <button type="button" class="autocomplete-item" data-vincular-pessoa='${payload.replace(/'/g, '&#39;')}'>
                     <div class="autocomplete-item-title">${m.nome_social}${m.apelido ? ' — "' + m.apelido + '"' : ''}</div>
                     <div class="autocomplete-item-subtitle">${m.ponto_endereco || 'Sem ponto atual'}</div>
-                </button>
-            `).join('') || '<div class="autocomplete-empty">Todas as pessoas encontradas já estão neste ponto</div>';
+                </button>`;
+            }).join('') || '<div class="autocomplete-empty">Todas as pessoas encontradas já estão neste ponto</div>';
     } catch {
         resultados.innerHTML = '<div class="autocomplete-error">Erro na busca</div>';
     }
@@ -745,7 +830,7 @@ function renderPessoasVinculadas() {
                 <p class="morador-nickname" style="font-size: 10px; color: var(--color-info);">Transferido de: ${p.pontoOrigem || 'sem ponto'}</p>
             </div>
             <input type="hidden" name="moradores_presentes[]" value="${p.id}">
-            <button type="button" onclick="desvincularPessoa(${p.id})" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-danger);">
+            <button type="button" data-desvincular-pessoa="${p.id}" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-danger);">
                 <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -762,6 +847,7 @@ window.goToStep = goToStep;
 window.openCamera = openCamera;
 window.removerFoto = removerFoto;
 window.marcarRemoverFoto = marcarRemoverFoto;
+window.togglePublicaFoto = togglePublicaFoto;
 window.startVoiceInput = startVoiceInput;
 window.toggleQtdCasais = toggleQtdCasais;
 window.toggleQtdAnimais = toggleQtdAnimais;

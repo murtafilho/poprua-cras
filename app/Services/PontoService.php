@@ -31,9 +31,9 @@ class PontoService
     public function findOrCreateFromCoordinates(float $lat, float $lng, ?string $complemento = null): array
     {
         $pontoProximo = Ponto::query()
-            ->whereRaw('geom && ST_Expand(ST_SetSRID(ST_MakePoint(?, ?), 4326)::geometry, 0.001)', [$lng, $lat])
-            ->whereRaw('ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) < 50', [$lng, $lat])
-            ->orderByRaw('geom <-> ST_SetSRID(ST_MakePoint(?, ?), 4326)', [$lng, $lat])
+            ->whereRaw(GeoService::sqlExpandBounds(), [$lng, $lat, 0.001])
+            ->whereRaw(GeoService::sqlWithinDistance(), [$lng, $lat, 50])
+            ->orderByRaw(GeoService::sqlKnnOrder(), [$lng, $lat])
             ->first();
 
         if ($pontoProximo) {
@@ -81,7 +81,7 @@ class PontoService
             ])
             ->whereNotNull('p.lat')
             ->whereNotNull('p.lng')
-            ->whereRaw('p.geom && ST_MakeEnvelope(?, ?, ?, ?, 4326)', [$west, $south, $east, $north])
+            ->whereRaw(GeoService::sqlEnvelopeBounds('p.geom'), [$west, $south, $east, $north])
             ->limit(5000)
             ->get();
     }
@@ -205,6 +205,18 @@ class PontoService
             ->whereNull('v.deleted_at')
             ->orderBy('v.data_abordagem', 'desc')
             ->paginate($perPage);
+    }
+
+    /**
+     * Valida valor do filtro de resultado (id em resultados_acoes ou info_precaria).
+     */
+    public function resultadoFiltroValido(mixed $value): bool
+    {
+        if (in_array($value, [null, '', 'info_precaria'], true)) {
+            return true;
+        }
+
+        return DB::table('resultados_acoes')->where('id', $value)->exists();
     }
 
     /**

@@ -1,49 +1,269 @@
-import { imgType, imgExt } from "./img-format";
+import { imgType } from './img-format';
+
 /**
- * POPRUA v2 - Offline Upload Manager
- * Gerencia fila de upload de imagens com suporte offline-first.
- *
- * Uso:
- *   import { OfflineUpload } from './offline-upload';
- *   const uploader = new OfflineUpload();
- *   await uploader.addFoto(vistoriaId, file, { descricao: '...' });
+ * POPRUA — Camada canônica de fila offline de fotos (IndexedDB + Service Worker).
+ * Consumidores: vistoria-form.js, vistoria-edit.js, vistoria-show.js, app.js.
  */
 
 const DB_NAME = 'poprua_fotos';
 const DB_VERSION = 1;
 const STORE_NAME = 'pendentes';
 
-// Limite client-side antes da compressao. 30MB cobre foto raw de smartphone
-// moderno; arquivos maiores sao quase certamente video ou erro de selecao.
-// Server-side aceita ate 10MB pos-compressao (max:10240 nas validations).
-const MAX_FILE_SIZE_BYTES = 30 * 1024 * 1024;
-const MAX_FILE_SIZE_LABEL = '30MB';
+export const MAX_FILE_SIZE_BYTES = 30 * 1024 * 1024;
+export const MAX_FILE_SIZE_LABEL = '30MB';
+
+let dbPromise = null;
+
+export function getVistoriaIdFromRecord(foto) {
+    return foto.vistoria_id ?? foto.vistoriaId;
+}
+
+export function isTempRecord(foto) {
+    const vid = getVistoriaIdFromRecord(foto);
+    return typeof vid === 'string' && vid.startsWith('temp_');
+}
+
+export function blobFromRecord(foto) {
+    if (foto.data) {
+        return new Blob([foto.data], { type: foto.type || 'application/octet-stream' });
+    }
+    if (foto.blob instanceof Blob) {
+        return foto.blob;
+    }
+    throw new Error('Registro de foto sem payload');
+}
+
+export function openFotosDB() {
+    if (dbPromise) {
+        return dbPromise;
+    }
+
+    dbPromise = new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                store.createIndex('status', 'status', { unique: false });
+                store.createIndex('vistoria_id', 'vistoria_id', { unique: false });
+            }
+        };
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => {
+            dbPromise = null;
+            reject(e.target.error);
+        };
+    });
+
+    return dbPromise;
+}
+
+export async function getAllPendingPhotos() {
+    const db = await openFotosDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const req = tx.objectStore(STORE_NAME).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+export async function getPendingPhotosFor(vistoriaIdOrTemp) {
+    const all = await getAllPendingPhotos();
+    return all.filter((f) => getVistoriaIdFromRecord(f) === vistoriaIdOrTemp);
+}
+
+export async function getSyncablePhotos() {
+    const all = await getAllPendingPhotos();
+    return all.filter((f) => !isTempRecord(f));
+}
+
+export async function countSyncablePhotos() {
+    try {
+        const fotos = await getSyncablePhotos();
+        return fotos.length;
+    } catch {
+        return 0;
+    }
+}
+
+export async function updatePendingPhotoLegenda(id, legenda) {
+    const db = await openFotosDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.get(id);
+        req.onsuccess = () => {
+            const record = req.result;
+            if (record) {
+                record.legenda = legenda || '';
+                store.put(record);
+            }
+        };
+        req.onerror = () => reject(req.error);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+export async function savePendingPhoto(vistoriaId, file, options = {}) {
+    const data = await file.arrayBuffer();
+    const db = await openFotosDB();
+    const record = {
+        vistoria_id: vistoriaId,
+        name: options.name || file.name || `foto_${Date.now()}.jpg`,
+        type: options.type || file.type || imgType(),
+        data,
+        created_at: new Date().toISOString(),
+        status: 'pending',
+        legenda: options.legenda ?? '',
+    };
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const req = tx.objectStore(STORE_NAME).add(record);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+export async function removePendingPhotoById(id) {
+    const db = await openFotosDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+export async function removePendingPhotoByName(vistoriaId, fileName) {
+    const fotos = await getPendingPhotosFor(vistoriaId);
+    const foto = fotos.find((f) => f.name === fileName);
+    if (foto?.id != null) {
+        await removePendingPhotoById(foto.id);
+    }
+}
+
+export async function reconcileTempId(tempId, realVistoriaId) {
+    if (!tempId) {
+        return;
+    }
+    const db = await openFotosDB();
+    const fotos = await getPendingPhotosFor(tempId);
+    if (fotos.length === 0) {
+        return;
+    }
+
+    await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        fotos.forEach((f) => {
+            f.vistoria_id = realVistoriaId;
+            delete f.vistoriaId;
+            store.put(f);
+        });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+export async function cleanupOrphanedTempRecords() {
+    const ONE_HOUR = 60 * 60 * 1000;
+    const db = await openFotosDB();
+    const all = await getAllPendingPhotos();
+
+    await new Promise((resolve) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        for (const foto of all) {
+            if (!isTempRecord(foto)) {
+                continue;
+            }
+            const createdAt = foto.created_at
+                ? new Date(foto.created_at).getTime()
+                : (foto.createdAt || 0);
+            if (Date.now() - createdAt > ONE_HOUR) {
+                store.delete(foto.id);
+            }
+        }
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+    });
+}
+
+export function initTempPhotoSession() {
+    let tempId = sessionStorage.getItem('poprua_fotos_temp_id');
+    if (!tempId) {
+        tempId = `temp_${Date.now()}`;
+        sessionStorage.setItem('poprua_fotos_temp_id', tempId);
+    }
+    return tempId;
+}
+
+export function getTempPhotoId() {
+    return sessionStorage.getItem('poprua_fotos_temp_id');
+}
+
+export function clearTempPhotoId() {
+    sessionStorage.removeItem('poprua_fotos_temp_id');
+}
+
+export async function uploadPendingPhoto(foto, options = {}) {
+    const appBase = options.appBase
+        ?? document.querySelector('meta[name="app-base"]')?.content
+        ?? '';
+    const csrfToken = options.csrfToken
+        ?? document.querySelector('meta[name="csrf-token"]')?.content
+        ?? '';
+
+    const blob = blobFromRecord(foto);
+    const file = new File([blob], foto.name || 'foto.jpg', { type: foto.type || blob.type });
+    const formData = new FormData();
+    formData.append('vistoria_id', getVistoriaIdFromRecord(foto));
+    formData.append('foto', file);
+    if (foto.legenda) {
+        formData.append('legenda', foto.legenda);
+    }
+
+    const response = await fetch(`${appBase}/api/vistorias/fotos`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            Accept: 'application/json',
+        },
+        credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+    }
+
+    return response.json();
+}
 
 class OfflineUpload {
     constructor() {
-        this._dbPromise = null;
         this._listeners = {};
         this._pollInterval = null;
         this._init();
     }
 
     _init() {
-        // Register Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js')
-                .then(reg => {
+                .then((reg) => {
                     this._swRegistration = reg;
-                    console.log('[OfflineUpload] Service Worker registered');
                 })
-                .catch(err => console.error('[OfflineUpload] SW registration failed:', err));
+                .catch((err) => console.error('[OfflineUpload] SW registration failed:', err));
 
-            // Listen for messages from Service Worker
             navigator.serviceWorker.addEventListener('message', (event) => {
                 this._emit(event.data.type, event.data);
             });
         }
 
-        // Monitor connectivity changes
         if (navigator.connection) {
             navigator.connection.addEventListener('change', () => this._onConnectionChange());
         }
@@ -55,33 +275,6 @@ class OfflineUpload {
         });
     }
 
-    _openDB() {
-        if (this._dbPromise) {
-            return this._dbPromise;
-        }
-        this._dbPromise = new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-                    store.createIndex('status', 'status', { unique: false });
-                    store.createIndex('vistoriaId', 'vistoriaId', { unique: false });
-                }
-            };
-            request.onsuccess = (e) => resolve(e.target.result);
-            request.onerror = (e) => {
-                this._dbPromise = null;
-                reject(e.target.error);
-            };
-        });
-        return this._dbPromise;
-    }
-
-    /**
-     * Compresses an image before storing.
-     * Reduces typical 5MB photos to ~200-400KB.
-     */
     async _compressImage(file, maxWidth = 1920, quality = 0.7) {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -110,7 +303,7 @@ class OfflineUpload {
                         }
                     },
                     imgType(),
-                    quality
+                    quality,
                 );
             };
 
@@ -123,11 +316,6 @@ class OfflineUpload {
         });
     }
 
-    /**
-     * Add a photo to the upload queue.
-     * If online and on WiFi, uploads immediately.
-     * Otherwise, stores in IndexedDB for later sync.
-     */
     async addFoto(vistoriaId, file, options = {}) {
         if (file.size > MAX_FILE_SIZE_BYTES) {
             const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
@@ -141,87 +329,42 @@ class OfflineUpload {
         const compressed = await this._compressImage(
             file,
             options.maxWidth || 1920,
-            options.quality || 0.7
+            options.quality || 0.7,
         );
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        const appBase = document.querySelector('meta[name="app-base"]')?.content || '';
+        const filename = file.name || `foto_${Date.now()}.jpg`;
 
-        const record = {
-            vistoriaId: vistoriaId,
-            blob: compressed,
-            filename: file.name || `foto_${Date.now()}.jpg`,
-            descricao: options.descricao || null,
-            uploadUrl: `${appBase}/api/vistorias/fotos`,
-            csrfToken: csrfToken,
-            status: 'pending',
-            createdAt: Date.now(),
-            originalSize: file.size,
-            compressedSize: compressed.size,
-        };
-
-        // If online and WiFi, try direct upload
         if (this._isOnWifi()) {
             try {
-                const result = await this._uploadDirect(record);
-                this._emit('UPLOAD_SUCCESS', {
-                    vistoriaId,
-                    filename: record.filename,
-                    result,
-                });
+                const tempRecord = {
+                    vistoria_id: vistoriaId,
+                    name: filename,
+                    type: imgType(),
+                    data: await compressed.arrayBuffer(),
+                };
+                const result = await uploadPendingPhoto(tempRecord);
+                this._emit('UPLOAD_SUCCESS', { vistoriaId, filename, result });
                 return { queued: false, uploaded: true, result };
             } catch (e) {
-                // Fall through to queue
                 console.warn('[OfflineUpload] Direct upload failed, queuing:', e.message);
             }
         }
 
-        // Store in IndexedDB
-        const db = await this._openDB();
-        const id = await new Promise((resolve, reject) => {
-            const tx = db.transaction(STORE_NAME, 'readwrite');
-            const store = tx.objectStore(STORE_NAME);
-            const request = store.add(record);
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+        const id = await savePendingPhoto(vistoriaId, compressed, {
+            name: filename,
+            legenda: options.descricao || null,
         });
 
         this._emit('QUEUED', {
             id,
             vistoriaId,
-            filename: record.filename,
+            filename,
             compressedSize: compressed.size,
         });
 
-        // Register Background Sync
         await this._registerSync();
 
         return { queued: true, uploaded: false, id };
-    }
-
-    async _uploadDirect(record) {
-        const formData = new FormData();
-        formData.append('foto', record.blob, record.filename);
-        formData.append('vistoria_id', record.vistoriaId);
-        if (record.descricao) {
-            formData.append('descricao', record.descricao);
-        }
-
-        const response = await fetch(record.uploadUrl, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': record.csrfToken,
-                'Accept': 'application/json',
-            },
-            credentials: 'same-origin',
-        });
-
-        if (!response.ok) {
-            throw new Error(`Upload failed: ${response.status}`);
-        }
-
-        return response.json();
     }
 
     _isOnWifi() {
@@ -229,10 +372,9 @@ class OfflineUpload {
             return false;
         }
         const conn = navigator.connection || navigator.mozConnection;
-        if (conn && conn.type) {
+        if (conn?.type) {
             return conn.type === 'wifi' || conn.type === 'ethernet';
         }
-        // Fallback: assume online is good enough if we can't detect type
         return navigator.onLine;
     }
 
@@ -245,7 +387,6 @@ class OfflineUpload {
                 this._startPolling();
             }
         } else {
-            // Fallback for browsers without Background Sync (Safari, Firefox)
             this._startPolling();
         }
     }
@@ -274,60 +415,34 @@ class OfflineUpload {
         if (!this._isOnWifi()) {
             return;
         }
-
-        // Ask Service Worker to process queue
         if (navigator.serviceWorker?.controller) {
             navigator.serviceWorker.controller.postMessage({ type: 'TRIGGER_UPLOAD' });
         }
     }
 
-    /**
-     * Get count of pending uploads.
-     */
     async getPendingCount() {
-        const db = await this._openDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(STORE_NAME, 'readonly');
-            const store = tx.objectStore(STORE_NAME);
-            const index = store.index('status');
-            const request = index.count('pending');
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
+        return countSyncablePhotos();
     }
 
-    /**
-     * Get all pending uploads for a vistoria.
-     */
     async getPendingForVistoria(vistoriaId) {
-        const db = await this._openDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(STORE_NAME, 'readonly');
-            const store = tx.objectStore(STORE_NAME);
-            const index = store.index('vistoriaId');
-            const request = index.getAll(vistoriaId);
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
+        return getPendingPhotosFor(vistoriaId);
     }
 
-    // Simple event emitter
     on(event, callback) {
         if (!this._listeners[event]) {
             this._listeners[event] = [];
         }
         this._listeners[event].push(callback);
         return () => {
-            this._listeners[event] = this._listeners[event].filter(cb => cb !== callback);
+            this._listeners[event] = this._listeners[event].filter((cb) => cb !== callback);
         };
     }
 
     _emit(event, data) {
-        (this._listeners[event] || []).forEach(cb => cb(data));
+        (this._listeners[event] || []).forEach((cb) => cb(data));
     }
 }
 
-// Singleton instance
 const offlineUpload = new OfflineUpload();
 
 export { OfflineUpload, offlineUpload };

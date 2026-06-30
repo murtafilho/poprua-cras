@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\MoradorController;
 use App\Http\Controllers\Api\MoradorFotoController;
 use App\Http\Controllers\Api\PontoController;
 use App\Http\Controllers\Api\VistoriaFotoController;
+use App\Http\Controllers\Api\VistoriaRascunhoController;
 use App\Http\Controllers\VistoriaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -36,9 +37,13 @@ Route::prefix('geo')->group(function () {
     Route::get('/limite-municipio', [GeoController::class, 'limiteMunicipio']);
 });
 
-// Vistorias - autocomplete de logradouros
+// Vistorias - autocomplete de logradouros + rascunho de criacao
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/vistorias/logradouros', [VistoriaController::class, 'buscarLogradouros']);
+    Route::get('/vistorias/rascunho', [VistoriaRascunhoController::class, 'show']);
+    Route::patch('/vistorias/rascunho', [VistoriaRascunhoController::class, 'update'])
+        ->middleware('throttle:30,1');
+    Route::delete('/vistorias/rascunho', [VistoriaRascunhoController::class, 'destroy']);
 });
 
 // Fotos de Vistorias (upload offline-first via Service Worker)

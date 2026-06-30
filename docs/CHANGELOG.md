@@ -4,6 +4,95 @@ Todas as alteracoes relevantes do sistema sao documentadas neste arquivo.
 
 ---
 
+## [0.4.5] - 2026-06-24
+
+### Erradicação Google Drive / R2 (ADR-009)
+
+#### Removido
+- `config/services.php` — credenciais `google_drive`
+- `config/filesystems.php` — disco `r2_fotos`
+
+#### Documentação
+- Referências a Google Drive, R2 e `cloud_status` em API, REGRAS_NEGOCIO, README, ARQUITETURA_DOCKER, CLAUDE.md
+- Skill `foto-audit` v1.1 — rubrica local-only (sem cloud sync)
+
+---
+
+## [0.4.4] - 2026-06-24
+
+### Rascunho fase 2 e testes admin
+
+#### Novo
+- Comando `rascunhos:limpar` — expira rascunhos após N dias (`rascunho_dias_expiracao`, default 30)
+- Parâmetros `rascunho_debounce_ms` e `rascunho_dias_expiracao` seedados em `/admin/parametros`
+
+#### Melhorado
+- Autosave do rascunho lê debounce de `Parametro::get('rascunho_debounce_ms')` via `VISTORIA_RASCUNHO_CTX`
+
+#### Testes
+- `ParametroControllerTest`, `LimparRascunhosExpiradosCommandTest`
+
+---
+
+## [0.4.3] - 2026-06-24
+
+### Documentação e upload offline
+
+#### Melhorado
+- Legendas de fotos persistidas no IndexedDB e enviadas no sync offline (`updatePendingPhotoLegenda`)
+
+#### Documentação
+- UC-008 — dashboard de gestão (indicadores + gráfico evolução)
+- UC-009 — runbook de cutover ETL Geo→CRAS
+- UC-010 — parametrização administrativa (`/admin/parametros`)
+
+---
+
+## [0.4.2] - 2026-06-24
+
+### Participantes e datas legadas
+
+#### Melhorado
+- Enum `TipoEquipe` — participantes agrupados por role (Supervisores, GCM, SLU, etc.) em create/edit/show e Minha Equipe
+- Helper `FormatoData` — oculta hora `00:00` em datas legadas na tela de detalhes
+
+#### Testes
+- `TipoEquipeTest`, `FormatoDataTest`, `ParticipantesEquipeTest`
+
+---
+
+## [0.4.1] - 2026-06-24
+
+### Zeladoria — Condicional UI e documentação
+
+#### Melhorado
+- Campos `data_prevista_zeladoria` / `periodo_zeladoria` só para tipo Comunicação de Zeladoria (auditoria 1.3)
+- Atalho "Ajustar localização" no header de `vistorias/show` (auditoria 1.7)
+- **ADR-009 F2:** IndexedDB consolidado em `offline-upload.js` (form, edit, show, app, SW)
+- Export **Excel/CSV** do roteiro (`format=csv`, UTF-8 BOM, separador `;`)
+
+#### Documentação
+- UC-007 — upload offline de fotos (IndexedDB + Service Worker)
+- UC-009 — migração ETL Geo → CRAS (one-shot)
+- Auditoria zeladoria: plano de ações atualizado
+
+---
+
+## [0.4.0] - 2026-06-24
+
+### Zeladoria — Rascunho (UC-006)
+
+#### Novo
+- **Salvamento parcial server-side** — tabela `vistorias_rascunhos`, API `GET/PATCH/DELETE /api/vistorias/rascunho`
+- **Autosave** no wizard de criacao (debounce 5s) + botao "Salvar rascunho" + retomada ao reabrir formulario
+- **Limpeza automatica** do rascunho apos `POST /vistorias` bem-sucedido
+
+#### Documentacao
+- Casos de uso UC-003 (Morador), UC-004 (Mapa), UC-005 (Ponto), UC-006 (Rascunho)
+- Auditoria zeladoria item 1.2 marcado como implementado (91% de cobertura)
+
+---
+
 ## [0.3.0] - 2026-03-15
 ### Infraestrutura
 

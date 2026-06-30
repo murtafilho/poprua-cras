@@ -38,12 +38,9 @@ class EnderecoService
                 'lat',
                 'lng',
             ])
-            ->selectRaw(
-                'ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) as distancia',
-                [$lng, $lat]
-            )
-            ->whereRaw('geom && ST_Expand(ST_SetSRID(ST_MakePoint(?, ?), 4326)::geometry, ?)', [$lng, $lat, $expandDeg])
-            ->whereRaw('ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) <= ?', [$lng, $lat, self::RAIO_BUSCA_METROS])
+            ->selectRaw(GeoService::sqlDistanceSelect(), [$lng, $lat])
+            ->whereRaw(GeoService::sqlExpandBounds(), [$lng, $lat, $expandDeg])
+            ->whereRaw(GeoService::sqlWithinDistance('geom', '<='), [$lng, $lat, self::RAIO_BUSCA_METROS])
             ->orderBy('distancia', 'asc')
             ->first();
     }
