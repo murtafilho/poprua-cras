@@ -20,7 +20,7 @@ BRANCH="main"
 # Deploy key opcional (ver: bash poprua setup-server)
 DEPLOY_KEY="/root/.ssh/poprua_cras_deploy"
 if [ -f "$DEPLOY_KEY" ]; then
-    export GIT_SSH_COMMAND="ssh -i $DEPLOY_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+    export GIT_SSH_COMMAND="ssh -i $DEPLOY_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
 fi
 
 GIT="git -C $APP_DIR -c safe.directory=*"
