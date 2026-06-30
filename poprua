@@ -81,7 +81,7 @@ case "$cmd" in
       echo "No host vlcp-sufis01 (como root):"
       echo "  ssh-keygen -t ed25519 -f /root/.ssh/poprua_cras_deploy -N ''"
       echo "  cat /root/.ssh/poprua_cras_deploy.pub   # adicionar em GitHub > repo > Deploy keys"
-      echo "  GIT_SSH_COMMAND='ssh -i /root/.ssh/poprua_cras_deploy' git -C $DIR fetch origin"
+      echo "  GIT_SSH_COMMAND='ssh -i /root/.ssh/poprua_cras_deploy -o IdentitiesOnly=yes' git -C $DIR fetch origin"
       exit 1
     fi ;;
 
