@@ -42,32 +42,24 @@ ssh sufis "sudo rm -f /etc/cron.d/poprua-cras-auto-deploy"
 
 ---
 
-## Opcao B — GitHub Actions self-hosted runner
+## Opcao B — GitHub Actions self-hosted runner (deploy imediato)
 
-Deploy **imediato** apos cada push em `main`.
+O host e **Debian 9** — o runner nativo nao inicia (glibc antiga). Usamos runner em **Docker** (`github-runner-poprua-cras`).
 
-### 1. Gerar token de registro
-
-GitHub → **murtafilho/poprua-cras** → Settings → Actions → Runners → **New self-hosted runner** → copiar o token.
-
-### 2. Instalar runner no host
+### Instalar / reinstalar
 
 ```bash
+# Token novo (uso unico): GitHub > Settings > Actions > Runners > New self-hosted runner
 ssh sufis
-sudo RUNNER_TOKEN='SEU_TOKEN' bash /var/www/html/joomla_sufis/ginfi/poprua-cras/docker/install-github-runner.sh
+sudo RUNNER_TOKEN='SEU_TOKEN' bash /var/www/html/joomla_sufis/ginfi/poprua-cras/docker/install-github-runner-docker.sh
 ```
 
-### 3. Verificar
+### Verificar
 
-GitHub → Settings → Actions → Runners → deve aparecer `vlcp-sufis01-poprua-cras` (verde).
+- GitHub > Settings > Actions > Runners → `vlcp-sufis01-poprua-cras` (Idle)
+- `ssh sufis "sudo docker logs github-runner-poprua-cras --tail 10"`
 
-Proximo `git push origin main` dispara o workflow `Deploy production`.
-
-### Logs do runner
-
-```bash
-ssh sufis "sudo journalctl -u actions.runner.* -f"
-```
+Cada push em `main` dispara `.github/workflows/deploy-production.yml`.
 
 ---
 
