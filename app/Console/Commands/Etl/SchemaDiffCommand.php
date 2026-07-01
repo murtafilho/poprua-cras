@@ -53,7 +53,7 @@ class SchemaDiffCommand extends Command
         'vistorias' => ['drop' => [], 'add' => [
             'finalizada', 'finalizada_em', 'finalizada_por',
             'data_prevista_zeladoria', 'periodo_zeladoria',
-            'houve_lavratura', 'tipo_protocolo',
+            'houve_lavratura', 'houve_lavacao', 'tipo_protocolo',
             'cancelada', 'cancelada_em', 'cancelada_por',
             'houve_comunicado', 'data_comunicado',
         ]],

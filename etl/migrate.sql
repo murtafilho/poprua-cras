@@ -138,7 +138,7 @@ INSERT INTO public.vistorias (
     e5_id, e6_id, deleted_at,
     finalizada, finalizada_em, finalizada_por,
     data_prevista_zeladoria, periodo_zeladoria,
-    houve_lavratura, tipo_protocolo,
+    houve_lavratura, houve_lavacao, tipo_protocolo,
     cancelada, cancelada_em, cancelada_por,
     houve_comunicado, data_comunicado
 )
@@ -156,9 +156,9 @@ SELECT
     e5_id, e6_id, deleted_at,
     -- finalizada (bool NOT NULL default false), finalizada_em (ts null),
     -- finalizada_por (FK null), data_prevista_zeladoria (date null),
-    -- periodo_zeladoria (str null), houve_lavratura (bool NOT NULL default false),
+    -- periodo_zeladoria (str null), houve_lavratura/houve_lavacao (bool NOT NULL default false),
     -- tipo_protocolo (str null)
-    FALSE, NULL, NULL, NULL, NULL, FALSE, NULL,
+    FALSE, NULL, NULL, NULL, NULL, FALSE, FALSE, NULL,
     -- cancelada (bool NOT NULL default false), cancelada_em (ts null),
     -- cancelada_por (FK null)
     FALSE, NULL, NULL,
