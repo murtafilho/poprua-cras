@@ -30,6 +30,7 @@ class SchemaDiffCommand extends Command
         'password_resets', 'password_reset_tokens', 'personal_access_tokens',
         // Exclusivas do CRAS (seedadas via migrations/seeders ou geridas localmente)
         'vistoria_participantes',
+        'vistorias_rascunhos', // tabela nova do CRAS (rascunhos offline) — nao vem do Geo
         'parametros',   // criada pela migration 2026_05_24_220930 — config local
         'user_team',    // gestao de equipes local do CRAS
         'activity_log', // spatie/laravel-activitylog — log local (migration 2026_06_22_000001), nao vem do Geo
