@@ -14,7 +14,8 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body>
+    <body @class(['has-homolog-banner' => config('app.homologacao_banner')])>
+        <x-homologacao-banner />
         <div class="guest-container">
             <div class="guest-logo">
                 <a href="/">

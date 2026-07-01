@@ -37,7 +37,8 @@
         }
     </style>
 </head>
-<body>
+<body @class(['has-homolog-banner' => config('app.homologacao_banner')])>
+    <x-homologacao-banner />
     <div id="app">
         {{-- Sidebar Overlay --}}
         @include('layouts.partials.sidebar')

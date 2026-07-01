@@ -19,6 +19,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Faixa de homologação
+    |--------------------------------------------------------------------------
+    |
+    | Exibe aviso fixo no topo informando que o ambiente é de testes.
+    | Desative em produção (APP_HOMOLOGACAO_BANNER=false).
+    |
+    */
+
+    'homologacao_banner' => filter_var(env('APP_HOMOLOGACAO_BANNER', false), FILTER_VALIDATE_BOOL),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

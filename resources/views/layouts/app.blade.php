@@ -25,8 +25,9 @@
 
     @stack('styles')
 </head>
-<body>
+<body @class(['has-homolog-banner' => config('app.homologacao_banner')])>
     <a href="#main-content" class="skip-link">Pular para o conteudo</a>
+    <x-homologacao-banner />
     <div id="app">
         @include('layouts.partials.sidebar')
 

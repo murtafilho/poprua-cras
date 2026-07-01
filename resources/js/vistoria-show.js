@@ -8,54 +8,169 @@ import {
     uploadPendingPhoto,
 } from './offline-upload';
 
-// Slideshow
-const slideshowUrls = window.SLIDESHOW_URLS;
+const slideshowUrls = [...(window.SLIDESHOW_URLS || [])];
+const slideshowLegends = [...(window.SLIDESHOW_LEGENDS || [])];
 let slideIndex = 0;
 
+const overlay = document.getElementById('slideshow-overlay');
+const slideImage = document.getElementById('slide-image');
+const slideCounter = document.getElementById('slide-counter');
+const slideCaption = document.getElementById('slide-caption');
+const slidePrev = document.getElementById('slide-prev');
+const slideNext = document.getElementById('slide-next');
+const slideClose = document.getElementById('slide-close');
+const fotosGrid = document.getElementById('fotos-grid');
+
 function openSlideshow(index) {
+    if (!overlay || slideshowUrls.length === 0) {
+        return;
+    }
+
     slideIndex = index;
-    const overlay = document.getElementById('slideshow-overlay');
-    overlay.style.display = 'flex';
+    overlay.hidden = false;
+    overlay.classList.add('is-open');
+    document.body.classList.add('slideshow-open');
     updateSlide();
-    document.body.style.overflow = 'hidden';
 }
 
 function closeSlideshow() {
-    document.getElementById('slideshow-overlay').style.display = 'none';
-    document.body.style.overflow = '';
+    if (!overlay) {
+        return;
+    }
+
+    overlay.classList.remove('is-open');
+    overlay.hidden = true;
+    document.body.classList.remove('slideshow-open');
+    if (slideImage) {
+        slideImage.removeAttribute('src');
+    }
 }
 
 function slideMove(dir) {
+    if (slideshowUrls.length === 0) {
+        return;
+    }
+
     slideIndex = (slideIndex + dir + slideshowUrls.length) % slideshowUrls.length;
     updateSlide();
 }
 
 function updateSlide() {
-    document.getElementById('slide-image').src = slideshowUrls[slideIndex];
-    document.getElementById('slide-counter').textContent = (slideIndex + 1) + ' / ' + slideshowUrls.length;
-    document.getElementById('slide-prev').style.visibility = slideshowUrls.length > 1 ? 'visible' : 'hidden';
-    document.getElementById('slide-next').style.visibility = slideshowUrls.length > 1 ? 'visible' : 'hidden';
+    if (!slideImage || slideshowUrls.length === 0) {
+        return;
+    }
+
+    slideImage.src = slideshowUrls[slideIndex];
+
+    if (slideCounter) {
+        slideCounter.textContent = `${slideIndex + 1} / ${slideshowUrls.length}`;
+    }
+
+    const legend = slideshowLegends[slideIndex] || '';
+    if (slideCaption) {
+        if (legend) {
+            slideCaption.textContent = legend;
+            slideCaption.hidden = false;
+        } else {
+            slideCaption.textContent = '';
+            slideCaption.hidden = true;
+        }
+    }
+
+    const showNav = slideshowUrls.length > 1;
+    if (slidePrev) {
+        slidePrev.hidden = !showNav;
+    }
+    if (slideNext) {
+        slideNext.hidden = !showNav;
+    }
 }
 
-document.addEventListener('keydown', function(e) {
-    if (document.getElementById('slideshow-overlay').style.display === 'none') return;
-    if (e.key === 'ArrowLeft') slideMove(-1);
-    else if (e.key === 'ArrowRight') slideMove(1);
-    else if (e.key === 'Escape') closeSlideshow();
-});
+function appendSyncedPhoto(data) {
+    if (!fotosGrid) {
+        return;
+    }
 
-// Swipe para mobile
-(function() {
-    const overlay = document.getElementById('slideshow-overlay');
+    const index = slideshowUrls.length;
+    slideshowUrls.push(data.url);
+    slideshowLegends.push(data.legenda || '');
+
+    const div = document.createElement('div');
+    div.className = 'photo-item photo-item-expandable';
+    div.dataset.slideIndex = String(index);
+    div.setAttribute('role', 'button');
+    div.setAttribute('tabindex', '0');
+    div.setAttribute('aria-label', `Ampliar foto ${index + 1}`);
+    div.innerHTML = `<img src="${data.thumb || data.url}" alt="Foto" loading="lazy">`;
+    fotosGrid.appendChild(div);
+}
+
+function bindSlideshowUi() {
+    if (!overlay) {
+        return;
+    }
+
+    fotosGrid?.addEventListener('click', (event) => {
+        const item = event.target.closest('.photo-item-expandable[data-slide-index]');
+        if (!item) {
+            return;
+        }
+
+        openSlideshow(Number(item.dataset.slideIndex));
+    });
+
+    fotosGrid?.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+
+        const item = event.target.closest('.photo-item-expandable[data-slide-index]');
+        if (!item) {
+            return;
+        }
+
+        event.preventDefault();
+        openSlideshow(Number(item.dataset.slideIndex));
+    });
+
+    slideClose?.addEventListener('click', closeSlideshow);
+    slidePrev?.addEventListener('click', () => slideMove(-1));
+    slideNext?.addEventListener('click', () => slideMove(1));
+
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            closeSlideshow();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (overlay.hidden) {
+            return;
+        }
+
+        if (event.key === 'ArrowLeft') {
+            slideMove(-1);
+        } else if (event.key === 'ArrowRight') {
+            slideMove(1);
+        } else if (event.key === 'Escape') {
+            closeSlideshow();
+        }
+    });
+
     let touchStartX = 0;
-    overlay.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
-    overlay.addEventListener('touchend', function(e) {
-        const diff = e.changedTouches[0].screenX - touchStartX;
+    overlay.addEventListener('touchstart', (event) => {
+        touchStartX = event.changedTouches[0].screenX;
+    }, { passive: true });
+
+    overlay.addEventListener('touchend', (event) => {
+        const diff = event.changedTouches[0].screenX - touchStartX;
         if (Math.abs(diff) > 50) {
             slideMove(diff > 0 ? -1 : 1);
         }
     }, { passive: true });
-})();
+}
+
+bindSlideshowUi();
 
 (function() {
     const VISTORIA_ID = window.VISTORIA_ID;
@@ -138,13 +253,7 @@ document.addEventListener('keydown', function(e) {
                 await removePendingPhotoById(foto.id);
                 enviadas++;
 
-                const grid = document.getElementById('fotos-grid');
-                const a = document.createElement('a');
-                a.href = data.url;
-                a.target = '_blank';
-                a.className = 'photo-item';
-                a.innerHTML = `<img src="${data.thumb || data.url}" alt="Foto" loading="lazy">`;
-                grid.appendChild(a);
+                appendSyncedPhoto(data);
             } catch (err) {
                 console.error('Erro ao sincronizar:', err);
             }
@@ -164,13 +273,9 @@ document.addEventListener('keydown', function(e) {
         }
     }
 
-    document.getElementById('btn-sync-fotos').addEventListener('click', sincronizarFotos);
+    document.getElementById('btn-sync-fotos')?.addEventListener('click', sincronizarFotos);
 
     vincularTempId().then(renderPendentes);
 })();
 
 document.getElementById('btn-print-vistoria')?.addEventListener('click', () => window.print());
-
-window.openSlideshow = openSlideshow;
-window.closeSlideshow = closeSlideshow;
-window.slideMove = slideMove;

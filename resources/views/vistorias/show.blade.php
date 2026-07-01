@@ -507,43 +507,53 @@
 
                 <div class="photo-grid" id="fotos-grid">
                     @foreach($fotos as $index => $foto)
-                        <div class="photo-item" x-on:click="openSlideshow({{ $index }})" style="cursor: pointer;">
+                        <div
+                            class="photo-item photo-item-expandable"
+                            data-slide-index="{{ $index }}"
+                            role="button"
+                            tabindex="0"
+                            aria-label="Ampliar foto {{ $index + 1 }}"
+                        >
                             <img src="{{ $foto->hasGeneratedConversion('thumb') ? $foto->getUrl('thumb') : $foto->getUrl() }}" alt="Foto da vistoria" loading="lazy" x-on:error="$el.src='{{ $foto->getUrl() }}'">
                             @if($foto->getCustomProperty('legenda'))
-                                <div style="font-size: 11px; color: var(--text-secondary); padding: 4px 6px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $foto->getCustomProperty('legenda') }}</div>
+                                <div class="photo-item-caption">{{ $foto->getCustomProperty('legenda') }}</div>
                             @endif
                         </div>
                     @endforeach
                 </div>
 
-                {{-- Slideshow Modal --}}
-                <div id="slideshow-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.92); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
-                    {{-- Fechar --}}
-                    <button x-on:click="closeSlideshow()" style="position:absolute; top:16px; right:16px; background:none; border:none; color:#fff; cursor:pointer; z-index:10001; padding:8px; min-width:44px; min-height:44px;">
-                        <svg style="width:28px; height:28px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {{-- Lightbox de fotos ampliadas --}}
+                <div
+                    id="slideshow-overlay"
+                    class="slideshow-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Foto ampliada"
+                    hidden
+                >
+                    <button type="button" id="slide-close" class="slideshow-close-btn" aria-label="Fechar">
+                        <svg style="width:28px; height:28px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
 
-                    {{-- Contador --}}
-                    <div id="slide-counter" style="position:absolute; top:20px; left:50%; transform:translateX(-50%); color:#fff; font-size:14px; z-index:10001;"></div>
+                    <div id="slide-counter" class="slideshow-counter"></div>
 
-                    {{-- Seta esquerda --}}
-                    <button id="slide-prev" x-on:click="slideMove(-1)" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:#fff; cursor:pointer; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; z-index:10001; transition: background 0.2s;" x-on:mouseenter="$el.style.background='rgba(255,255,255,0.3)'" x-on:mouseleave="$el.style.background='rgba(255,255,255,0.15)'">
-                        <svg style="width:24px; height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button type="button" id="slide-prev" class="slideshow-nav-btn slideshow-nav-btn--prev" aria-label="Foto anterior">
+                        <svg style="width:24px; height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                         </svg>
                     </button>
 
-                    {{-- Imagem --}}
-                    <img id="slide-image" src="" alt="Foto" style="max-width:90vw; max-height:85vh; object-fit:contain; border-radius:4px; user-select:none;">
+                    <img id="slide-image" src="" alt="Foto ampliada da zeladoria">
 
-                    {{-- Seta direita --}}
-                    <button id="slide-next" x-on:click="slideMove(1)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:#fff; cursor:pointer; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; z-index:10001; transition: background 0.2s;" x-on:mouseenter="$el.style.background='rgba(255,255,255,0.3)'" x-on:mouseleave="$el.style.background='rgba(255,255,255,0.15)'">
-                        <svg style="width:24px; height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button type="button" id="slide-next" class="slideshow-nav-btn slideshow-nav-btn--next" aria-label="Próxima foto">
+                        <svg style="width:24px; height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </button>
+
+                    <p id="slide-caption" class="slideshow-caption" hidden></p>
                 </div>
 
                 {{-- Fotos pendentes (local) --}}
@@ -574,7 +584,11 @@
         </div>
 
 
-        <script>window.SLIDESHOW_URLS = @json($fotos->map(fn($f) => $f->getUrl())->values()); window.VISTORIA_ID = {{ $vistoria->id }};</script>
+        <script>
+            window.SLIDESHOW_URLS = @json($fotos->map(fn ($f) => $f->getUrl())->values());
+            window.SLIDESHOW_LEGENDS = @json($fotos->map(fn ($f) => (string) $f->getCustomProperty('legenda', ''))->values());
+            window.VISTORIA_ID = {{ $vistoria->id }};
+        </script>
 
 
         {{-- Botao Finalizar / Complementar --}}
