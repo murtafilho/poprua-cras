@@ -30,7 +30,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-body">
                     <h3 style="font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-4);">
                         Desenvolvimento e responsabilidade técnica
@@ -49,9 +49,28 @@
                                 </a>
                             </span>
                         </div>
-                        <div class="info-item" style="grid-column: 1 / -1;">
-                            <span class="info-label">Órgão</span>
-                            <span class="info-value">Gerência de Informação da Fiscalização — GINFI</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h3 style="font-size: var(--text-sm); font-weight: var(--font-semibold); margin-bottom: var(--space-4);">
+                        Gerência de Informação da Fiscalização — GINFI
+                    </h3>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Responsável pela Gerência</span>
+                            <span class="info-value">Cássio Soares Martins</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Contato</span>
+                            <span class="info-value">
+                                <a href="mailto:ginfi@pbh.gov.br" style="color: var(--accent-primary); text-decoration: none;">
+                                    ginfi@pbh.gov.br
+                                </a>
+                            </span>
                         </div>
                     </div>
                 </div>

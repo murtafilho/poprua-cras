@@ -26,6 +26,8 @@ class SobreControllerTest extends TestCase
             ->assertSee('Desenvolvimento e responsabilidade técnica')
             ->assertSee('Roberto Murta')
             ->assertSee('rluciano@pbh.gov.br')
-            ->assertSee('Gerência de Informação da Fiscalização — GINFI');
+            ->assertSee('Gerência de Informação da Fiscalização — GINFI')
+            ->assertSee('Cássio Soares Martins')
+            ->assertSee('ginfi@pbh.gov.br');
     }
 }
