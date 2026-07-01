@@ -32,8 +32,7 @@ CREATE USER MAPPING FOR CURRENT_USER SERVER geo_src
 CREATE SCHEMA IF NOT EXISTS etl_geo;
 
 IMPORT FOREIGN SCHEMA public LIMIT TO (
-    roles, permissions, role_has_permissions,
-    users, model_has_permissions, model_has_roles,
+    roles, users, model_has_roles,
     geo_bairros, geo_regionais, geo_limite_municipio,
     caracteristica_abrigo, encaminhamentos, tipo_abordagem,
     tipo_abrigo_desmontado, resultados_acoes,
@@ -61,22 +60,14 @@ TRUNCATE
     public.geo_regionais,
     public.geo_bairros,
     public.model_has_roles,
-    public.model_has_permissions,
-    public.role_has_permissions,
-    public.users,
-    public.permissions,
-    public.roles
+    public.users
 RESTART IDENTITY CASCADE;
 
 -- -----------------------------------------------------------------------------
 -- 3. Carga em ordem topologica (pais primeiro)
 -- -----------------------------------------------------------------------------
 
--- Auth / autorizacao
-INSERT INTO public.roles SELECT * FROM etl_geo.roles;
-INSERT INTO public.permissions SELECT * FROM etl_geo.permissions;
-INSERT INTO public.role_has_permissions SELECT * FROM etl_geo.role_has_permissions;
-
+-- Auth: users do Geo; roles/permissions/model_has_roles via PermissoesSeeder + fase 5c do cutover
 -- users: + ativo (nova em CRAS, default true para usuarios herdados do Geo)
 INSERT INTO public.users (
     id, name, email, email_verified_at, password, remember_token,
@@ -86,8 +77,6 @@ SELECT
     id, name, email, email_verified_at, password, remember_token,
     created_at, updated_at, TRUE
 FROM etl_geo.users;
-INSERT INTO public.model_has_permissions SELECT * FROM etl_geo.model_has_permissions;
-INSERT INTO public.model_has_roles SELECT * FROM etl_geo.model_has_roles;
 
 -- Geo (poligonos urbanos)
 INSERT INTO public.geo_bairros SELECT * FROM etl_geo.geo_bairros;
@@ -199,7 +188,7 @@ DECLARE t text;
 BEGIN
     FOR t IN
         SELECT unnest(ARRAY[
-            'roles', 'permissions', 'users',
+            'users',
             'geo_bairros', 'geo_regionais', 'geo_limite_municipio',
             'caracteristica_abrigo', 'encaminhamentos', 'tipo_abordagem',
             'tipo_abrigo_desmontado', 'resultados_acoes',

@@ -19,7 +19,7 @@ class RunCommand extends Command
     private const TEMP_DB = 'poprua_geo_import';
 
     private const REPORTED_TABLES = [
-        'users', 'roles', 'permissions',
+        'users', 'model_has_roles',
         'pontos', 'moradores', 'vistorias',
         'vistoria_fotos', 'morador_historicos', 'media',
         'endereco_atualizados',

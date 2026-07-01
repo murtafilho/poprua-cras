@@ -33,6 +33,11 @@ class SchemaDiffCommand extends Command
         'parametros',   // criada pela migration 2026_05_24_220930 — config local
         'user_team',    // gestao de equipes local do CRAS
         'activity_log', // spatie/laravel-activitylog — log local (migration 2026_06_22_000001), nao vem do Geo
+        // RBAC: permissions/role_has_permissions/model_has_permissions nao migram do Geo.
+        // roles/model_has_roles: schema igual, mas dados vem do PermissoesSeeder + remap (cutover 5b/5c).
+        'permissions',
+        'role_has_permissions',
+        'model_has_permissions',
     ];
 
     /**

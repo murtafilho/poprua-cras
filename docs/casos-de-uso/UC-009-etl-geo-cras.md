@@ -27,12 +27,16 @@ Descrever a **migração única** de dados do POPRUA Geo (produção temporária
 
 **O schema do CRAS sempre vence.** Divergências são tratadas explicitamente em `etl/migrate.sql` e na lista `EXPECTED_DIVERGENCES` do `SchemaDiffCommand`.
 
+**RBAC (Opção C):** roles, permissions e pivots de definição **não** vêm do Geo. O `PermissoesSeeder` impõe a matriz canônica do CRAS (23 permissions, 7 roles). Apenas `users` e as atribuições `model_has_roles` são herdadas do Geo, com remap de `role_id` via `roles.name` na fase 5c do `cutover.sh`.
+
 | Situação | Tratamento |
 |----------|------------|
 | Coluna só no Geo | Omitir do `INSERT` |
 | Coluna só no CRAS | `SELECT ..., NULL` ou default (`FALSE`, etc.) |
 | Tabela só no Geo | Fora do `IMPORT FOREIGN SCHEMA` |
 | Tabela só no CRAS | Não migrada (seeders/migrations locais) |
+| `roles`, `permissions`, pivots RBAC | **Não migrar** — `PermissoesSeeder` + `etl/remap-model-has-roles.sql` |
+| `users`, `model_has_roles` | Migrar; papéis remapeados por `roles.name` |
 | Cache, sessions, jobs | Ignorados |
 
 ---
@@ -51,13 +55,12 @@ Descrever a **migração única** de dados do POPRUA Geo (produção temporária
 
 | Passo | Ator | Comando / Ação | Resultado |
 |-------|------|----------------|-----------|
-| 1 | Admin | `php artisan etl:schema-diff` | Relatório de divergências; **falha** se houver coluna/tabela não catalogada em `EXPECTED_DIVERGENCES`. |
-| 2 | Admin | Revisa diff; atualiza `migrate.sql` se necessário | Script alinhado ao schema atual. |
-| 3 | Admin | `php artisan etl:run --confirm` | Executa `migrate.sql` em transação única. |
-| 4 | — | Script faz `TRUNCATE ... RESTART IDENTITY` nas tabelas de domínio | CRAS limpo antes da carga. |
-| 5 | — | FDW import + `INSERT ... SELECT` em ordem topológica de FK | Dados copiados Geo → CRAS. |
-| 6 | — | Reset de sequências PostgreSQL | IDs novos consistentes pós-import. |
-| 7 | Admin | Valida contagens, geometrias PostGIS, amostragem funcional | Cutover aprovado; Geo desligado. |
+| 1 | Admin | `etl/cutover.sh --check` ou `php artisan etl:schema-diff` | Pre-flight + validação read-only |
+| 2 | Admin | `etl/cutover.sh --apply` (ou `etl:run --confirm` isolado) | ETL de domínio + users |
+| 3 | — | Fase 5b: `PermissoesSeeder` | 23 permissions + 7 roles canônicos do CRAS |
+| 4 | — | Fase 5c: `etl/remap-model-has-roles.sql` | Atribuições usuário↔papel do Geo, remap por `roles.name` |
+| 5 | — | Fase 6: rsync `storage/app/public/` | Arquivos físicos das fotos |
+| 6 | Admin | Validar contagens, PostGIS, RBAC, gap de fotos | Cutover aprovado |
 
 ---
 
@@ -66,7 +69,7 @@ Descrever a **migração única** de dados do POPRUA Geo (produção temporária
 Ordem típica em `migrate.sql` (respeitar FKs):
 
 1. Lookups (`tipo_abordagem`, `resultados_acoes`, `encaminhamentos`, …)
-2. `users` / permissões (se incluídos)
+2. `users` (sem roles/permissions do Geo)
 3. `pontos`, `endereco_atualizados`
 4. `vistorias`, pivots (`vistoria_participantes`, abrigos, …)
 5. `moradores`, `morador_historicos`
@@ -108,6 +111,8 @@ Conexão fonte: `config/database.php` → `pgsql_geo` (`ETL_SOURCE_*`).
 | RN4 | Schema CRAS pós-migration é a referência; Geo não altera estrutura do CRAS. |
 | RN5 | Tabelas runtime Laravel (`cache`, `sessions`, `jobs`, `migrations`) não entram na migração. |
 | RN6 | Geometrias PostGIS mantêm SRID 4326; validar amostra pós-carga. |
+| RN7 | RBAC canônico do CRAS (`PermissoesSeeder`) vence; Geo não exporta `roles`/`permissions`. |
+| RN8 | `model_has_roles` remapeado por `roles.name` após o seeder (`etl/remap-model-has-roles.sql`). |
 
 ---
 
@@ -117,7 +122,8 @@ Conexão fonte: `config/database.php` → `pgsql_geo` (`ETL_SOURCE_*`).
 |-------|-----------|
 | Container CRAS perde rede com Geo após rebuild | Declarar rede externa no `docker-compose.yml` (ver skill) |
 | Nova coluna no Geo sem update do SQL | `schema-diff` falha até atualizar `migrate.sql` + `EXPECTED_DIVERGENCES` |
-| Mídia/fotos em disco | ETL cobre metadados DB; arquivos exigem rsync/sync separado se aplicável |
+| Mídia/fotos em disco | ETL cobre metadados DB; arquivos exigem rsync (cutover fase 6) |
+| RBAC divergente Geo vs CRAS | `PermissoesSeeder` + remap; papéis Geo sem match no CRAS ficam sem atribuição |
 
 ---
 
@@ -157,12 +163,12 @@ Checklist operacional para o dia do cutover Geo → CRAS. Executar **na ordem**.
 
 | # | Ação | Comando / critério |
 |---|------|-------------------|
-| 1 | Colocar Geo em **somente leitura** (ou desligar writes) | Ops |
-| 2 | Pre-flight final | `php artisan etl:schema-diff` → "Migracao pronta" |
-| 3 | Executar ETL | `php artisan etl:run --confirm --skip-backup` |
-| 4 | Conferir contagens impressas pelo comando vs Geo | DBA |
+| 1 | Colocar Geo em **somente leitura** | `cutover.sh --apply --freeze` (artisan down no Geo) |
+| 2 | Pre-flight + ETL + RBAC + fotos | `sudo bash etl/cutover.sh --apply --freeze` |
+| 3 | Conferir contagens domínio + `model_has_roles` | Relatório fase 8 do cutover |
+| 4 | Validar RBAC | 23 permissions, 7 roles; login admin + agente |
 | 5 | Validar PostGIS | `ST_SRID = 4326`, `ST_IsValid` no relatório |
-| 6 | Corrigir bairros inválidos se necessário | SQL `ST_MakeValid` (ids 188, 426) |
+| 6 | Gap de fotos = 0 | Fase 8b do cutover |
 | 7 | Smoke test CRAS | Login, mapa, listar vistorias, abrir zeladoria |
 | 8 | Apontar DNS/reverse proxy para CRAS | Ops |
 | 9 | Monitorar logs 24h | Ops |

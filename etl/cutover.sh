@@ -40,7 +40,7 @@ CRAS_DB=poprua_cras ; CRAS_USER=poprua_cras
 # Tabelas locais do CRAS que o CASCADE do TRUNCATE zera e o ETL nao recarrega:
 LOCAL_TABLES="vistoria_participantes user_team"
 # Tabelas de dominio para checagem de paridade de contagem (geo x cras):
-DOMAIN_TABLES="users roles permissions caracteristica_abrigo encaminhamentos tipo_abordagem tipo_abrigo_desmontado resultados_acoes endereco_atualizados pontos moradores vistorias vistoria_fotos morador_historicos media geo_bairros geo_regionais geo_limite_municipio"
+DOMAIN_TABLES="users model_has_roles caracteristica_abrigo encaminhamentos tipo_abordagem tipo_abrigo_desmontado resultados_acoes endereco_atualizados pontos moradores vistorias vistoria_fotos morador_historicos media geo_bairros geo_regionais geo_limite_municipio"
 
 # ---- Flags ------------------------------------------------------------------
 MODE="" ; FREEZE=0 ; DEACTIVATE=ask ; DO_RSYNC=1 ; DO_RESEED=1 ; DO_WEBP=0 ; SKIP_BACKUP=0
@@ -125,6 +125,24 @@ if [ "$MODE" = apply ]; then
   phase "5. ETL de dados (etl:run --confirm)"
   art_cras etl:run --confirm --skip-backup
   ok "etl:run concluido"
+fi
+
+# ---- 5b. RBAC canônico do CRAS ------------------------------------------------
+if [ "$MODE" = apply ]; then
+  phase "5b. RBAC: PermissoesSeeder"
+  art_cras db:seed --class=PermissoesSeeder --force
+  ok "PermissoesSeeder concluido"
+fi
+
+# ---- 5c. Remap model_has_roles do Geo -----------------------------------------
+if [ "$MODE" = apply ]; then
+  phase "5c. RBAC: remap model_has_roles (role.name)"
+  docker exec -i "$PG_CRAS" psql -U "$CRAS_USER" -d "$CRAS_DB" \
+    < "$CRAS_DIR/etl/remap-model-has-roles.sql"
+  GEO_MHR=$(psql_geo "SELECT count(*) FROM model_has_roles" | tr -d ' ')
+  CRAS_MHR=$(psql_cras "SELECT count(*) FROM model_has_roles" | tr -d ' ')
+  if [ "$GEO_MHR" = "$CRAS_MHR" ]; then ok "model_has_roles: geo=$GEO_MHR cras=$CRAS_MHR"
+  else warn "model_has_roles: geo=$GEO_MHR cras=$CRAS_MHR (papeis Geo sem match no CRAS?)"; fi
 fi
 
 # ---- 6. FOTOS (rsync de arquivos fisicos) ----------------------------------
