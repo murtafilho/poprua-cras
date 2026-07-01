@@ -10,7 +10,7 @@ class TransporCoordenadasPontos extends Command
 {
     protected $signature = 'pontos:vincular-enderecos
                             {--dry-run : Simula sem gravar alterações}
-                            {--raio=200 : Raio máximo de busca em metros}
+                            {--raio=300 : Raio máximo de busca em metros}
                             {--force : Reprocessa todos, mesmo os já vinculados}';
 
     protected $description = 'Vincula pontos ao endereço de porta mais próximo. Prioridade: coordenadas. Fallback: endereço alfanumérico do legado MySQL.';
@@ -118,51 +118,29 @@ class TransporCoordenadasPontos extends Command
             return null;
         }
 
-        $margemGraus = ($raio * 1.5) / 111000;
+        /** @var EnderecoService $enderecoService */
+        $enderecoService = app(EnderecoService::class);
+        $endereco = $enderecoService->buscarEnderecoMaisProximo((float) $ponto->lat, (float) $ponto->lng);
 
-        $endereco = DB::table('endereco_atualizados')
-            ->select([
-                'id',
-                DB::raw('"SIGLA_TIPO_LOGRADOURO" as tipo'),
-                DB::raw('"NOME_LOGRADOURO" as logradouro'),
-                DB::raw('"NUMERO_IMOVEL" as numero'),
-                DB::raw('"NOME_BAIRRO_POPULAR" as bairro'),
-                DB::raw('"NOME_REGIONAL" as regional'),
-                'lat',
-                'lng',
-            ])
-            ->whereNotNull('lat')
-            ->whereNotNull('lng')
-            ->whereBetween('lat', [$ponto->lat - $margemGraus, $ponto->lat + $margemGraus])
-            ->whereBetween('lng', [$ponto->lng - $margemGraus, $ponto->lng + $margemGraus])
-            ->orderByRaw('POWER(lat - ?, 2) + POWER(lng - ?, 2)', [$ponto->lat, $ponto->lng])
-            ->first();
-
-        if (! $endereco) {
-            return null;
-        }
-
-        $distancia = $this->calcularDistancia(
-            $ponto->lat, $ponto->lng,
-            $endereco->lat, $endereco->lng
-        );
-
-        if ($distancia > $raio) {
+        if (! $endereco || ! isset($endereco->distancia) || (float) $endereco->distancia > $raio) {
             return null;
         }
 
         $complemento = sprintf(
             '%dm de %s %s, %s',
-            round($distancia),
+            round((float) $endereco->distancia),
             $endereco->tipo,
             $endereco->logradouro,
-            round($endereco->numero)
+            intval($endereco->numero)
         );
 
         return [
             'endereco_atualizado_id' => $endereco->id,
             'complemento' => $complemento,
-            'observacao' => sprintf('Vinculado por coordenada. Distância: %dm do endereço de porta mais próximo.', round($distancia)),
+            'observacao' => sprintf(
+                'Vinculado por coordenada. Distância: %dm do endereço de porta mais próximo.',
+                round((float) $endereco->distancia)
+            ),
             'metodo' => 'coordenada',
         ];
     }
@@ -290,21 +268,5 @@ class TransporCoordenadasPontos extends Command
             && is_numeric($ponto->lng)
             && (float) $ponto->lat !== 0.0
             && (float) $ponto->lng !== 0.0;
-    }
-
-    private function calcularDistancia(float $lat1, float $lng1, float $lat2, float $lng2): float
-    {
-        $raioTerra = 6371000;
-
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLng = deg2rad($lng2 - $lng1);
-
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($dLng / 2) * sin($dLng / 2);
-
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        return $raioTerra * $c;
     }
 }
