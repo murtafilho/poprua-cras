@@ -72,15 +72,6 @@
             <button type="submit" class="btn btn-primary btn-lg btn-block">
                 {{ __('Log in') }}
             </button>
-
-            @if (Route::has('register'))
-                <p class="text-center text-muted" style="font-size: var(--text-sm);">
-                    {{ __('Não tem conta?') }}
-                    <a href="{{ route('register') }}" style="font-weight: var(--font-medium);">
-                        {{ __('Register') }}
-                    </a>
-                </p>
-            @endif
         </div>
     </form>
 </x-guest-layout>

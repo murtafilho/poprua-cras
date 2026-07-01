@@ -87,7 +87,7 @@ services:
     ports:
       # 9086 -> 9000 (PHP-FPM/FastCGI) — Apache do host faz proxy_fcgi:127.0.0.1:9086
       # NAO usar 9086:8080 (nginx HTTP), senao o Apache responde 503 ao tentar FastCGI
-      - "${APP_PORT:-9086}:9000"
+      - "127.0.0.1:${APP_PORT:-9086}:9000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     working_dir: /var/www/html/joomla_sufis/ginfi/poprua-cras
@@ -229,7 +229,7 @@ services:
     security_opt:
       - no-new-privileges:true
     ports:
-      - "0.0.0.0:2226:22"
+      - "127.0.0.1:2226:22"
     volumes:
       - .:/var/www/html/joomla_sufis/ginfi/poprua-cras
       - /opt/docker/poprua-cras/claude-data:/root/.claude
