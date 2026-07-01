@@ -50,7 +50,6 @@ jobs:
       DB_PASSWORD: poprua_cras
       REDIS_HOST: localhost
       REDIS_PORT: 6379
-      CACHE_STORE: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: sync
 
@@ -107,4 +106,6 @@ jobs:
         run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
 
       - name: Testes com cobertura (PCOV)
+        env:
+          CACHE_STORE: array
         run: php artisan test --coverage

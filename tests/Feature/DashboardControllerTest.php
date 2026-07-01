@@ -24,6 +24,8 @@ class DashboardControllerTest extends TestCase
     {
         parent::setUp();
 
+        Cache::flush();
+
         $this->user = User::factory()->create();
 
         // Lookup tables required by Vistoria factory
