@@ -61,6 +61,16 @@ sudo RUNNER_TOKEN='SEU_TOKEN' bash /var/www/html/joomla_sufis/ginfi/poprua-cras/
 
 Cada push em `main` dispara `.github/workflows/deploy-production.yml`.
 
+### Falhas comuns do runner
+
+| Sintoma | Causa | Solucao |
+|---------|-------|---------|
+| Job `Failed` em ~5s | Working tree sujo no servidor | `sudo git -C ... checkout -- docker/ poprua .claude/` ou aguardar deploy.sh com auto-sanitize CRLF |
+| `git fetch falhou` | Deploy key ausente | `bash poprua setup-server` |
+| Runner `Offline` | Container parado | `sudo docker start github-runner-poprua-cras` |
+
+Logs: `sudo docker logs github-runner-poprua-cras --tail 30`
+
 ---
 
 ## Fluxo completo (com auto-deploy ativo)

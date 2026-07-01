@@ -37,6 +37,22 @@ CUR_BRANCH=$($GIT rev-parse --abbrev-ref HEAD)
 
 $GIT checkout -- composer.lock package-lock.json 2>/dev/null || true
 
+# Drift CRLF em scripts de ops (Windows -> servidor Linux) nao deve bloquear deploy.
+sanitize_crlf_drift() {
+    local files f
+    files=$($GIT diff --name-only 2>/dev/null) || return 0
+    [ -z "$files" ] && return 0
+    for f in $files; do
+        if ! $GIT diff --ignore-cr-at-eol --quiet -- "$f" 2>/dev/null; then
+            return 1
+        fi
+    done
+    echo "  revertendo drift CRLF em: $(echo "$files" | tr '\n' ' ')"
+    $GIT checkout -- $files
+    return 0
+}
+sanitize_crlf_drift || true
+
 DIRTY=$($GIT status --porcelain --untracked-files=no)
 if [ -n "$DIRTY" ]; then
     echo "$DIRTY"
