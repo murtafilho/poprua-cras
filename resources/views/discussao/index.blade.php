@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>POPRUA v2 &mdash; Documento de Discussao</title>
+    <title>SIZEM &mdash; Documento de Discussao</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -929,7 +929,7 @@
                 </svg>
             </button>
             <div>
-                <span class="top-bar-brand">POPRUA v2</span>
+                <span class="top-bar-brand">SIZEM</span>
                 <span class="top-bar-label" style="margin-left: 0.75rem;">Documento de Discussao</span>
             </div>
         </div>

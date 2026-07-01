@@ -1,7 +1,7 @@
 import { imgType } from './img-format';
 
 /**
- * POPRUA — Camada canônica de fila offline de fotos (IndexedDB + Service Worker).
+ * SIZEM — Camada canônica de fila offline de fotos (IndexedDB + Service Worker).
  * Consumidores: vistoria-form.js, vistoria-edit.js, vistoria-show.js, app.js.
  */
 

@@ -1,4 +1,4 @@
-# API Reference — POPRUA v2
+# API Reference — SIZEM v1
 
 Todas as rotas API requerem autenticacao via session cookie (middleware `web` + `auth`), exceto as rotas GeoJSON que sao publicas.
 

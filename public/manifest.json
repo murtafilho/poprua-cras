@@ -1,7 +1,7 @@
 {
-    "name": "POPRUA - Gestão de População em Situação de Rua",
-    "short_name": "POPRUA",
-    "description": "Sistema de gestão de vistorias e monitoramento de população em situação de rua",
+    "name": "SIZEM - Sistema Integrado de Zeladoria Municipal",
+    "short_name": "SIZEM",
+    "description": "Sistema Integrado de Zeladoria Municipal — gestao de vistorias e monitoramento urbano",
     "start_url": "./mapa",
     "scope": "./",
     "display": "standalone",

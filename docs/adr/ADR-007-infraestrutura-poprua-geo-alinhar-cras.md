@@ -1,4 +1,4 @@
-# ADR-007: Infraestrutura POPRUA Geo — alinhar com a abordagem do CRAS
+# ADR-007: Infraestrutura SIZEM — alinhar com a abordagem do CRAS
 
 **Data:** 2026-05-20
 **Status:** Implementado (passos A-I executados em 2026-05-20)

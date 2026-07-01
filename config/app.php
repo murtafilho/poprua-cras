@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'SIZEM - Sistema Integrado de Zeladoria Municipal'),
 
     /*
     |--------------------------------------------------------------------------

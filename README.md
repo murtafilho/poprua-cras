@@ -1,8 +1,8 @@
-# PopRua CRAS
+# SIZEM — Sistema Integrado de Zeladoria Municipal
 
-Sistema de integracao CRAS (Centro de Referencia de Assistencia Social) com gestao geoespacial de pontos de atendimento.
+Sistema de gestao geoespacial de vistorias e zeladoria urbana para CRAS (Centro de Referencia de Assistencia Social).
 
-> Fork do [poprua-geo](https://github.com/murtafilho/poprua-geo) — herda Ponto/Vistoria/Morador + PostGIS + PWA, e sera adaptado para os fluxos especificos do CRAS.
+> Fork do [poprua-geo](https://github.com/murtafilho/poprua-geo) — herda Ponto/Vistoria/Morador + PostGIS + PWA, adaptado para os fluxos especificos do CRAS e zeladoria municipal.
 
 ## Stack
 
@@ -83,7 +83,7 @@ EXEC="sudo docker exec -u root php84-poprua-cras"
 
 $EXEC php artisan test                        # Testes
 $EXEC php artisan test --filter=NomeDoTeste   # Teste especifico
-$EXEC vendor/bin/pint --dirty                 # Lint/format
+$EXEC vendor/bin/pint --dirty                 # Lint
 $EXEC vendor/bin/phpstan analyse              # Analise estatica (level 6)
 $EXEC php artisan migrate --no-interaction    # Rodar migrations
 ```

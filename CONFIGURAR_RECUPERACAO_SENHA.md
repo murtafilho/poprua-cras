@@ -1,6 +1,6 @@
-# Configurar Recuperação de Senha - POPRUA
+# Configurar Recuperação de Senha - SIZEM
 
-Este guia mostra como configurar o envio de emails para recuperação de senha no sistema POPRUA.
+Este guia mostra como configurar o envio de emails para recuperação de senha no sistema SIZEM.
 
 ## ✅ O que já está implementado
 
@@ -27,7 +27,7 @@ MAIL_USERNAME=seu-username-mailtrap
 MAIL_PASSWORD=sua-senha-mailtrap
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=noreply@poprua.com
-MAIL_FROM_NAME="POPRUA"
+MAIL_FROM_NAME="SIZEM"
 ```
 
 **Como obter credenciais do Mailtrap:**
@@ -47,7 +47,7 @@ MAIL_USERNAME=seu-email@gmail.com
 MAIL_PASSWORD=sua-senha-de-app
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=seu-email@gmail.com
-MAIL_FROM_NAME="POPRUA"
+MAIL_FROM_NAME="SIZEM"
 ```
 
 **Importante para Gmail:**
@@ -60,7 +60,7 @@ MAIL_FROM_NAME="POPRUA"
 ```env
 MAIL_MAILER=log
 MAIL_FROM_ADDRESS=noreply@poprua.com
-MAIL_FROM_NAME="POPRUA"
+MAIL_FROM_NAME="SIZEM"
 ```
 
 Com esta opção, os emails não são enviados, mas são salvos em `storage/logs/laravel.log`.
@@ -180,13 +180,13 @@ class CustomResetPassword extends Notification
         ], false));
 
         return (new MailMessage)
-            ->subject('Redefinir Senha - POPRUA')
+            ->subject('Redefinir Senha - SIZEM')
             ->greeting('Olá!')
             ->line('Você está recebendo este email porque recebemos uma solicitação de redefinição de senha para sua conta.')
             ->action('Redefinir Senha', $url)
             ->line('Este link de redefinição de senha expirará em 60 minutos.')
             ->line('Se você não solicitou uma redefinição de senha, nenhuma ação adicional é necessária.')
-            ->salutation('Atenciosamente, Equipe POPRUA');
+            ->salutation('Atenciosamente, Equipe SIZEM');
     }
 }
 ```

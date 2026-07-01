@@ -6,7 +6,7 @@
 
 **Tipo:** Proposta técnica para discussão intersetorial  
 **Data:** 24 de maio de 2026  
-**Elaboração:** Coordenação Técnica POPRUA CRAS  
+**Elaboração:** Coordenação Técnica SIZEM  
 **Destinatários:** Comissão Especial de Operação e Monitoramento — representantes regionais de SMPU, SMASDH, SMSA, SMSP e SLU  
 **Referência:** Portaria Conjunta SMGO/SMPU/SMASDH/SMSA/SMSP/SLU nº 009/2026 (DOM-BH Ed. 7504, 22/05/2026)
 
@@ -14,7 +14,7 @@
 
 ## 1. OBJETO
 
-A presente proposta submete à Comissão Especial de Operação e Monitoramento, instituída pelo Art. 11 da Portaria Conjunta nº 009/2026, um conjunto de **campos adicionais para o sistema POPRUA CRAS**, a serem discutidos e validados antes da entrada do sistema em produção.
+A presente proposta submete à Comissão Especial de Operação e Monitoramento, instituída pelo Art. 11 da Portaria Conjunta nº 009/2026, um conjunto de **campos adicionais para o sistema SIZEM**, a serem discutidos e validados antes da entrada do sistema em produção.
 
 O objetivo é garantir que o instrumento de coleta em campo capture os dados necessários para:
 

@@ -1,4 +1,4 @@
-# Configuração do Redis para Laravel POPRUA
+# Configuração do Redis para Laravel SIZEM
 
 ## Status
 ✅ Redis está instalado e funcionando (versão 7.0.15)

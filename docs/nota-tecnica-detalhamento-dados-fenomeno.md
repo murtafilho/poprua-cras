@@ -1,4 +1,4 @@
-# NOTA TÉCNICA — Detalhamento de Dados do Fenômeno para o Sistema POPRUA CRAS
+# NOTA TÉCNICA — Detalhamento de Dados do Fenômeno para o SIZEM
 
 **Oportunidade de Parametrização Diante da Portaria Conjunta nº 009/2026 e da Reformulação do Sistema**
 

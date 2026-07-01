@@ -1,5 +1,5 @@
 /* ============================================
-   POPRUA v2 — Field Instrument Design System
+   SIZEM — Sistema Integrado de Zeladoria Municipal
    Mobile-First · High Contrast · Utilitarian
    ============================================ */
 
@@ -48,7 +48,7 @@
   --color-info: #184186;
   --color-info-dim: rgba(24, 65, 134, 0.12);
 
-  /* Status Colors — POPRUA domain (+ aliases usados em KPIs/textos) */
+/* Status Colors — SIZEM domain (+ aliases usados em KPIs/textos) */
   --status-positivo: #009D67;
   --status-negativo: #7A8597;
   --status-recusa: #B57E00;
@@ -1540,7 +1540,7 @@ h6 { font-size: var(--text-sm); }
   color: var(--accent-primary);
 }
 
-/* Status Badges - POPRUA Specific */
+/* Status Badges - SIZEM Specific */
 .badge-positivo {
   background: rgba(16, 185, 129, 0.15);
   color: var(--status-positivo);

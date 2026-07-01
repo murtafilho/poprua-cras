@@ -61,7 +61,7 @@
     </table>
 
     <p style="font-size: 10px; color: #999; text-align: center;">
-        Gerado em {{ now()->format('d/m/Y H:i') }} | POPRUA v2
+        Gerado em {{ now()->format('d/m/Y H:i') }} | SIZEM
     </p>
 </body>
 </html>

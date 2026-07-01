@@ -1,4 +1,4 @@
-# Docker em Linux Legado — Referência para POPRUA
+# Docker em Linux Legado — Referência para SIZEM
 
 ## Realidade do nosso host
 

@@ -1,4 +1,4 @@
-# CLAUDE.md — PopRua CRAS (repositorio)
+# CLAUDE.md — SIZEM (repositorio)
 
 ## Fonte da verdade
 
@@ -18,7 +18,7 @@ bash poprua release "msg"   # commit + push + deploy
 bash poprua setup-server    # configura origin no servidor (1x)
 ```
 
-POPRUA CRAS — sistema derivado do POPRUA Geo, focado na integracao com CRAS (Zeladoria Urbana). Laravel 12 / PHP 8.4 / PostgreSQL + PostGIS / Redis / Vite.
+SIZEM — Sistema Integrado de Zeladoria Municipal, derivado do POPRUA Geo, focado na integracao com CRAS (Zeladoria Urbana). Laravel 12 / PHP 8.4 / PostgreSQL + PostGIS / Redis / Vite.
 
 Fork inicial baseado em [poprua-geo](https://github.com/murtafilho/poprua-geo) em 2026-05-18.
 

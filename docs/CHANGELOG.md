@@ -1,4 +1,4 @@
-# Changelog - POPRUA v2
+# Changelog - SIZEM
 
 Todas as alteracoes relevantes do sistema sao documentadas neste arquivo.
 

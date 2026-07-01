@@ -1,4 +1,4 @@
-# Regras de Negocio — POPRUA CRAS
+# Regras de Negocio — SIZEM
 
 Audiencia: equipe de desenvolvimento e time de produto. Descreve o comportamento esperado do sistema extraido diretamente do codigo-fonte. Atualizado em 2026-06-24.
 

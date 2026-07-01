@@ -1,10 +1,10 @@
 <x-guest-layout>
     <h2 class="text-center mb-6" style="font-size: var(--text-xl); font-weight: var(--font-semibold);">
-        POPRUA v2
+        SIZEM v1
     </h2>
 
     <p class="text-muted text-center mb-6" style="font-size: var(--text-sm);">
-        Sistema de gestao de vistorias e monitoramento de populacao em situacao de rua em Belo Horizonte.
+        Sistema Integrado de Zeladoria Municipal — gestao de vistorias e monitoramento urbano em Belo Horizonte.
     </p>
 
     <div style="display: flex; flex-direction: column; gap: var(--space-3);">

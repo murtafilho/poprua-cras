@@ -1,5 +1,5 @@
 /**
- * POPRUA v2 - Debug Panel para Mobile
+ * SIZEM - Debug Panel para Mobile
  *
  * Painel flutuante que mostra no celular:
  * - Status da conexao (online/offline, WiFi/celular)
