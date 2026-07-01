@@ -253,7 +253,12 @@ class OfflineUpload {
 
     _init() {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
+            // Caminho dinamico baseado na baseURL da aplicacao
+            const base = document.querySelector('meta[name="app-base"]')?.content
+                ?? document.querySelector('base')?.getAttribute('href')
+                ?? '';
+            const swPath = base + '/sw.js';
+            navigator.serviceWorker.register(swPath)
                 .then((reg) => {
                     this._swRegistration = reg;
                 })

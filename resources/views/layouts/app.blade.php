@@ -164,7 +164,8 @@
 
     <script>
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('{{ asset("sw.js") }}', { scope: '{{ asset("/") }}' })
+        const base = document.querySelector('meta[name="app-base"]')?.content || '';
+        navigator.serviceWorker.register(base + '/sw.js', { scope: base + '/' })
             .then(function(reg) {
                 setInterval(function() { reg.update(); }, 1800000);
                 var refreshing = false;

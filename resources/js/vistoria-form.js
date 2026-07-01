@@ -464,8 +464,13 @@ function processPhotoFile(file) {
             fotosSelecionadas.push(entry);
             formDirty = true;
             renderFotosPreview();
-            savePendingPhoto(fotoTempId, compressed, { name: compressed.name })
-                .then((pendingId) => { entry.pendingId = pendingId; })
+            savePendingPhoto(fotoTempId, compressed, { name: compressed.name, legenda: '' })
+                .then((pendingId) => {
+                    entry.pendingId = pendingId;
+                    if (entry.legenda !== '') {
+                        updatePendingPhotoLegenda(pendingId, entry.legenda).catch(() => {});
+                    }
+                })
                 .catch((err) => {
                     console.error('Erro ao salvar foto localmente:', err);
                 });
@@ -558,9 +563,14 @@ function atualizarLegenda(index, legenda) {
             console.error('Erro ao atualizar legenda local:', err);
         });
     }
+    // Se pendingId ainda nao chegou, sera sincronizado pelo callback do savePendingPhoto
 }
 
 function removerFoto(index) {
+    if (! confirm('Remover esta foto?')) {
+        return;
+    }
+
     const foto = fotosSelecionadas[index];
     if (foto) {
         const removePromise = foto.pendingId != null

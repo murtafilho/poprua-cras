@@ -5,6 +5,8 @@ import {
     removePendingPhotoByName,
     savePendingPhoto,
     updatePendingPhotoLegenda,
+    getPendingPhotosFor,
+    uploadPendingPhoto,
     MAX_FILE_SIZE_BYTES,
 } from './offline-upload';
 import { initDynamicClickHandlers, initStepperNavigation } from './vistoria-delegation';
@@ -488,8 +490,16 @@ function processPhotoFile(file) {
             fotosSelecionadas.push(entry);
             formDirty = true;
             renderFotosPreview();
-            savePendingPhoto(vistoriaId, compressed, { name: compressed.name })
-                .then((pendingId) => { entry.pendingId = pendingId; })
+            // Salvar legenda vazia no IndexedDB junto com a foto
+            savePendingPhoto(vistoriaId, compressed, { name: compressed.name, legenda: '' })
+                .then((pendingId) => {
+                    entry.pendingId = pendingId;
+                    // Se o usuario ja digitou legenda antes do pendingId chegar,
+                    // sincronizar agora
+                    if (entry.legenda !== '') {
+                        updatePendingPhotoLegenda(pendingId, entry.legenda).catch(() => {});
+                    }
+                })
                 .catch((err) => {
                     console.error('Erro ao salvar foto localmente:', err);
                 });
@@ -581,9 +591,15 @@ function atualizarLegenda(index, legenda) {
             console.error('Erro ao atualizar legenda local:', err);
         });
     }
+    // Se pendingId ainda nao chegou, a legenda sera sincronizada
+    // pelo callback do savePendingPhoto quando o pendingId chegar
 }
 
 function removerFoto(index) {
+    if (! confirm('Remover esta foto?')) {
+        return;
+    }
+
     const foto = fotosSelecionadas[index];
     if (foto) {
         const removePromise = foto.pendingId != null
@@ -599,9 +615,23 @@ function removerFoto(index) {
 }
 
 const formEl = document.getElementById('vistoria-form');
-formEl.addEventListener('submit', function(e) {
+formEl.addEventListener('submit', async function(e) {
     formSubmitting = true;
-    // Fotos já estão no IndexedDB — form submete sem elas
+    // Tentar enviar fotos pendentes do IndexedDB junto com o submit
+    try {
+        const fotos = await getPendingPhotosFor(String(vistoriaId));
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        for (const foto of fotos) {
+            try {
+                await uploadPendingPhoto(foto, { appBase: APP_BASE, csrfToken });
+                await removePendingPhotoById(foto.id);
+            } catch (err) {
+                console.warn('[VistoriaEdit] Upload pendente falhou (ficara para sync):', err.message);
+            }
+        }
+    } catch (err) {
+        console.warn('[VistoriaEdit] Erro ao buscar fotos pendentes:', err.message);
+    }
 });
 
 // Rastrear alterações no formulário para o dirty check

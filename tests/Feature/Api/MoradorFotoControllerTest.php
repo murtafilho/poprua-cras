@@ -157,8 +157,38 @@ class MoradorFotoControllerTest extends TestCase
         $response = $this->actingAs($this->user)
             ->deleteJson("/api/moradores/{$morador->id}/foto");
 
-        $response->assertOk()->assertJson(['success' => true]);
+        $response->assertOk()
+            ->assertJson(['success' => true])
+            ->assertHeader('Deprecation', 'true')
+            ->assertHeader('Sunset', '2026-12-31');
         $this->assertCount(0, $morador->fresh()->getMedia('fotos'));
+    }
+
+    public function test_post_foto_singular_retorna_header_deprecation(): void
+    {
+        Storage::fake(config('media-library.disk_name', 'public'));
+        $morador = Morador::factory()->create();
+
+        $response = $this->actingAs($this->user)
+            ->postJson("/api/moradores/{$morador->id}/foto", [
+                'foto' => UploadedFile::fake()->image('legado.jpg'),
+            ]);
+
+        $response->assertCreated()
+            ->assertHeader('Deprecation', 'true');
+    }
+
+    public function test_rota_plural_fotos_nao_retorna_deprecation(): void
+    {
+        Storage::fake(config('media-library.disk_name', 'public'));
+        $morador = Morador::factory()->create();
+        $media = $morador->addMedia(UploadedFile::fake()->image('x.jpg'))->toMediaCollection('fotos');
+
+        $response = $this->actingAs($this->user)
+            ->deleteJson("/api/moradores/{$morador->id}/fotos/{$media->id}");
+
+        $response->assertOk();
+        $this->assertFalse($response->headers->has('Deprecation'));
     }
 
     public function test_store_morador_com_foto_via_web_singular(): void

@@ -75,7 +75,7 @@ Route::middleware(['web', 'auth'])->prefix('moradores')->group(function () {
     Route::post('/{morador}/fotos', [MoradorFotoController::class, 'store']);
     Route::delete('/{morador}/fotos/{media}', [MoradorFotoController::class, 'destroy']);
 
-    // Compat: singular antigo (aceita 1 foto; DELETE limpa toda a coleção)
+    // Compat: singular antigo (aceita 1 foto; DELETE limpa toda a coleção) — headers Deprecation/Sunset
     Route::post('/{morador}/foto', [MoradorFotoController::class, 'store']);
     Route::delete('/{morador}/foto', [MoradorFotoController::class, 'destroy']);
 });

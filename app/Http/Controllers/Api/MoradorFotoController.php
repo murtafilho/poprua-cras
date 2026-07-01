@@ -7,6 +7,7 @@ use App\Http\Requests\Api\StoreMoradorFotoRequest;
 use App\Models\Morador;
 use App\Services\FotoService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -46,13 +47,16 @@ class MoradorFotoController extends Controller
             );
         }
 
-        return response()->json(
-            count($criadas) === 1 ? $criadas[0] : ['fotos' => $criadas],
-            Response::HTTP_CREATED
+        return $this->respostaComAvisoRotaSingular(
+            $request,
+            response()->json(
+                count($criadas) === 1 ? $criadas[0] : ['fotos' => $criadas],
+                Response::HTTP_CREATED
+            )
         );
     }
 
-    public function destroy(Morador $morador, ?Media $media = null): JsonResponse
+    public function destroy(Request $request, Morador $morador, ?Media $media = null): JsonResponse
     {
         if ($media !== null) {
             if ($media->model_type !== $morador->getMorphClass() || $media->model_id !== $morador->id) {
@@ -63,6 +67,27 @@ class MoradorFotoController extends Controller
             $morador->clearMediaCollection('fotos');
         }
 
-        return response()->json(['success' => true]);
+        return $this->respostaComAvisoRotaSingular(
+            $request,
+            response()->json(['success' => true])
+        );
+    }
+
+    private function respostaComAvisoRotaSingular(Request $request, JsonResponse $response): JsonResponse
+    {
+        if (! $this->usaRotaFotoSingular($request)) {
+            return $response;
+        }
+
+        return $response->withHeaders([
+            'Deprecation' => 'true',
+            'Sunset' => '2026-12-31',
+            'Link' => '</api/moradores/{morador}/fotos>; rel="successor-version"',
+        ]);
+    }
+
+    private function usaRotaFotoSingular(Request $request): bool
+    {
+        return (bool) preg_match('#/moradores/\d+/foto$#', '/'.$request->path());
     }
 }
