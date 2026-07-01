@@ -13,6 +13,7 @@ use App\Http\Controllers\MinhaEquipeController;
 use App\Http\Controllers\MoradorController;
 use App\Http\Controllers\PontoController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SobreController;
 use App\Http\Controllers\VistoriaController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,8 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    Route::get('/sobre', SobreController::class)->name('sobre.index');
 
     // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
