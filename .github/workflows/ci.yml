@@ -108,4 +108,5 @@ jobs:
       - name: Testes com cobertura (PCOV)
         env:
           CACHE_STORE: array
+          SESSION_DRIVER: array
         run: php artisan test --coverage
