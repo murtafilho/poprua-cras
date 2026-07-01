@@ -40,3 +40,7 @@ gp_sql.sql
 # manifest.yaml NAO e mais versionado (one-shot via migrate.sql)
 /etl/manifest.yaml
 .claude/
+
+# Ferramentas locais (graphify, playwright)
+/graphify-out/
+/test-results/
