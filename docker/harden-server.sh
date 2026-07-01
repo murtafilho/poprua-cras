@@ -29,6 +29,7 @@ fi
 for f in "$CRAS_DIR/.env" "$GEO_DIR/.env"; do
   if [ -f "$f" ]; then
     chown www-data:www-data "$f" 2>/dev/null || true
+    setfacl -b "$f" 2>/dev/null || true
     chmod 640 "$f"
     ok "chmod 640 $(basename "$(dirname "$f")")/.env"
   fi
