@@ -5,8 +5,11 @@
         <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu lateral">
             <div class="sidebar-header">
                 <a href="{{ route('dashboard') }}" class="sidebar-logo">
-                    <span class="sidebar-brand">SIZEM</span>
-                    <span class="sidebar-version">v2.0</span>
+                    <span class="sidebar-tagline">Sistema Integrado de Zeladoria Municipal</span>
+                    <span class="sidebar-logo-row">
+                        <span class="sidebar-brand">SIZEM</span>
+                        <span class="sidebar-version">v2.0</span>
+                    </span>
                 </a>
                 <button type="button" class="sidebar-collapse-toggle" id="sidebar-collapse-toggle" title="Recolher menu">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

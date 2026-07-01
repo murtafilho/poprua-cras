@@ -528,17 +528,34 @@ h6 { font-size: var(--text-sm); }
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  height: var(--header-height);
-  padding: 0 var(--space-4);
+  min-height: var(--header-height);
+  padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--border-primary);
   background: var(--bg-secondary);
 }
 
 .sidebar-logo {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.sidebar-logo-row {
+  display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  text-decoration: none;
+}
+
+.sidebar-tagline {
+  font-size: 10px;
+  font-weight: var(--font-medium);
+  line-height: 1.25;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
 }
 
 .sidebar-brand {
@@ -5322,6 +5339,7 @@ h6 { font-size: var(--text-sm); }
 .mobile-header-title,
 .sidebar-brand,
 .sidebar-user-name { color: var(--chrome-text); }
+.sidebar-tagline,
 .nav-section-title,
 .sidebar-user-role,
 .sidebar-user-avatar svg { color: var(--chrome-text-dim); }
