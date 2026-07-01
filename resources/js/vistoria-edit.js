@@ -57,6 +57,12 @@ document.addEventListener('DOMContentLoaded', function() {
         vincularPessoa,
     });
 
+    const tipoSel = document.getElementById('tipo_abordagem_id');
+    if (tipoSel) {
+        tipoSel.addEventListener('change', toggleZeladoriaCampos);
+        toggleZeladoriaCampos();
+    }
+
     // Selecionar conteúdo ao focar + forçar teclado numérico
     document.querySelectorAll('input[type="number"]').forEach(input => {
         input.addEventListener('focus', function() { this.select(); });
@@ -249,14 +255,51 @@ function toggleAutoNumero() {
 }
 
 function toggleComunicado() {
-    const isSim = _simNao('houve_comunicado');
-    const container = document.getElementById('data_comunicado_container');
-    if (!container) return;
-    container.classList.toggle('hidden', !isSim);
-    if (!isSim) {
-        const dateInput = container.querySelector('input[name="data_comunicado"]');
-        if (dateInput) dateInput.value = '';
+    updateComunicadoZeladoriaCampos();
+}
+
+function isTipoComunicacaoZeladoria() {
+    const sel = document.getElementById('tipo_abordagem_id');
+    if (!sel?.value) {
+        return false;
     }
+    const opt = sel.options[sel.selectedIndex];
+    const tipo = (opt?.dataset?.tipo || opt?.textContent || '').toLowerCase();
+
+    return tipo.includes('comunic') && tipo.includes('zeladoria');
+}
+
+function shouldShowComunicadoZeladoriaCampos() {
+    return isTipoComunicacaoZeladoria() || _simNao('houve_comunicado');
+}
+
+function updateComunicadoZeladoriaCampos() {
+    const container = document.getElementById('comunicado-zeladoria-campos');
+    if (!container) {
+        return;
+    }
+
+    const show = shouldShowComunicadoZeladoriaCampos();
+    container.classList.toggle('hidden', !show);
+
+    if (!show) {
+        const dataComunicado = container.querySelector('[name="data_comunicado"]');
+        const dataPrevista = container.querySelector('[name="data_prevista_zeladoria"]');
+        const periodo = container.querySelector('[name="periodo_zeladoria"]');
+        if (dataComunicado) {
+            dataComunicado.value = '';
+        }
+        if (dataPrevista) {
+            dataPrevista.value = '';
+        }
+        if (periodo) {
+            periodo.value = '';
+        }
+    }
+}
+
+function toggleZeladoriaCampos() {
+    updateComunicadoZeladoriaCampos();
 }
 
 function atualizarCamposAbrigos() {
@@ -854,6 +897,7 @@ window.toggleQtdAnimais = toggleQtdAnimais;
 window.toggleConducaoObs = toggleConducaoObs;
 window.toggleAutoNumero = toggleAutoNumero;
 window.toggleComunicado = toggleComunicado;
+window.toggleZeladoriaCampos = toggleZeladoriaCampos;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
 window.atualizarLegenda = atualizarLegenda;
 

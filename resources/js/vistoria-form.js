@@ -35,6 +35,7 @@ const tiposAbrigo = window.VISTORIA_TIPOS_ABRIGO;
 
 const stepLabels = ['Dados', 'Caract.', 'Relatorio', 'Encam.', 'Pessoas', 'Fotos', 'Revisar'];
 const checkmarkSVG = '<svg class="stepper-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
+const submitSpinnerSVG = '<svg class="spinner" style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -262,15 +263,7 @@ function toggleAutoNumero() {
 }
 
 function toggleComunicado() {
-    const isSim = _simNao('houve_comunicado');
-    const container = document.getElementById('data_comunicado_container');
-    if (container) {
-        container.classList.toggle('hidden', !isSim);
-        if (!isSim) {
-            const input = container.querySelector('input[name="data_comunicado"]');
-            if (input) input.value = '';
-        }
-    }
+    updateComunicadoZeladoriaCampos();
 }
 
 function isTipoComunicacaoZeladoria() {
@@ -284,19 +277,37 @@ function isTipoComunicacaoZeladoria() {
     return tipo.includes('comunic') && tipo.includes('zeladoria');
 }
 
-function toggleZeladoriaCampos() {
-    const container = document.getElementById('zeladoria-campos');
+function shouldShowComunicadoZeladoriaCampos() {
+    return isTipoComunicacaoZeladoria() || _simNao('houve_comunicado');
+}
+
+function updateComunicadoZeladoriaCampos() {
+    const container = document.getElementById('comunicado-zeladoria-campos');
     if (!container) {
         return;
     }
-    const show = isTipoComunicacaoZeladoria();
+
+    const show = shouldShowComunicadoZeladoriaCampos();
     container.classList.toggle('hidden', !show);
+
     if (!show) {
-        const dataRetorno = container.querySelector('[name="data_prevista_zeladoria"]');
+        const dataComunicado = container.querySelector('[name="data_comunicado"]');
+        const dataPrevista = container.querySelector('[name="data_prevista_zeladoria"]');
         const periodo = container.querySelector('[name="periodo_zeladoria"]');
-        if (dataRetorno) dataRetorno.value = '';
-        if (periodo) periodo.value = '';
+        if (dataComunicado) {
+            dataComunicado.value = '';
+        }
+        if (dataPrevista) {
+            dataPrevista.value = '';
+        }
+        if (periodo) {
+            periodo.value = '';
+        }
     }
+}
+
+function toggleZeladoriaCampos() {
+    updateComunicadoZeladoriaCampos();
 }
 
 function atualizarCamposAbrigos() {
@@ -564,10 +575,37 @@ function removerFoto(index) {
     renderFotosPreview();
 }
 
-document.getElementById('vistoria-form').addEventListener('submit', function() {
-    formSubmitting = true;
-    // Fotos já estão no IndexedDB — form submete sem elas
-});
+function showSubmitSavingIndicator() {
+    const btn = document.getElementById('btn-submit');
+    if (!btn || btn.dataset.submitting === '1') {
+        return;
+    }
+
+    btn.dataset.submitting = '1';
+    btn.disabled = true;
+    btn.classList.add('btn-disabled');
+    btn.setAttribute('aria-busy', 'true');
+    btn.innerHTML = `${submitSpinnerSVG} Registrando...`;
+
+    const statusEl = document.getElementById('submit-status');
+    if (statusEl) {
+        statusEl.style.display = 'flex';
+    }
+
+    const cancelBtn = document.getElementById('btn-cancelar-vistoria');
+    if (cancelBtn) {
+        cancelBtn.style.pointerEvents = 'none';
+        cancelBtn.style.opacity = '0.5';
+        cancelBtn.setAttribute('aria-disabled', 'true');
+    }
+
+    const rascunhoEl = document.getElementById('rascunho-status');
+    if (rascunhoEl) {
+        rascunhoEl.style.display = 'block';
+        rascunhoEl.textContent = 'Registrando zeladoria...';
+        rascunhoEl.style.color = 'var(--text-muted)';
+    }
+}
 
 function startVoiceInput(inputId) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -890,6 +928,7 @@ function aplicarRascunho(draft, step) {
 
     toggleConducaoObs();
     toggleAutoNumero();
+    toggleZeladoriaCampos();
 
     return true;
 }
@@ -984,6 +1023,7 @@ const formEl = document.getElementById('vistoria-form');
 if (formEl) {
     formEl.addEventListener('submit', function() {
         formSubmitting = true;
+        showSubmitSavingIndicator();
         limparRascunho();
     });
 

@@ -131,30 +131,32 @@
                         <span class="info-label">Registrado por</span>
                         <span class="info-value">{{ $vistoria->user->name ?? '-' }}</span>
                     </div>
-                    @if($vistoria->data_prevista_zeladoria)
-                        <div class="info-item">
-                            <span class="info-label">Data Prevista Zeladoria</span>
-                            <span class="info-value">{{ FormatoData::exibir($vistoria->data_prevista_zeladoria) }}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Periodo</span>
-                            <span class="info-value">{{ $vistoria->periodo_zeladoria === 'manha' ? 'Manha' : ($vistoria->periodo_zeladoria === 'tarde' ? 'Tarde' : '-') }}</span>
-                        </div>
+                    @if($vistoria->houve_comunicado || $vistoria->data_prevista_zeladoria)
+                        @if($vistoria->houve_comunicado)
+                            <div class="info-item">
+                                <span class="info-label">Comunicado de Zeladoria</span>
+                                <span class="info-value">Sim</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Data do Comunicado</span>
+                                <span class="info-value">{{ $vistoria->data_comunicado ? FormatoData::exibir($vistoria->data_comunicado) : '-' }}</span>
+                            </div>
+                        @endif
+                        @if($vistoria->data_prevista_zeladoria)
+                            <div class="info-item">
+                                <span class="info-label">Data de Agendamento</span>
+                                <span class="info-value">{{ FormatoData::exibir($vistoria->data_prevista_zeladoria) }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Período de Agendamento</span>
+                                <span class="info-value">{{ $vistoria->periodo_zeladoria === 'manha' ? 'Manhã' : ($vistoria->periodo_zeladoria === 'tarde' ? 'Tarde' : '-') }}</span>
+                            </div>
+                        @endif
                     @endif
                     @if($vistoria->houve_lavacao)
                         <div class="info-item">
                             <span class="info-label">Houve Lavação</span>
                             <span class="info-value">Sim</span>
-                        </div>
-                    @endif
-                    @if($vistoria->houve_comunicado)
-                        <div class="info-item">
-                            <span class="info-label">Comunicado de Zeladoria</span>
-                            <span class="info-value">Sim</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Data do Comunicado</span>
-                            <span class="info-value">{{ $vistoria->data_comunicado ? FormatoData::exibir($vistoria->data_comunicado) : '-' }}</span>
                         </div>
                     @endif
                 </div>

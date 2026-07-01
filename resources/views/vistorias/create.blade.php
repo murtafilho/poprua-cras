@@ -126,26 +126,6 @@
                                 </select>
                             </div>
 
-                            <div id="zeladoria-campos" class="mt-3 hidden">
-                                <p class="form-hint" style="margin-bottom: var(--space-2);">
-                                    Agendamento de retorno para zeladoria (tipo Comunicação de Zeladoria).
-                                </p>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="form-group">
-                                        <label class="form-label">Data de Retorno</label>
-                                        <input type="date" name="data_prevista_zeladoria" class="form-input" value="{{ old('data_prevista_zeladoria') }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Período de Retorno</label>
-                                        <select name="periodo_zeladoria" class="form-input form-select">
-                                            <option value="">Selecione...</option>
-                                            <option value="manha" {{ old('periodo_zeladoria') === 'manha' ? 'selected' : '' }}>Manhã</option>
-                                            <option value="tarde" {{ old('periodo_zeladoria') === 'tarde' ? 'selected' : '' }}>Tarde</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
 
@@ -419,11 +399,13 @@
                             <p class="form-hint" style="margin-top: var(--space-2);">
                                 Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
                             </p>
-                            <div id="data_comunicado_container" class="mt-3 hidden">
-                                <div class="form-group">
-                                    <label class="form-label">Data de Entrega</label>
-                                    <input type="datetime-local" name="data_comunicado" value="{{ old('data_comunicado', date('Y-m-d\TH:i')) }}" class="form-input">
-                                </div>
+                            @php
+                                $exibirComunicadoCampos = old('houve_comunicado')
+                                    || old('data_prevista_zeladoria')
+                                    || (old('tipo_abordagem_id') && collect($tiposAbordagem)->firstWhere('id', (int) old('tipo_abordagem_id'))?->isComunicacaoZeladoria());
+                            @endphp
+                            <div id="comunicado-zeladoria-campos" class="mt-3 {{ $exibirComunicadoCampos ? '' : 'hidden' }}">
+                                @include('vistorias.partials.comunicado-zeladoria-datas')
                             </div>
                         </div>
                     </div>
@@ -670,7 +652,12 @@
                                 </svg>
                                 Registrar Zeladoria
                             </button>
-                            <a href="{{ route('mapa.index') }}" class="btn btn-ghost btn-block mt-2">Cancelar</a>
+                            <div id="submit-status" role="status" aria-live="polite" aria-atomic="true"
+                                 style="display: none; align-items: center; justify-content: center; gap: 8px; margin-top: var(--space-3); font-size: var(--text-sm); color: var(--text-muted);">
+                                <span class="spinner spinner-sm" aria-hidden="true"></span>
+                                <span>Registrando zeladoria...</span>
+                            </div>
+                            <a href="{{ route('mapa.index') }}" id="btn-cancelar-vistoria" class="btn btn-ghost btn-block mt-2">Cancelar</a>
                         </div>
                     </div>
                 </div>

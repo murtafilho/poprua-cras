@@ -52,6 +52,9 @@
                     @if(request('tipo_abordagem'))<input type="hidden" name="tipo_abordagem" value="{{ request('tipo_abordagem') }}">@endif
                     @if(request('situacao_comunicado'))<input type="hidden" name="situacao_comunicado" value="{{ request('situacao_comunicado') }}">@endif
                     @if(request('retorno_previsto'))<input type="hidden" name="retorno_previsto" value="{{ request('retorno_previsto') }}">@endif
+                    @if(request('supervisor'))<input type="hidden" name="supervisor" value="{{ request('supervisor') }}">@endif
+                    @if(request('data_prevista_inicio'))<input type="hidden" name="data_prevista_inicio" value="{{ request('data_prevista_inicio') }}">@endif
+                    @if(request('data_prevista_fim'))<input type="hidden" name="data_prevista_fim" value="{{ request('data_prevista_fim') }}">@endif
                     <input type="hidden" name="endereco" id="hidden-endereco" value="{{ request('endereco') }}">
                     <input type="hidden" name="numero_endereco" id="hidden-numero-endereco" value="{{ request('numero_endereco') }}">
                     <div class="autocomplete-container">
@@ -75,7 +78,7 @@
 
         {{-- Busca Avancada --}}
         @php
-            $temFiltroAvancado = request('logradouro') || request('numero') || request('bairro') || request('regional') || request('resultado') || request('data_inicio') || request('data_fim') || request('tipo_abordagem') || request('situacao_comunicado') || request('retorno_previsto');
+            $temFiltroAvancado = request('logradouro') || request('numero') || request('bairro') || request('regional') || request('resultado') || request('data_inicio') || request('data_fim') || request('tipo_abordagem') || request('situacao_comunicado') || request('retorno_previsto') || request('supervisor') || request('data_prevista_inicio') || request('data_prevista_fim');
         @endphp
         <details class="card mb-4" {{ $temFiltroAvancado ? 'open' : '' }}>
             <summary class="card-header" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; list-style: none;">
@@ -164,11 +167,11 @@
                     </div>
                     <div class="form-row form-row-2">
                         <div class="form-group">
-                            <label class="form-label">Data Prevista Retorno (Inicio)</label>
+                            <label class="form-label">Data Agendamento (Início)</label>
                             <input type="date" name="data_prevista_inicio" value="{{ request('data_prevista_inicio') }}" class="form-input">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Data Prevista Retorno (Fim)</label>
+                            <label class="form-label">Data Agendamento (Fim)</label>
                             <input type="date" name="data_prevista_fim" value="{{ request('data_prevista_fim') }}" class="form-input">
                         </div>
                     </div>

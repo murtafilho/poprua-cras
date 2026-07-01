@@ -199,7 +199,7 @@ class WorkflowZeladoriaTest extends TestCase
             ->assertSee('Informação Precária');
     }
 
-    public function test_data_prevista_zeladoria_so_persiste_para_tipo_comunicacao(): void
+    public function test_data_prevista_zeladoria_persiste_para_comunicacao_ou_comunicado(): void
     {
         $this->actingAs($this->user)->post(route('vistorias.store'), [
             'lat' => -19.9200,
@@ -214,6 +214,22 @@ class WorkflowZeladoriaTest extends TestCase
         $vistoriaOrientativa = Vistoria::query()->orderByDesc('id')->first();
         $this->assertNull($vistoriaOrientativa->data_prevista_zeladoria);
         $this->assertNull($vistoriaOrientativa->periodo_zeladoria);
+
+        $this->actingAs($this->user)->post(route('vistorias.store'), [
+            'lat' => -19.9205,
+            'lng' => -43.9405,
+            'data_abordagem' => now()->format('Y-m-d\TH:i'),
+            'tipo_abordagem_id' => 1,
+            'resultado_acao_id' => 1,
+            'houve_comunicado' => '1',
+            'data_comunicado' => '2026-06-01T10:00',
+            'data_prevista_zeladoria' => '2026-07-05',
+            'periodo_zeladoria' => 'tarde',
+        ])->assertRedirect();
+
+        $vistoriaComComunicado = Vistoria::query()->orderByDesc('id')->first();
+        $this->assertNotNull($vistoriaComComunicado->data_prevista_zeladoria);
+        $this->assertSame('tarde', $vistoriaComComunicado->periodo_zeladoria);
 
         $this->actingAs($this->user)->post(route('vistorias.store'), [
             'lat' => -19.9210,

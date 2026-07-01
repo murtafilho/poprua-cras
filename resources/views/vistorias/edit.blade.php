@@ -127,30 +127,6 @@
                                 </select>
                             </div>
 
-                            @php
-                                $exibirCamposZeladoria = ($vistoria->tipoAbordagem?->isComunicacaoZeladoria() ?? false)
-                                    || $vistoria->data_prevista_zeladoria;
-                            @endphp
-                            <div id="zeladoria-campos" class="mt-3 {{ $exibirCamposZeladoria ? '' : 'hidden' }}">
-                                <p class="form-hint" style="margin-bottom: var(--space-2);">
-                                    Agendamento de retorno para zeladoria (tipo Comunicação de Zeladoria).
-                                </p>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="form-group">
-                                        <label class="form-label">Data de Retorno</label>
-                                        <input type="date" name="data_prevista_zeladoria" value="{{ old('data_prevista_zeladoria', $vistoria->data_prevista_zeladoria?->format('Y-m-d')) }}" class="form-input">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Período de Retorno</label>
-                                        <select name="periodo_zeladoria" class="form-input form-select">
-                                            <option value="">Selecione...</option>
-                                            <option value="manha" {{ old('periodo_zeladoria', $vistoria->periodo_zeladoria) === 'manha' ? 'selected' : '' }}>Manhã</option>
-                                            <option value="tarde" {{ old('periodo_zeladoria', $vistoria->periodo_zeladoria) === 'tarde' ? 'selected' : '' }}>Tarde</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
                     <!-- Participantes da Equipe (usuários do sistema) -->
@@ -387,11 +363,14 @@
                             <p class="form-hint" style="margin-top: var(--space-2);">
                                 Documento físico entregue aos moradores informando data prevista de retorno para zeladoria. O sistema registra as datas.
                             </p>
-                            <div id="data_comunicado_container" class="mt-3 {{ $vistoria->houve_comunicado ? '' : 'hidden' }}">
-                                <div class="form-group">
-                                    <label class="form-label">Data de Entrega</label>
-                                    <input type="datetime-local" name="data_comunicado" value="{{ old('data_comunicado', $vistoria->data_comunicado?->format('Y-m-d\TH:i')) }}" class="form-input">
-                                </div>
+                            @php
+                                $exibirComunicadoCampos = old('houve_comunicado', $vistoria->houve_comunicado)
+                                    || ($vistoria->tipoAbordagem?->isComunicacaoZeladoria() ?? false)
+                                    || $vistoria->data_prevista_zeladoria
+                                    || old('data_prevista_zeladoria');
+                            @endphp
+                            <div id="comunicado-zeladoria-campos" class="mt-3 {{ $exibirComunicadoCampos ? '' : 'hidden' }}">
+                                @include('vistorias.partials.comunicado-zeladoria-datas', ['vistoria' => $vistoria])
                             </div>
                         </div>
                     </div>

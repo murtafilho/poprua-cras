@@ -17,18 +17,28 @@ class UpdateVistoriaRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $tipoId = $this->input('tipo_abordagem_id');
-        if (! $tipoId) {
-            return;
-        }
-
-        $tipo = TipoAbordagem::query()->find($tipoId);
-        if ($tipo && ! $tipo->isComunicacaoZeladoria()) {
+        if (! $this->permiteAgendamentoZeladoria()) {
             $this->merge([
                 'data_prevista_zeladoria' => null,
                 'periodo_zeladoria' => null,
             ]);
         }
+    }
+
+    private function permiteAgendamentoZeladoria(): bool
+    {
+        if ($this->boolean('houve_comunicado')) {
+            return true;
+        }
+
+        $tipoId = $this->input('tipo_abordagem_id');
+        if (! $tipoId) {
+            return false;
+        }
+
+        $tipo = TipoAbordagem::query()->find($tipoId);
+
+        return $tipo?->isComunicacaoZeladoria() ?? false;
     }
 
     /**
