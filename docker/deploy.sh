@@ -75,6 +75,18 @@ step "[3/8] Pull (fast-forward only)"
 $GIT merge --ff-only "origin/$BRANCH" || die "nao foi fast-forward (servidor divergiu de origin/$BRANCH). Resolva manualmente."
 chown -R www-data:www-data "$APP_DIR" 2>/dev/null || true
 
+# Ambiente PBH em homologacao: garantir faixa de aviso no .env do servidor.
+ENV_FILE="$APP_DIR/.env"
+if [ -f "$ENV_FILE" ]; then
+    if ! grep -q '^APP_HOMOLOGACAO_BANNER=' "$ENV_FILE"; then
+        echo 'APP_HOMOLOGACAO_BANNER=true' >> "$ENV_FILE"
+        echo "  .env: APP_HOMOLOGACAO_BANNER=true (adicionado)"
+    elif grep -qE '^APP_HOMOLOGACAO_BANNER=(false|0|"false"|'"'"'false'"'"')' "$ENV_FILE"; then
+        sed -i 's/^APP_HOMOLOGACAO_BANNER=.*/APP_HOMOLOGACAO_BANNER=true/' "$ENV_FILE"
+        echo "  .env: APP_HOMOLOGACAO_BANNER ativado"
+    fi
+fi
+
 CHANGED=$($GIT diff --name-only "$OLD" "$NEW" 2>/dev/null)
 need() { echo "$CHANGED" | grep -qE "$1"; }
 

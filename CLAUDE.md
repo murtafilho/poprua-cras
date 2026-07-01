@@ -5,16 +5,16 @@
 **GitHub** (`git@github.com:murtafilho/poprua-cras.git`, branch `main`) e a autoridade canonica do codigo.
 
 ```
-maquina local  --git push-->  GitHub  --git pull-->  vlcp-sufis01 (deploy.sh)
+maquina local  --git push-->  GitHub  --Actions-->  vlcp-sufis01 (deploy.sh)
 ```
 
-Clone de trabalho: este repositorio. Producao recebe via `bash poprua deploy` (na RMI).
+Clone de trabalho: este repositorio. Producao recebe deploy automatico no push em `main` (GitHub Actions + self-hosted runner no vlcp-sufis01).
 
 ```bash
 bash poprua st              # git status local
-bash poprua push            # envia para GitHub
-bash poprua deploy          # git pull em producao + build (na RMI)
-bash poprua release "msg"   # commit + push + deploy
+bash poprua push            # envia para GitHub + aguarda deploy automatico
+bash poprua deploy          # deploy manual no servidor (fallback)
+bash poprua release "msg"   # commit + push + aguarda deploy
 bash poprua setup-server    # configura origin no servidor (1x)
 ```
 
@@ -47,7 +47,7 @@ php artisan serve --port=8088
 
 ### Producao (Docker em vlcp-sufis01)
 
-Publicar: `bash poprua push` (da maquina local) + `bash poprua deploy` (na RMI).
+Publicar: `bash poprua push` (da maquina local) — o deploy roda sozinho no servidor via `.github/workflows/deploy-production.yml`. Fallback manual: `bash poprua deploy`.
 
 Os mesmos comandos artisan rodam via `docker exec` (ver `docker/rebuild.sh` e `../CLAUDE.md`).
 

@@ -5,14 +5,17 @@
 # Hub: GitHub (origin/main). Producao recebe via git pull no deploy.
 #
 #   LOCAL (dev)                    GITHUB                 PRODUCAO (RMI)
-#   clone poprua-cras  --push-->   origin/main  <--pull--  vlcp-sufis01
+#   clone poprua-cras  --push-->   origin/main  --GA-->   vlcp-sufis01
+#
+# Push em main dispara deploy automatico via GitHub Actions (self-hosted runner).
+# Ver: .github/workflows/deploy-production.yml
 #
 # Uso:
 #   bash poprua st                         # git status LOCAL
-#   bash poprua push                       # git push origin main
+#   bash poprua push                       # git push + aguarda deploy automatico
 #   bash poprua pull                       # git pull origin main
-#   bash poprua deploy                     # git pull no servidor + build + smoke
-#   bash poprua release ["mensagem"]       # commit + push + deploy
+#   bash poprua deploy                     # deploy manual no servidor (fallback)
+#   bash poprua release ["mensagem"]       # commit + push + aguarda deploy
 #   bash poprua setup-server               # configura origin no servidor (1x)
 #   bash poprua install-auto-deploy        # cron: deploy apos push (poll 3 min)
 #   bash poprua art  <args artisan...>     # artisan (precisa RMI)
@@ -20,7 +23,7 @@
 #
 # Fluxo tipico:
 #   git add -A && git commit -m "feat: ..."
-#   bash poprua release "feat: ..."        # push + pull em producao
+#   bash poprua push                         # push dispara deploy no servidor (~30s)
 # ============================================
 set -uo pipefail
 
@@ -41,6 +44,36 @@ ensure_origin() {
   fi
 }
 
+watch_deploy() {
+  if ! command -v gh &>/dev/null; then
+    echo ""
+    echo "Push enviado. Deploy automatico dispara no servidor via GitHub Actions."
+    echo "Instale 'gh' para acompanhar aqui, ou veja: github.com/murtafilho/poprua-cras/actions"
+    return 0
+  fi
+
+  echo ""
+  echo "Aguardando deploy automatico (Deploy production)..."
+  sleep 3
+
+  local run_id
+  run_id=$(gh run list --workflow=deploy-production.yml --branch="$BRANCH" --limit=1 --json databaseId --jq '.[0].databaseId' 2>/dev/null) || true
+  if [ -z "$run_id" ] || [ "$run_id" = "null" ]; then
+    echo "Nao encontrei workflow de deploy — verifique Actions no GitHub."
+    return 1
+  fi
+
+  if gh run watch "$run_id" --exit-status 2>/dev/null; then
+    echo ""
+    echo "Deploy em producao concluido."
+    return 0
+  fi
+
+  echo ""
+  echo "Deploy FALHOU. Detalhes: gh run view $run_id --log-failed"
+  return 1
+}
+
 cmd="${1:-}"; arg="${2:-}"
 
 case "$cmd" in
@@ -49,7 +82,8 @@ case "$cmd" in
 
   push)
     ensure_origin
-    $LGIT push -u origin "$BRANCH" ;;
+    $LGIT push -u origin "$BRANCH"
+    watch_deploy ;;
 
   pull)
     ensure_origin
@@ -65,7 +99,7 @@ case "$cmd" in
     fi
     ensure_origin
     $LGIT push -u origin "$BRANCH"
-    $SSH "sudo bash $DIR/docker/deploy.sh" ;;
+    watch_deploy ;;
 
   setup-server)
     echo "Configurando origin no servidor ($DIR)..."
@@ -75,7 +109,7 @@ case "$cmd" in
     echo ""
     echo "Testando git fetch origin/$BRANCH no servidor..."
     if $SSH "sudo git -C $DIR -c safe.directory=* fetch origin $BRANCH" 2>&1; then
-      echo "OK — servidor alcanca o GitHub. Use: bash poprua deploy"
+      echo "OK — servidor alcanca o GitHub. Push em main dispara deploy automatico."
     else
       echo ""
       echo "FALHOU — o servidor precisa de chave SSH de deploy no GitHub."
