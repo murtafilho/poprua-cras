@@ -1,14 +1,13 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" {{ $attributes }}>
-    {{-- SIZEM — pin (território) + pessoa (abordagem social / morador) · estilo PBH --}}
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <path
         d="M32 5.5c-9.39 0-17 7.61-17 17 0 11.2 14.2 28.5 16.4 31.6.55.82 1.65.82 2.2 0C36.8 51.2 51 33.9 51 22.5c0-9.39-7.61-17-17-17z"
         fill="none"
-        stroke="currentColor"
+        stroke="#184186"
         stroke-width="4.5"
         stroke-linecap="round"
         stroke-linejoin="round"
     />
-    <g fill="var(--logo-accent, var(--chrome-accent, #FFE500))">
+    <g fill="#FFE500">
         <circle cx="32" cy="19" r="3.5"/>
         <path d="M32 23.5c-4.15 0-7.5 2.35-7.5 5.25V30.5h15v-1.75c0-2.9-3.35-5.25-7.5-5.25z"/>
     </g>

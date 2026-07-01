@@ -13,7 +13,9 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'SIZEM - Sistema Integrado de Zeladoria Municipal'),
+    'brand' => env('APP_BRAND', 'SIZEM BH'),
+
+    'name' => env('APP_NAME', 'SIZEM BH — Sistema Integrado de Zeladoria Municipal'),
 
     /*
     |--------------------------------------------------------------------------

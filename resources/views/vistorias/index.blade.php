@@ -256,7 +256,7 @@
                         <th class="hide-mobile">Resultado</th>
                         <th class="hide-mobile">Retorno</th>
                         <th class="hide-mobile text-center">Pessoas</th>
-                        <th class="text-center">Ações</th>
+                        <th class="hide-mobile text-center">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -302,7 +302,7 @@
                                 <span class="text-muted" style="font-size: var(--text-xs); display: block;">{{ $dataAbordagem->format('H:i') }}</span>
                                 @endif
                             </td>
-                            <td style="min-width: 220px;">
+                            <td class="col-endereco">
                                 <a href="{{ route('vistorias.show', $vistoria->id) }}" style="text-decoration: none; color: inherit; display: block;">
                                     <span style="font-weight: var(--font-medium);">@if($vistoria->tipo){{ $vistoria->tipo }} @endif{{ $vistoria->logradouro }}{{ $vistoria->numero ? ', ' . $vistoria->numero : '' }}</span>
                                     @if($vistoria->complemento)<span class="text-muted"> · {{ $vistoria->complemento }}</span>@endif
@@ -330,7 +330,7 @@
                                 @endif
                             </td>
                             <td class="hide-mobile text-center">{{ $vistoria->quantidade_pessoas ?: '—' }}</td>
-                            <td class="text-center">
+                            <td class="hide-mobile text-center">
                                 <div class="row-actions">
                                     @if($vistoria->lat && $vistoria->lng)
                                         <a href="{{ route('mapa.index', ['lat' => $vistoria->lat, 'lng' => $vistoria->lng, 'zoom' => 19, 'ponto_id' => $vistoria->ponto_id, 'ajustar' => 1]) }}" class="btn btn-ghost btn-sm btn-icon" title="Mapa">

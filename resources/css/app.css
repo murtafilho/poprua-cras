@@ -546,8 +546,22 @@ h6 { font-size: var(--text-sm); }
 
 .sidebar-logo-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
+}
+
+.sidebar-logo-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  color: var(--chrome-text);
+}
+
+.mobile-header-logo {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  color: var(--chrome-text);
 }
 
 .sidebar-tagline {
@@ -1605,7 +1619,9 @@ h6 { font-size: var(--text-sm); }
 /* === Tables === */
 .table-container {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border-primary);
   border-radius: var(--card-radius);
   background: var(--bg-secondary);
@@ -4964,6 +4980,42 @@ h6 { font-size: var(--text-sm); }
 
   .mobile-only {
     display: block;
+  }
+
+  /* Tabelas operacionais — cabem no viewport mobile (Playwright 390px) */
+  .vistorias-table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .vistorias-table th:nth-child(1),
+  .vistorias-table td:nth-child(1) {
+    width: 4.75rem;
+    padding-inline: var(--space-2);
+  }
+
+  .vistorias-table th:nth-child(4),
+  .vistorias-table td:nth-child(4) {
+    width: 5.75rem;
+    padding-inline: var(--space-2);
+  }
+
+  .vistorias-table .col-endereco {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .vistorias-table .col-endereco a > span:first-of-type {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .vistorias-table .col-endereco .text-muted {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Full width buttons on mobile */

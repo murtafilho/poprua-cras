@@ -7,7 +7,8 @@
                 <a href="{{ route('dashboard') }}" class="sidebar-logo">
                     <span class="sidebar-tagline">Sistema Integrado de Zeladoria Municipal</span>
                     <span class="sidebar-logo-row">
-                        <span class="sidebar-brand">SIZEM</span>
+                        <x-application-logo class="sidebar-logo-icon" />
+                        <span class="sidebar-brand">{{ config('app.brand', 'SIZEM BH') }}</span>
                         <span class="sidebar-version">v2.0</span>
                     </span>
                 </a>

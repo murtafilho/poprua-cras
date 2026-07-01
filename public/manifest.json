@@ -1,7 +1,7 @@
 {
-    "name": "SIZEM - Sistema Integrado de Zeladoria Municipal",
-    "short_name": "SIZEM",
-    "description": "Sistema Integrado de Zeladoria Municipal — gestao de vistorias e monitoramento urbano",
+    "name": "SIZEM BH — Sistema Integrado de Zeladoria Municipal",
+    "short_name": "SIZEM BH",
+    "description": "SIZEM BH — gestão de zeladorias e monitoramento urbano em Belo Horizonte",
     "start_url": "./mapa",
     "scope": "./",
     "display": "standalone",
