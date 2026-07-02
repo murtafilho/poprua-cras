@@ -49,7 +49,7 @@
         // A4 / processo: somente fotos marcadas como públicas
         $fotos = $vistoria->getMedia('fotos')->filter(fn($m) => (bool) $m->getCustomProperty('publica', false))->values();
 
-        $temFiscalizacao = $vistoria->conducao_forcas_seguranca || $vistoria->apreensao_fiscal
+        $temFiscalizacao = $vistoria->houve_lavratura || $vistoria->conducao_forcas_seguranca || $vistoria->apreensao_fiscal
             || $vistoria->auto_fiscalizacao_aplicado
             || filled($vistoria->material_apreendido) || filled($vistoria->material_descartado);
         $temAbrigos = ($vistoria->qtd_abrigos_provisorios > 0) || count($tiposAbrigoSelecionados) > 0 || $vistoria->tipoAbrigoDesmontado;
@@ -159,6 +159,15 @@
             font-size: 10pt;
             color: #333;
         }
+        .status-doc {
+            margin-top: 10pt;
+            padding: 6pt 8pt;
+            border: 1px solid #000;
+            font-size: 10pt;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+        }
 
         /* ===== PROTOCOLO ===== */
         .protocolo {
@@ -180,6 +189,9 @@
         section.bloco {
             margin-top: 12pt;
             page-break-inside: avoid;
+        }
+        section.bloco.bloco-fotos {
+            page-break-inside: auto;
         }
         section.bloco h2 {
             font-size: 11pt;
@@ -341,6 +353,21 @@
             <div class="subtitulo">
                 Emitido em {{ now()->format('d/m/Y') }} às {{ now()->format('H:i') }}
             </div>
+            @if($vistoria->cancelada)
+                <div class="status-doc">
+                    Zeladoria cancelada
+                    @if($vistoria->cancelada_em)
+                        em {{ \Carbon\Carbon::parse($vistoria->cancelada_em)->format('d/m/Y H:i') }}
+                    @endif
+                </div>
+            @elseif($vistoria->finalizada)
+                <div class="status-doc">
+                    Zeladoria finalizada
+                    @if($vistoria->finalizada_em)
+                        em {{ \Carbon\Carbon::parse($vistoria->finalizada_em)->format('d/m/Y H:i') }}
+                    @endif
+                </div>
+            @endif
         </header>
 
         {{-- ========== PROTOCOLO ========== --}}
@@ -364,7 +391,7 @@
                     <dd>{{ $vistoria->tipoAbordagem->tipo ?? '—' }}</dd>
 
                     <dt>Registrada por</dt>
-                    <dd>{{ $vistoria->user->name ?? '—' }}{{ isset($vistoria->user->email) ? ' ('.$vistoria->user->email.')' : '' }}</dd>
+                    <dd>{{ $vistoria->user->name ?? '—' }}</dd>
 
                     <dt>Registro criado em</dt>
                     <dd>{{ $vistoria->created_at ? \Carbon\Carbon::parse($vistoria->created_at)->format('d/m/Y \à\s H:i') : '—' }}</dd>
@@ -500,6 +527,9 @@
             <h2><span class="num">{{ $secs['fis'] }}.</span> Ações fiscalizatórias e materiais</h2>
             <div class="body">
                 <dl class="campos">
+                    <dt>Houve lavratura</dt>
+                    <dd>{{ $vistoria->houve_lavratura ? 'Sim' : 'Não' }}</dd>
+
                     <dt>Condução por forças de segurança</dt>
                     <dd>
                         {{ $vistoria->conducao_forcas_seguranca ? 'Sim' : 'Não' }}@if($vistoria->conducao_forcas_seguranca && filled($vistoria->conducao_forcas_observacao)) — {{ $vistoria->conducao_forcas_observacao }}@endif
@@ -582,7 +612,7 @@
 
         {{-- ========== 11. FOTOS ========== --}}
         @if($fotos->count() > 0)
-        <section class="bloco">
+        <section class="bloco bloco-fotos">
             <h2><span class="num">{{ $secs['fot'] }}.</span> Registro fotográfico ({{ $fotos->count() }})</h2>
             <div class="body">
                 <div class="fotos">
