@@ -108,7 +108,8 @@
                     @endif
                 </span>
                 @if($isMinhas)
-                    <form method="GET" action="{{ $rotaListagem }}" class="filtro-situacao-minhas" onclick="event.stopPropagation();">
+                    {{-- x-on:click.stop cobre o form e o select (bubbling): clique aqui nao pode togglar o <details> --}}
+                    <form method="GET" action="{{ $rotaListagem }}" class="filtro-situacao-minhas" x-data x-on:click.stop>
                         @foreach(request()->except(['situacao', 'page']) as $campo => $valor)
                             @if(is_array($valor))
                                 @foreach($valor as $item)
@@ -123,8 +124,7 @@
                             class="form-input form-select"
                             style="width: auto; min-width: 7.5rem; font-size: var(--text-xs);"
                             aria-label="Situação da zeladoria"
-                            onchange="this.form.submit()"
-                            onclick="event.stopPropagation();"
+                            x-on:change="$event.target.form.submit()"
                         >
                             <option value="aberta" @selected($situacaoMinhas === 'aberta')>Aberta</option>
                             <option value="finalizada" @selected($situacaoMinhas === 'finalizada')>Finalizada</option>
