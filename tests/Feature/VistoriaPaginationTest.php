@@ -58,6 +58,22 @@ class VistoriaPaginationTest extends TestCase
 
         // Verificar que temos paginacao (link para pagina 2)
         $response->assertSee('page=2');
+
+        // O seletor de "registros por pagina" depende de Alpine (x-on:change);
+        // sem o escopo x-data no elemento, o Alpine nao vincula o handler e a
+        // troca de itens por pagina nao funciona. Garante que o escopo esta presente.
+        $html = $response->getContent();
+        $this->assertMatchesRegularExpression(
+            '/<select[^>]*\bx-data\b[^>]*class="pagination-bar__per-page"/s',
+            $html,
+            'O <select> de registros por pagina precisa de x-data para o Alpine vincular o x-on:change.'
+        );
+
+        // A pagina 2 deve retornar conteudo (nao redirecionar/erro).
+        $this->actingAs($this->user)
+            ->get(route('vistorias.index', ['page' => 2]))
+            ->assertOk()
+            ->assertSee('pagination-bar');
     }
 
     /**

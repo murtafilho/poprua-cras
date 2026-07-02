@@ -12,6 +12,7 @@
         </span>
 
         <select
+            x-data
             x-on:change="window.location.href=$event.target.value"
             class="pagination-bar__per-page"
             aria-label="Registros por pagina"
