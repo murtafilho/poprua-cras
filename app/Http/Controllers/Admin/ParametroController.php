@@ -5,61 +5,57 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Parametro;
+use App\Http\Requests\Admin\StoreParametroRequest;
+use App\Http\Requests\Admin\UpdateParametrosRequest;
+use App\Services\ParametroService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ParametroController extends Controller
 {
+    public function __construct(private ParametroService $parametroService) {}
+
     public function index(): View
     {
-        $ordemGrupos = ['geral', 'workflow', 'mapa', 'listagem', 'limites', 'complexidade'];
+        $metadados = $this->parametroService->metadadosUi();
 
-        $parametros = Parametro::query()
-            ->orderBy('chave')
-            ->get()
-            ->groupBy('grupo')
-            ->sortBy(fn ($items, $grupo) => array_search($grupo, $ordemGrupos) !== false ? array_search($grupo, $ordemGrupos) : 99);
-
-        return view('admin.parametros.index', compact('parametros'));
+        return view('admin.parametros.index', [
+            'parametros' => $this->parametroService->listarAgrupados(),
+            'gruposInfo' => $metadados['grupos'],
+            'contextos' => $metadados['contextos'],
+        ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateParametrosRequest $request): RedirectResponse
     {
-        $request->validate([
-            'parametros' => 'required|array',
-            'parametros.*' => 'nullable|string|max:500',
-        ]);
+        /** @var array<string, string|null> $parametros */
+        $parametros = $request->validated('parametros');
 
-        foreach ($request->input('parametros') as $chave => $valor) {
-            Parametro::set($chave, $valor ?? '');
-        }
+        $this->parametroService->atualizarLote($parametros);
 
         return redirect()->route('admin.parametros.index')
             ->with('success', 'Parâmetros atualizados com sucesso.');
     }
 
-    public function create(Request $request): RedirectResponse
+    public function store(StoreParametroRequest $request): RedirectResponse
     {
-        $request->validate([
-            'chave' => 'required|string|max:100|unique:parametros,chave',
-            'valor' => 'nullable|string|max:500',
-            'tipo' => 'required|in:string,integer,float,boolean',
-            'grupo' => 'required|string|max:50',
-            'descricao' => 'nullable|string|max:255',
+        $validated = $request->validated();
+
+        $this->parametroService->criar([
+            'chave' => $validated['chave'],
+            'valor' => $validated['valor'] ?? '',
+            'tipo' => $validated['tipo'],
+            'grupo' => $validated['grupo'],
+            'descricao' => $validated['descricao'] ?? null,
         ]);
 
-        Parametro::create($request->only(['chave', 'valor', 'tipo', 'grupo', 'descricao']));
-
         return redirect()->route('admin.parametros.index')
-            ->with('success', "Parâmetro '{$request->chave}' criado.");
+            ->with('success', "Parâmetro '{$validated['chave']}' criado.");
     }
 
     public function destroy(string $chave): RedirectResponse
     {
-        Parametro::where('chave', $chave)->delete();
-        \Cache::forget("param:{$chave}");
+        $this->parametroService->remover($chave);
 
         return redirect()->route('admin.parametros.index')
             ->with('success', "Parâmetro '{$chave}' removido.");

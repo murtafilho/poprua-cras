@@ -214,5 +214,5 @@
         </script>
 
         {{-- Paginacao --}}
-        <x-pagination-bar :paginator="$pontos->withQueryString()" label="pontos" />
+        <x-pagination-bar :paginator="$pontos->withQueryString()" label="pontos" :defaultPerPage="$perPagePadrao" />
 @endsection

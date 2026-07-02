@@ -411,7 +411,7 @@
         </div>
 
         {{-- Paginacao --}}
-        <x-pagination-bar :paginator="$vistorias->withQueryString()" label="vistorias" />
+        <x-pagination-bar :paginator="$vistorias->withQueryString()" label="vistorias" :defaultPerPage="$perPagePadrao" />
     </div>
 @endsection
 

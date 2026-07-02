@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpdatePontoRequest;
 use App\Models\Ponto;
 use App\Services\EnderecoService;
+use App\Services\ParametroService;
 use App\Services\PontoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,26 +13,33 @@ use Illuminate\View\View;
 
 class PontoController extends Controller
 {
-    public function __construct(private PontoService $pontoService) {}
+    public function __construct(
+        private PontoService $pontoService,
+        private ParametroService $parametroService,
+    ) {}
 
     public function index(Request $request): View
     {
+        $perPageMax = $this->parametroService->perPageMaximo();
+
         $request->validate([
             'logradouro' => 'nullable|string|max:200',
             'numero' => 'nullable|string|max:20',
             'bairro' => 'nullable|string|max:200',
             'regional' => 'nullable|string|max:100',
             'resultado' => ['nullable', fn ($attr, $value, $fail) => $this->pontoService->resultadoFiltroValido($value) || $fail('Resultado inválido.')],
-            'per_page' => 'nullable|integer|min:1|max:100',
+            'per_page' => "nullable|integer|min:1|max:{$perPageMax}",
         ]);
 
         $filters = $request->only(['logradouro', 'numero', 'bairro', 'regional', 'resultado']);
-        $perPage = min((int) $request->input('per_page', 5), 100);
+        $perPage = $this->parametroService->resolverPerPage(
+            $request->filled('per_page') ? (int) $request->input('per_page') : null
+        );
 
         $pontos = $this->pontoService->listarPontosComVistorias($filters, $perPage);
 
         return view('pontos.index', array_merge(
-            ['pontos' => $pontos],
+            ['pontos' => $pontos, 'perPagePadrao' => $this->parametroService->perPagePadrao()],
             $this->pontoService->getFilterData()
         ));
     }

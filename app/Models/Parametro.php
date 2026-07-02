@@ -46,6 +46,11 @@ class Parametro extends Model
             'updated_at' => now(),
         ]);
 
+        static::forgetCache($chave);
+    }
+
+    public static function forgetCache(string $chave): void
+    {
         Cache::forget("param:{$chave}");
     }
 }

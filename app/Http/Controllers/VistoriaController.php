@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateVistoriaRequest;
 use App\Models\Ponto;
 use App\Models\Vistoria;
 use App\Services\MoradorService;
+use App\Services\ParametroService;
 use App\Services\VistoriaRascunhoService;
 use App\Services\VistoriaService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -26,6 +27,7 @@ class VistoriaController extends Controller
         private MoradorService $moradorService,
         private VistoriaService $vistoriaService,
         private VistoriaRascunhoService $rascunhoService,
+        private ParametroService $parametroService,
     ) {}
 
     public function show(Vistoria $vistoria): View
@@ -374,6 +376,8 @@ class VistoriaController extends Controller
             $this->authorize('viewAny', Vistoria::class);
         }
 
+        $perPageMax = $this->parametroService->perPageMaximo();
+
         $request->validate([
             'logradouro' => 'nullable|string|max:100',
             'numero' => 'nullable|string|max:20',
@@ -391,20 +395,25 @@ class VistoriaController extends Controller
             'situacao_comunicado' => 'nullable|in:com_comunicado,sem_comunicado,aguardando_retorno',
             'retorno_previsto' => 'nullable|in:vencidos,proximos_7,proximos_30',
             'situacao' => 'nullable|in:aberta,finalizada,todas',
-            'per_page' => 'nullable|integer|min:1|max:100',
+            'per_page' => "nullable|integer|min:1|max:{$perPageMax}",
         ]);
+
+        $perPage = $this->parametroService->resolverPerPage(
+            $request->filled('per_page') ? (int) $request->input('per_page') : null
+        );
 
         $vistorias = $this->vistoriaService->listarComFiltros(
             $request->only(['endereco', 'numero_endereco', 'logradouro', 'numero', 'bairro',
                 'regional', 'resultado', 'data_inicio', 'data_fim', 'supervisor',
                 'data_prevista_inicio', 'data_prevista_fim',
                 'tipo_abordagem', 'situacao_comunicado', 'retorno_previsto', 'situacao']),
-            min((int) $request->input('per_page', 5), 100)
+            $perPage
         );
 
         return view('vistorias.index', array_merge(
             compact('vistorias'),
-            $this->getFilterData()
+            $this->getFilterData(),
+            ['perPagePadrao' => $this->parametroService->perPagePadrao()]
         ));
     }
 

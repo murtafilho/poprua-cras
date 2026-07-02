@@ -75,7 +75,7 @@ Route::middleware('auth')->group(function () {
         Route::get('matriz-permissoes', MatrizPermissoesController::class)->name('matriz-permissoes');
         Route::get('parametros', [ParametroController::class, 'index'])->name('parametros.index');
         Route::put('parametros', [ParametroController::class, 'update'])->name('parametros.update');
-        Route::post('parametros', [ParametroController::class, 'create'])->name('parametros.create');
+        Route::post('parametros', [ParametroController::class, 'store'])->name('parametros.store');
         Route::delete('parametros/{chave}', [ParametroController::class, 'destroy'])->name('parametros.destroy');
     });
 });

@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/js/vistoria-edit.js',
                 'resources/js/dashboard.js',
                 'resources/js/stack-projecao.js',
+                'resources/js/admin-parametros.js',
                 'resources/js/vistoria-index.js',
                 'resources/js/ponto-edit.js',
                 'resources/js/morador-form.js',

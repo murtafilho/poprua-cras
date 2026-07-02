@@ -52,7 +52,9 @@ class ParametroControllerTest extends TestCase
             ->get(route('admin.parametros.index'))
             ->assertOk()
             ->assertViewIs('admin.parametros.index')
-            ->assertViewHas('parametros');
+            ->assertViewHas('parametros')
+            ->assertViewHas('gruposInfo')
+            ->assertViewHas('contextos');
     }
 
     public function test_admin_atualiza_parametros(): void
@@ -79,7 +81,7 @@ class ParametroControllerTest extends TestCase
 
     public function test_admin_cria_parametro(): void
     {
-        $response = $this->actingAs($this->admin)->post(route('admin.parametros.create'), [
+        $response = $this->actingAs($this->admin)->post(route('admin.parametros.store'), [
             'chave' => 'teste_config',
             'valor' => '42',
             'tipo' => 'integer',
