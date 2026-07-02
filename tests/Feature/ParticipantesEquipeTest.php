@@ -50,4 +50,40 @@ class ParticipantesEquipeTest extends TestCase
         $response->assertSee('Ana Supervisor');
         $response->assertSee('Bruno Agente');
     }
+
+    #[Test]
+    public function relatorio_impressao_exibe_secao_equipe_participantes(): void
+    {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        Role::firstOrCreate(['name' => 'supervisor', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'agente', 'guard_name' => 'web']);
+
+        DB::table('tipo_abordagem')->insert(['id' => 1, 'tipo' => 'Rotina']);
+        DB::table('resultados_acoes')->insert(['id' => 1, 'resultado' => 'Orientação']);
+
+        $autor = User::factory()->create();
+        $supervisor = User::factory()->create(['name' => 'Ana Supervisor']);
+        $supervisor->assignRole('supervisor');
+        $agente = User::factory()->create(['name' => 'Bruno Agente']);
+        $agente->assignRole('agente');
+
+        $ponto = Ponto::factory()->create();
+        $vistoria = Vistoria::factory()->create([
+            'ponto_id' => $ponto->id,
+            'user_id' => $autor->id,
+            'tipo_abordagem_id' => 1,
+            'resultado_acao_id' => 1,
+            'data_abordagem' => now(),
+        ]);
+        $vistoria->participantes()->sync([$supervisor->id, $agente->id]);
+
+        $response = $this->actingAs($autor)->get(route('vistorias.report.print', $vistoria));
+
+        $response->assertOk();
+        $response->assertSee('Equipe participantes');
+        $response->assertSee('Supervisores');
+        $response->assertSee('Agentes de Campo');
+        $response->assertSee('Ana Supervisor');
+        $response->assertSee('Bruno Agente');
+    }
 }

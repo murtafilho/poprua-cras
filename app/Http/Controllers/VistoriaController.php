@@ -35,6 +35,16 @@ class VistoriaController extends Controller
         return $this->renderVistoria($vistoria, 'vistorias.show');
     }
 
+    public function report(Vistoria $vistoria): View
+    {
+        return $this->renderVistoria($vistoria, 'vistorias.report');
+    }
+
+    public function reportPrint(Vistoria $vistoria): View
+    {
+        return $this->renderVistoria($vistoria, 'vistorias.report-print');
+    }
+
     private function renderVistoria(Vistoria $vistoria, string $viewName): View
     {
         $this->authorize('view', $vistoria);

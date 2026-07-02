@@ -50,6 +50,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/vistorias/create', [VistoriaController::class, 'create'])->name('vistorias.create');
     Route::get('/vistorias/roteiro', [VistoriaController::class, 'exportarRoteiro'])->name('vistorias.roteiro');
     Route::get('/vistorias/{vistoria}', [VistoriaController::class, 'show'])->name('vistorias.show');
+    Route::get('/vistorias/{vistoria}/relatorio', [VistoriaController::class, 'report'])->name('vistorias.report');
+    Route::get('/vistorias/{vistoria}/relatorio/imprimir', [VistoriaController::class, 'reportPrint'])->name('vistorias.report.print');
     Route::get('/vistorias/{vistoria}/edit', [VistoriaController::class, 'edit'])->name('vistorias.edit');
     Route::post('/vistorias', [VistoriaController::class, 'store'])->name('vistorias.store');
     Route::put('/vistorias/{vistoria}', [VistoriaController::class, 'update'])->name('vistorias.update');
