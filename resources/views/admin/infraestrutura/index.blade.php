@@ -315,22 +315,5 @@
             </div>
         </details>
 
-        {{-- Documentação --}}
-        <details class="infra-section">
-            <summary>
-                <span>Documentação no repositório</span>
-                <svg class="infra-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </summary>
-            <div class="infra-section-body">
-                <ul class="infra-list">
-                    <li><code>CLAUDE.md</code> — guia operacional (dev e deploy)</li>
-                    <li><code>docs/ESPECIFICACAO_TECNOLOGIA_E_INFRAESTRUTURA.md</code> — especificação de colocation</li>
-                    <li><code>docs/ARQUITETURA_DOCKER.md</code> — arquitetura Docker e rede</li>
-                    <li><code>docs/API.md</code> — referência da API REST</li>
-                    <li><code>docs/adr/</code> — Architecture Decision Records</li>
-                </ul>
-            </div>
-        </details>
-
     </div>
 @endsection
