@@ -16,13 +16,14 @@ class StackProjecaoControllerTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_authenticated_user_can_view_stack_projecao_document(): void
+    public function test_authenticated_user_can_view_stack_projecao_page(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)
             ->get(route('stack-projecao.index'))
             ->assertOk()
-            ->assertHeader('content-type', 'text/html; charset=UTF-8');
+            ->assertViewIs('stack-projecao.index')
+            ->assertViewHas('dados');
     }
 }

@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use App\Services\StackProjecaoService;
+use Illuminate\View\View;
 
 class StackProjecaoController extends Controller
 {
-    public function __invoke(): BinaryFileResponse
+    public function __construct(private StackProjecaoService $stackProjecaoService) {}
+
+    public function __invoke(): View
     {
-        $path = base_path('docs/TERMO_DE_REFERENCIA_HOSPEDAGEM_SIZEM.html');
-
-        abort_unless(is_file($path), 404);
-
-        return response()->file($path, [
-            'Content-Type' => 'text/html; charset=UTF-8',
+        return view('stack-projecao.index', [
+            'dados' => $this->stackProjecaoService->dados(),
         ]);
     }
 }
