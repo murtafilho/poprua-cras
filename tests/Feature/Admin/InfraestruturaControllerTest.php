@@ -48,10 +48,12 @@ class InfraestruturaControllerTest extends TestCase
             ->get(route('admin.infraestrutura'))
             ->assertOk()
             ->assertViewIs('admin.infraestrutura.index')
-            ->assertSee('SIZEM BH — Infraestrutura')
+            ->assertSee('SIZEM — Infraestrutura')
             ->assertSee('php84-poprua-cras')
             ->assertSee('Containers Docker')
             ->assertSee('Stack tecnológica')
+            ->assertSee('Versionamento')
+            ->assertSee('v2.0')
             ->assertViewHas('versoes')
             ->assertViewHas('phpVersion');
     }

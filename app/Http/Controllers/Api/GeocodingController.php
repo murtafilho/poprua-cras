@@ -85,7 +85,7 @@ class GeocodingController extends Controller
 
         try {
             $response = Http::timeout(10)
-                ->withHeaders(['User-Agent' => 'POPRUA-v2/1.0 (murtafilho@gmail.com)'])
+                ->withHeaders(['User-Agent' => 'SIZEM/2.0 (murtafilho@gmail.com)'])
                 ->get('https://nominatim.openstreetmap.org/search', [
                     'q' => $endereco,
                     'format' => 'json',

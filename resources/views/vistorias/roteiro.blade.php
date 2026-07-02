@@ -61,7 +61,7 @@
     </table>
 
     <p style="font-size: 10px; color: #999; text-align: center;">
-        Gerado em {{ now()->format('d/m/Y H:i') }} | {{ config('app.brand', 'SIZEM BH') }}
+        Gerado em {{ now()->format('d/m/Y H:i') }} | {{ config('app.brand', 'SIZEM') }}
     </p>
 </body>
 </html>

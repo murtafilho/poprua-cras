@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Stack Tecnológica — SIZEM BH</title>
+    <title>Stack Tecnológica — SIZEM</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10px; color: #1a1a1a; padding: 28px 32px; line-height: 1.45; }
@@ -22,7 +22,7 @@
     </style>
 </head>
 <body>
-    <h1>SIZEM BH — Stack Tecnológica</h1>
+    <h1>SIZEM — Stack Tecnológica</h1>
     <div class="meta">
         <p><strong>Sistema Integrado de Zeladoria Municipal</strong> · Prefeitura de Belo Horizonte / SUFIS</p>
         <p>Repositório: poprua-cras · Documento gerado em {{ $geradoEm }}</p>
@@ -125,7 +125,7 @@
     </table>
 
     <div class="footer">
-        SIZEM BH — Stack Tecnológica · Documento institucional · {{ $geradoEm }}
+        SIZEM — Stack Tecnológica · Documento institucional · {{ $geradoEm }}
     </div>
 </body>
 </html>

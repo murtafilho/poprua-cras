@@ -6,7 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#184186">
 
-        <title>{{ config('app.brand', 'SIZEM BH') }}</title>
+        <title>{{ config('app.brand', 'SIZEM') }}</title>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,7 @@
             </div>
 
             <p class="guest-footer">
-                {{ config('app.brand', 'SIZEM BH') }} v2.0 &copy; {{ date('Y') }} — Prefeitura de Belo Horizonte
+                {{ config('app.brand', 'SIZEM') }} v2.0 &copy; {{ date('Y') }} — Prefeitura de Belo Horizonte
             </p>
         </div>
     </body>

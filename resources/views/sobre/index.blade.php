@@ -15,7 +15,7 @@
                         <x-application-logo style="width: 48px; height: 48px; color: var(--accent-primary); flex-shrink: 0;" />
                         <div>
                             <h2 style="font-size: var(--text-lg); font-weight: var(--font-bold); margin: 0;">
-                                {{ config('app.brand', 'SIZEM BH') }}
+                                {{ config('app.brand', 'SIZEM') }}
                             </h2>
                             <p class="text-muted" style="font-size: var(--text-sm); margin-top: var(--space-1);">
                                 {{ config('app.name') }}

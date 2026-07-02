@@ -78,7 +78,7 @@ class SchemaDiffCommand extends Command
 
     public function handle(): int
     {
-        $this->info('=== POPRUA ETL — Schema Diff (pre-flight) ===');
+        $this->info('=== SIZEM ETL — Schema Diff (pre-flight) ===');
         $this->line('Destino: poprua-cras ('.self::TARGET.')  Origem: poprua-geo ('.self::SOURCE.')');
         $this->newLine();
 

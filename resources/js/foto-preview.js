@@ -1,5 +1,5 @@
 /**
- * PopRua CRAS — Módulo compartilhado de preview de fotos com legenda e "Incluir em relatório"
+ * SIZEM — Módulo compartilhado de preview de fotos com legenda e "Incluir em relatório"
  * Usado em vistoria-form.js, vistoria-edit.js (fotos novas) e ponto-form.js
  */
 

@@ -6,7 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#184186">
 
-        <title>{{ config('app.brand', 'SIZEM BH') }} — @isset($title){{ $title }}@else{{ 'Sistema' }}@endisset</title>
+        <title>{{ config('app.brand', 'SIZEM') }} — @isset($title){{ $title }}@else{{ 'Sistema' }}@endisset</title>
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])

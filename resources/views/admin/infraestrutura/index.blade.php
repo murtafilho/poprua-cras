@@ -86,7 +86,7 @@
         {{-- Cabeçalho --}}
         <div class="card mb-4">
             <div class="card-body">
-                <h2 style="margin: 0 0 var(--space-2);">SIZEM BH — Infraestrutura</h2>
+                <h2 style="margin: 0 0 var(--space-2);">SIZEM — Infraestrutura</h2>
                 <p style="margin: 0 0 var(--space-2); color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.5;">
                     Sistema Integrado de Zeladoria Municipal. Fork do POPRUA Geo, focado em zeladoria urbana e integração com CRAS.
                     Repositório <code>poprua-cras</code> · host <code>vlcp-sufis01</code> (SUFIS/PBH).
@@ -97,7 +97,7 @@
                         Apache → FastCGI <code>127.0.0.1:9086</code>
                     </span>
                 </p>
-                <p class="infra-meta" style="margin-bottom: 0;">Atualizado em {{ $geradoEm }} (America/Sao_Paulo)</p>
+                <p class="infra-meta" style="margin-bottom: 0;">Release {{ $appVersao }} · consulte a seção Versionamento abaixo</p>
             </div>
         </div>
 
@@ -129,6 +129,62 @@
                     <p class="infra-kpi-label">Redis</p>
                     <p class="infra-kpi-value">7</p>
                     <p class="infra-kpi-sub">cache · sessão · fila</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Versionamento --}}
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="card-title">Versionamento</div>
+            </div>
+            <div class="card-body" style="padding-top: 0;">
+                <div class="table-container">
+                    <table class="table table-striped">
+                        <tbody>
+                            <tr>
+                                <th style="width: 28%; font-weight: var(--font-semibold);">Versão</th>
+                                <td><span class="badge badge-info">{{ $appVersao }}</span></td>
+                            </tr>
+                            <tr>
+                                <th style="font-weight: var(--font-semibold);">Ambiente</th>
+                                <td><code>{{ $ambiente }}</code></td>
+                            </tr>
+                            <tr>
+                                <th style="font-weight: var(--font-semibold);">Branch</th>
+                                <td>{{ $git['branch'] ?? '—' }}</td>
+                            </tr>
+                            <tr>
+                                <th style="font-weight: var(--font-semibold);">Commit</th>
+                                <td>
+                                    @if($git['commit'])
+                                        @if($gitCommitUrl)
+                                            <a href="{{ $gitCommitUrl }}" class="link" target="_blank" rel="noopener"><code>{{ $git['commit'] }}</code></a>
+                                        @else
+                                            <code>{{ $git['commit'] }}</code>
+                                        @endif
+                                        @if($git['message'])
+                                            <span class="text-muted" style="font-size: var(--text-xs); margin-left: var(--space-2);">{{ $git['message'] }}</span>
+                                        @endif
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="font-weight: var(--font-semibold);">Data do commit</th>
+                                <td>{{ $git['date'] ?? '—' }}</td>
+                            </tr>
+                            <tr>
+                                <th style="font-weight: var(--font-semibold);">PWA (cache)</th>
+                                <td>{{ $pwaCacheVersion ? 'v'.$pwaCacheVersion : '—' }}</td>
+                            </tr>
+                            <tr>
+                                <th style="font-weight: var(--font-semibold);">Página gerada em</th>
+                                <td>{{ $geradoEm }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -39,7 +39,7 @@ class RunCommand extends Command
 
         $fromDump = (bool) $this->option('from-dump');
 
-        $this->info('=== POPRUA ETL — run ===');
+        $this->info('=== SIZEM ETL — run ===');
         $this->line("SQL: {$sqlPath}");
         if ($fromDump) {
             $this->line('Modo: --from-dump (restaura .dump local)');

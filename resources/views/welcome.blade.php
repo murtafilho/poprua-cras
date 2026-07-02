@@ -1,6 +1,6 @@
 <x-guest-layout>
     <h2 class="text-center mb-6" style="font-size: var(--text-xl); font-weight: var(--font-semibold);">
-        {{ config('app.brand', 'SIZEM BH') }} v2.0
+        {{ config('app.brand', 'SIZEM') }} v2.0
     </h2>
 
     <p class="text-muted text-center mb-6" style="font-size: var(--text-sm);">

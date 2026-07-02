@@ -22,7 +22,7 @@ return new class extends Migration
 
         DB::table('parametros')->insert([
             ['chave' => 'info_precaria_dias', 'valor' => '60', 'tipo' => 'integer', 'grupo' => 'workflow', 'descricao' => 'Dias sem vistoria para classificar ponto como Informação Precária', 'created_at' => now(), 'updated_at' => now()],
-            ['chave' => 'app_nome', 'valor' => 'POPRUA CRAS', 'tipo' => 'string', 'grupo' => 'geral', 'descricao' => 'Nome exibido no sistema', 'created_at' => now(), 'updated_at' => now()],
+            ['chave' => 'app_nome', 'valor' => 'SIZEM', 'tipo' => 'string', 'grupo' => 'geral', 'descricao' => 'Nome exibido no sistema', 'created_at' => now(), 'updated_at' => now()],
             ['chave' => 'app_orgao', 'valor' => 'Prefeitura de Belo Horizonte', 'tipo' => 'string', 'grupo' => 'geral', 'descricao' => 'Órgão responsável', 'created_at' => now(), 'updated_at' => now()],
             ['chave' => 'mapa_centro_lat', 'valor' => '-19.9135', 'tipo' => 'float', 'grupo' => 'mapa', 'descricao' => 'Latitude central do mapa', 'created_at' => now(), 'updated_at' => now()],
             ['chave' => 'mapa_centro_lng', 'valor' => '-43.9514', 'tipo' => 'float', 'grupo' => 'mapa', 'descricao' => 'Longitude central do mapa', 'created_at' => now(), 'updated_at' => now()],

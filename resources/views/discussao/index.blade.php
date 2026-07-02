@@ -711,13 +711,13 @@
             color: var(--ink-light);
         }
 
-        .tabela-matrix .col-poprua {
+        .tabela-matrix .col-sizem {
             background: rgba(184, 134, 11, 0.06) !important;
             border-left: 2px solid var(--gold) !important;
             border-right: 2px solid var(--gold) !important;
         }
 
-        .tabela-matrix thead .col-poprua {
+        .tabela-matrix thead .col-sizem {
             background: var(--gold) !important;
             color: #fff !important;
             border-left: 2px solid var(--gold) !important;
@@ -967,7 +967,7 @@
 
                 <li><a href="#titulo-v" class="toc-link toc-l1"><span class="toc-num">V</span>Casos de Uso e Referencias</a></li>
                 <li><a href="#cap-v-1" class="toc-link toc-l2"><span class="toc-num">5.1</span>Modelos Internacionais</a></li>
-                <li><a href="#cap-v-2" class="toc-link toc-l2"><span class="toc-num">5.2</span>Posicionamento do POPRUA</a></li>
+                <li><a href="#cap-v-2" class="toc-link toc-l2"><span class="toc-num">5.2</span>Posicionamento do SIZEM</a></li>
 
                 <li><a href="#titulo-vi" class="toc-link toc-l1"><span class="toc-num">VI</span>Legislacao Brasileira</a></li>
                 <li><a href="#cap-vi-1" class="toc-link toc-l2"><span class="toc-num">6.1</span>Base Constitucional</a></li>
@@ -1002,9 +1002,9 @@
                     <div class="doc-coat-line"></div>
                 </div>
                 <div class="doc-institution">Roberto Murta</div>
-                <div class="doc-subtitle">POPRUA Geo v2</div>
+                <div class="doc-subtitle">SIZEM</div>
                 <h1 class="doc-title">Controle e Identificacao de<br>Moradores em Situacao de Rua</h1>
-                <p class="doc-title-sub">Panorama mundial, marcos legais e fundamentos para<br>o desenvolvimento do sistema POPRUA</p>
+                <p class="doc-title-sub">Panorama mundial, marcos legais e fundamentos para<br>o desenvolvimento do sistema SIZEM</p>
                 <div class="doc-meta">
                     <span class="doc-meta-item"><strong>Tipo:</strong> Documento de Discussao</span>
                     <span class="doc-meta-item"><strong>Data:</strong> Marco de 2026</span>
@@ -1336,7 +1336,7 @@
                     <span class="titulo-rule"></span>
                 </div>
                 <h2 class="titulo-name">Dos Casos de Uso e Referencias</h2>
-                <p class="titulo-desc">Modelos internacionais comparados e posicionamento do sistema POPRUA.</p>
+                <p class="titulo-desc">Modelos internacionais comparados e posicionamento do sistema SIZEM.</p>
 
                 {{-- Cap V.1 --}}
                 <div class="capitulo" id="cap-v-1">
@@ -1360,7 +1360,7 @@
                                     <tr>
                                         <td class="col-norma">HMIS + By-Name List</td>
                                         <td>EUA</td>
-                                        <td>Sistema integrado com lista nominal em tempo real. Modelo mais proximo do que o POPRUA pode implementar.</td>
+                                        <td>Sistema integrado com lista nominal em tempo real. Modelo mais proximo do que o SIZEM pode implementar.</td>
                                     </tr>
                                     <tr>
                                         <td class="col-norma">Housing First</td>
@@ -1375,7 +1375,7 @@
                                     <tr>
                                         <td class="col-norma">CadUnico + Centro POP</td>
                                         <td>Brasil</td>
-                                        <td>Infraestrutura existente que o POPRUA complementa com dados geoespaciais.</td>
+                                        <td>Infraestrutura existente que o SIZEM complementa com dados geoespaciais.</td>
                                     </tr>
                                     <tr>
                                         <td class="col-norma">Dados Cruzados</td>
@@ -1391,11 +1391,11 @@
                 {{-- Cap V.2 --}}
                 <div class="capitulo" id="cap-v-2">
                     <div class="capitulo-header">Capitulo V &mdash; Secao 2</div>
-                    <h3 class="capitulo-name">Do Posicionamento do POPRUA</h3>
+                    <h3 class="capitulo-name">Do Posicionamento do SIZEM</h3>
                     <div class="capitulo-divider"></div>
 
                     <div class="artigo">
-                        <p><span class="artigo-num">Art. 20.</span> &mdash; O POPRUA complementa o CadUnico ao adicionar a <strong>dimensao geoespacial</strong> (pontos georreferenciados, bairros, regionais) que permite:</p>
+                        <p><span class="artigo-num">Art. 20.</span> &mdash; O SIZEM complementa o CadUnico ao adicionar a <strong>dimensao geoespacial</strong> (pontos georreferenciados, bairros, regionais) que permite:</p>
                         <ul class="incisos">
                             <li data-num="I &mdash;">Visualizar <strong>concentracao territorial</strong> de moradores;</li>
                             <li data-num="II &mdash;">Acompanhar <strong>mobilidade entre pontos</strong> ao longo do tempo;</li>
@@ -1406,7 +1406,7 @@
 
                     <div class="callout callout-gold">
                         <div class="callout-title">Contribuicao do Sistema</div>
-                        <p>O POPRUA v2 nao substitui nenhum sistema federal existente. Atua como <strong>ferramenta complementar de inteligencia territorial</strong>, fornecendo ao municipio de Belo Horizonte capacidade de gestao geoespacial da politica publica voltada a populacao em situacao de rua.</p>
+                        <p>O SIZEM nao substitui nenhum sistema federal existente. Atua como <strong>ferramenta complementar de inteligencia territorial</strong>, fornecendo ao municipio de Belo Horizonte capacidade de gestao geoespacial da politica publica voltada a populacao em situacao de rua.</p>
                     </div>
                 </div>
             </section>
@@ -1627,7 +1627,7 @@
                 {{-- Cap VI.7 --}}
                 <div class="capitulo" id="cap-vi-7">
                     <div class="capitulo-header">Capitulo VI &mdash; Secao 7</div>
-                    <h3 class="capitulo-name">Dos Principios Legais Aplicaveis a Sistemas como o POPRUA</h3>
+                    <h3 class="capitulo-name">Dos Principios Legais Aplicaveis a Sistemas como o SIZEM</h3>
                     <div class="capitulo-divider"></div>
 
                     <div class="artigo">
@@ -1645,7 +1645,7 @@
 
                     <div class="callout callout-crimson">
                         <div class="callout-title">Nota</div>
-                        <p>Os principios acima orientam o desenvolvimento de todas as funcionalidades do POPRUA v2, incluindo a coleta de dados em campo analisada no Titulo VII a seguir.</p>
+                        <p>Os principios acima orientam o desenvolvimento de todas as funcionalidades do SIZEM, incluindo a coleta de dados em campo analisada no Titulo VII a seguir.</p>
                     </div>
                 </div>
             </section>
@@ -1659,7 +1659,7 @@
                     <span class="titulo-rule"></span>
                 </div>
                 <h2 class="titulo-name">Dos Sistemas de Coleta de Dados em Campo</h2>
-                <p class="titulo-desc">Analise comparativa de sistemas similares ao POPRUA para coleta movel, georreferenciamento e gestao de populacao em situacao de rua.</p>
+                <p class="titulo-desc">Analise comparativa de sistemas similares ao SIZEM para coleta movel, georreferenciamento e gestao de populacao em situacao de rua.</p>
 
                 {{-- Cap VII.1 --}}
                 <div class="capitulo" id="cap-vii-1">
@@ -1673,7 +1673,7 @@
                             <span class="sistema-card-badge badge-comercial">Comercial</span>
                         </div>
                         <div class="sistema-card-origin">Bitfocus, Inc. &mdash; Estados Unidos &mdash; desde 2003</div>
-                        <p>Plataforma HMIS mais avancada do mercado, com modulo de <strong>outreach georreferenciado</strong> construido sobre Esri ArcGIS. E o sistema internacional que mais se aproxima funcionalmente do POPRUA.</p>
+                        <p>Plataforma HMIS mais avancada do mercado, com modulo de <strong>outreach georreferenciado</strong> construido sobre Esri ArcGIS. E o sistema internacional que mais se aproxima funcionalmente do SIZEM.</p>
                         <ul class="feat-list">
                             <li>App movel para smartphones e tablets com funcionalidade completa em campo</li>
                             <li><strong>Clarity Outreach</strong>: modulo de mapeamento de acampamentos com localizacao GPS em tempo real</li>
@@ -1730,7 +1730,7 @@
                             <span class="sistema-card-badge badge-governo">Governo</span>
                         </div>
                         <div class="sistema-card-origin">Instituto Pereira Passos / SMASHDR &mdash; Prefeitura do Rio de Janeiro &mdash; 2020, 2022, 2024</div>
-                        <p><strong>O caso brasileiro mais proximo do POPRUA.</strong> Desenvolvido com Survey123 for ArcGIS dentro do Sistema Municipal de Informacoes Urbanas (SIURB).</p>
+                        <p><strong>O caso brasileiro mais proximo do SIZEM.</strong> Desenvolvido com Survey123 for ArcGIS dentro do Sistema Municipal de Informacoes Urbanas (SIURB).</p>
                         <ul class="feat-list">
                             <li>App movel de <strong>coleta georreferenciada</strong> com formularios customizados</li>
                             <li>Permite participacao de grande numero de colaboradores simultaneamente</li>
@@ -1747,7 +1747,7 @@
 
                     <div class="callout callout-gold">
                         <div class="callout-title">Referencia Nacional</div>
-                        <p>O censo do Rio e o unico no Brasil que utiliza coleta georreferenciada movel em larga escala, com resultados publicados em plataforma aberta. BH pode adotar estrategia similar utilizando a infraestrutura PostGIS ja existente no POPRUA.</p>
+                        <p>O censo do Rio e o unico no Brasil que utiliza coleta georreferenciada movel em larga escala, com resultados publicados em plataforma aberta. BH pode adotar estrategia similar utilizando a infraestrutura PostGIS ja existente no SIZEM.</p>
                     </div>
                 </div>
 
@@ -1776,7 +1776,7 @@
                     </div>
 
                     <div class="artigo">
-                        <p><span class="artigo-num">Art. 31.</span> &mdash; O KoboToolbox e a <strong>alternativa mais viavel para integracao imediata</strong> com o POPRUA, por ser gratuito, open-source, funcionar offline e exportar dados georreferenciados que podem ser importados diretamente para o PostGIS.</p>
+                        <p><span class="artigo-num">Art. 31.</span> &mdash; O KoboToolbox e a <strong>alternativa mais viavel para integracao imediata</strong> com o SIZEM, por ser gratuito, open-source, funcionar offline e exportar dados georreferenciados que podem ser importados diretamente para o PostGIS.</p>
                     </div>
                 </div>
 
@@ -1834,7 +1834,7 @@
                     <div class="capitulo-divider"></div>
 
                     <div class="artigo">
-                        <p><span class="artigo-num">Art. 33.</span> &mdash; A tabela abaixo compara as capacidades tecnicas dos sistemas analisados em relacao ao POPRUA v2:</p>
+                        <p><span class="artigo-num">Art. 33.</span> &mdash; A tabela abaixo compara as capacidades tecnicas dos sistemas analisados em relacao ao SIZEM:</p>
 
                         <div class="tabela-wrapper">
                             <table class="tabela tabela-matrix">
@@ -1846,7 +1846,7 @@
                                         <th>Rio Survey123</th>
                                         <th>Kobo Toolbox</th>
                                         <th>WellSky</th>
-                                        <th class="col-poprua">POPRUA&nbsp;v2</th>
+                                        <th class="col-sizem">SIZEM</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1857,7 +1857,7 @@
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
-                                        <td class="col-poprua"><span class="ico-parcial" title="Parcial">P</span></td>
+                                        <td class="col-sizem"><span class="ico-parcial" title="Parcial">P</span></td>
                                     </tr>
                                     <tr>
                                         <td>Funciona offline</td>
@@ -1866,7 +1866,7 @@
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-parcial" title="Parcial">P</span></td>
-                                        <td class="col-poprua"><span class="ico-nao" title="Nao">N</span></td>
+                                        <td class="col-sizem"><span class="ico-nao" title="Nao">N</span></td>
                                     </tr>
                                     <tr>
                                         <td>Georreferenciamento GPS</td>
@@ -1875,7 +1875,7 @@
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-parcial" title="Parcial">P</span></td>
-                                        <td class="col-poprua"><span class="ico-sim" title="Sim">S</span></td>
+                                        <td class="col-sizem"><span class="ico-sim" title="Sim">S</span></td>
                                     </tr>
                                     <tr>
                                         <td>Camadas geograficas (bairros, regionais)</td>
@@ -1884,7 +1884,7 @@
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-nao" title="Nao">N</span></td>
-                                        <td class="col-poprua"><span class="ico-sim" title="Sim">S</span></td>
+                                        <td class="col-sizem"><span class="ico-sim" title="Sim">S</span></td>
                                     </tr>
                                     <tr>
                                         <td>Consultas espaciais (PostGIS/GIS)</td>
@@ -1893,7 +1893,7 @@
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-nao" title="Nao">N</span></td>
-                                        <td class="col-poprua"><span class="ico-sim" title="Sim">S</span></td>
+                                        <td class="col-sizem"><span class="ico-sim" title="Sim">S</span></td>
                                     </tr>
                                     <tr>
                                         <td>Vinculo com vistorias/inspecoes</td>
@@ -1902,7 +1902,7 @@
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
-                                        <td class="col-poprua"><span class="ico-sim" title="Sim">S</span></td>
+                                        <td class="col-sizem"><span class="ico-sim" title="Sim">S</span></td>
                                     </tr>
                                     <tr>
                                         <td>Case management / acompanhamento</td>
@@ -1911,7 +1911,7 @@
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
-                                        <td class="col-poprua"><span class="ico-parcial" title="Parcial">P</span></td>
+                                        <td class="col-sizem"><span class="ico-parcial" title="Parcial">P</span></td>
                                     </tr>
                                     <tr>
                                         <td>By-Name List / lista nominal</td>
@@ -1920,7 +1920,7 @@
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
-                                        <td class="col-poprua"><span class="ico-parcial" title="Parcial">P</span></td>
+                                        <td class="col-sizem"><span class="ico-parcial" title="Parcial">P</span></td>
                                     </tr>
                                     <tr>
                                         <td>Coordinated Entry</td>
@@ -1929,7 +1929,7 @@
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
-                                        <td class="col-poprua"><span class="ico-nao" title="Nao">N</span></td>
+                                        <td class="col-sizem"><span class="ico-nao" title="Nao">N</span></td>
                                     </tr>
                                     <tr>
                                         <td>Dashboards e relatorios</td>
@@ -1938,7 +1938,7 @@
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-parcial" title="Parcial">P</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
-                                        <td class="col-poprua"><span class="ico-sim" title="Sim">S</span></td>
+                                        <td class="col-sizem"><span class="ico-sim" title="Sim">S</span></td>
                                     </tr>
                                     <tr>
                                         <td>Captura de fotos/imagens</td>
@@ -1947,7 +1947,7 @@
                                         <td><span class="ico-parcial" title="Parcial">P</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-parcial" title="Parcial">P</span></td>
-                                        <td class="col-poprua"><span class="ico-nao" title="Nao">N</span></td>
+                                        <td class="col-sizem"><span class="ico-nao" title="Nao">N</span></td>
                                     </tr>
                                     <tr>
                                         <td>Open source</td>
@@ -1956,7 +1956,7 @@
                                         <td><span class="ico-nao" title="Nao">N</span></td>
                                         <td><span class="ico-sim" title="Sim">S</span></td>
                                         <td><span class="ico-nao" title="Nao">N</span></td>
-                                        <td class="col-poprua"><span class="ico-parcial" title="Parcial">P</span></td>
+                                        <td class="col-sizem"><span class="ico-parcial" title="Parcial">P</span></td>
                                     </tr>
                                     <tr>
                                         <td>Custo</td>
@@ -1965,7 +1965,7 @@
                                         <td>Licenca Esri</td>
                                         <td><strong>Gratuito</strong></td>
                                         <td>Comercial</td>
-                                        <td class="col-poprua"><strong>Interno</strong></td>
+                                        <td class="col-sizem"><strong>Interno</strong></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1982,11 +1982,11 @@
                 {{-- Cap VII.7 --}}
                 <div class="capitulo" id="cap-vii-7">
                     <div class="capitulo-header">Capitulo VII &mdash; Secao 7</div>
-                    <h3 class="capitulo-name">Analise Comparativa e Oportunidades para o POPRUA</h3>
+                    <h3 class="capitulo-name">Analise Comparativa e Oportunidades para o SIZEM</h3>
                     <div class="capitulo-divider"></div>
 
                     <div class="artigo">
-                        <p><span class="artigo-num">Art. 34.</span> &mdash; Da analise comparativa, identificam-se os seguintes <strong>diferenciais competitivos</strong> do POPRUA v2:</p>
+                        <p><span class="artigo-num">Art. 34.</span> &mdash; Da analise comparativa, identificam-se os seguintes <strong>diferenciais competitivos</strong> do SIZEM:</p>
                         <ul class="incisos">
                             <li data-num="I &mdash;"><strong>Infraestrutura geoespacial nativa</strong> &mdash; Uso de PostGIS com camadas de bairros, regionais e limite municipal, permitindo consultas espaciais complexas (ST_Contains, ST_DWithin, ST_Distance) que nenhum dos concorrentes open-source oferece nativamente;</li>
                             <li data-num="II &mdash;"><strong>Vinculo vistoria-ponto-morador</strong> &mdash; Modelo relacional que conecta locais (pontos), pessoas (moradores) e inspecoes (vistorias) com dimensao temporal, superando sistemas focados apenas em contagem;</li>
@@ -1999,17 +1999,17 @@
                         <p><span class="artigo-num">Art. 35.</span> &mdash; Da mesma analise, identificam-se as seguintes <strong>lacunas a serem enderecadas</strong>:</p>
                         <ul class="incisos">
                             <li data-num="I &mdash;"><strong>Coleta offline em campo</strong> &mdash; Principal lacuna funcional. Counting Us e KoboToolbox demonstram que esta capacidade e essencial para equipes em areas sem cobertura de dados. Solucao viavel: Progressive Web App (PWA) com Service Workers ou integracao com KoboToolbox como ferramenta de coleta;</li>
-                            <li data-num="II &mdash;"><strong>App movel nativo</strong> &mdash; O POPRUA opera via web responsivo, enquanto Clarity e Counting Us possuem apps nativos otimizados para uso em campo com interface simplificada;</li>
-                            <li data-num="III &mdash;"><strong>Captura de imagens</strong> &mdash; KoboToolbox e Clarity permitem registro fotografico georreferenciado em campo, funcionalidade ausente no POPRUA;</li>
+                            <li data-num="II &mdash;"><strong>App movel nativo</strong> &mdash; O SIZEM opera via web responsivo, enquanto Clarity e Counting Us possuem apps nativos otimizados para uso em campo com interface simplificada;</li>
+                            <li data-num="III &mdash;"><strong>Captura de imagens</strong> &mdash; KoboToolbox e Clarity permitem registro fotografico georreferenciado em campo, funcionalidade ausente no SIZEM;</li>
                             <li data-num="IV &mdash;"><strong>Coordinated Entry</strong> &mdash; O modelo de entrada coordenada do HMIS americano, onde qualquer ponto de atendimento acessa o mesmo banco de dados, poderia ser adaptado ao contexto dos Centro POP e CREAS de BH;</li>
-                            <li data-num="V &mdash;"><strong>Acompanhamento longitudinal completo</strong> &mdash; O case management do Clarity e WellSky permite historico completo de intervencoes por pessoa, funcionalidade parcialmente presente no POPRUA.</li>
+                            <li data-num="V &mdash;"><strong>Acompanhamento longitudinal completo</strong> &mdash; O case management do Clarity e WellSky permite historico completo de intervencoes por pessoa, funcionalidade parcialmente presente no SIZEM.</li>
                         </ul>
                     </div>
 
                     <div class="artigo">
-                        <p><span class="artigo-num">Art. 36.</span> &mdash; Consideram-se os seguintes <strong>cenarios de evolucao</strong> do POPRUA v2:</p>
+                        <p><span class="artigo-num">Art. 36.</span> &mdash; Consideram-se os seguintes <strong>cenarios de evolucao</strong> do SIZEM:</p>
                         <ul class="incisos">
-                            <li data-num="I &mdash;"><strong>Cenario de curto prazo</strong> &mdash; Integracao com KoboToolbox para coleta em campo: formularios Kobo alimentam o POPRUA via API/importacao GeoJSON, combinando a robustez offline do Kobo com a analise espacial do PostGIS;</li>
+                            <li data-num="I &mdash;"><strong>Cenario de curto prazo</strong> &mdash; Integracao com KoboToolbox para coleta em campo: formularios Kobo alimentam o SIZEM via API/importacao GeoJSON, combinando a robustez offline do Kobo com a analise espacial do PostGIS;</li>
                             <li data-num="II &mdash;"><strong>Cenario de medio prazo</strong> &mdash; Desenvolvimento de PWA com Service Workers para operacao offline parcial, permitindo que equipes de vistoria registrem dados em campo e sincronizem ao retornar a areas com conectividade;</li>
                             <li data-num="III &mdash;"><strong>Cenario de longo prazo</strong> &mdash; Evolucao para plataforma de Coordinated Entry municipal, integrando dados de Centro POP, CREAS, Consultorios na Rua e CadUnico em um unico ponto de acesso georreferenciado.</li>
                         </ul>
@@ -2017,7 +2017,7 @@
 
                     <div class="callout callout-forest">
                         <div class="callout-title">Conclusao da Analise</div>
-                        <p>O POPRUA v2 ocupa um nicho unico: e o unico sistema brasileiro de gestao de populacao de rua com <strong>georreferenciamento nativo em PostGIS</strong>, <strong>vinculo vistoria-ponto-morador</strong> e <strong>custo zero de licenciamento</strong>. Seu principal gap frente aos sistemas internacionais e a <strong>coleta offline em campo</strong>, que pode ser enderecada no curto prazo via integracao com KoboToolbox.</p>
+                        <p>O SIZEM ocupa um nicho unico: e o unico sistema brasileiro de gestao de populacao de rua com <strong>georreferenciamento nativo em PostGIS</strong>, <strong>vinculo vistoria-ponto-morador</strong> e <strong>custo zero de licenciamento</strong>. Seu principal gap frente aos sistemas internacionais e a <strong>coleta offline em campo</strong>, que pode ser enderecada no curto prazo via integracao com KoboToolbox.</p>
                     </div>
                 </div>
             </section>

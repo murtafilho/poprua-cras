@@ -47,7 +47,7 @@ class SyncMySqlToPostgres extends Command
     private function syncReport(bool $executar): int
     {
         $this->info('========================================');
-        $this->info(' POPRUA — Sync MySQL → PostgreSQL');
+        $this->info(' SIZEM — Sync MySQL → PostgreSQL');
         $this->info(' Modo: '.($executar ? 'migrar' : 'relatorio'));
         $this->info(' '.now()->format('Y-m-d H:i:s'));
         $this->info('========================================');
@@ -368,7 +368,7 @@ class SyncMySqlToPostgres extends Command
     private function rollback(): int
     {
         $this->info('========================================');
-        $this->info(' POPRUA — Rollback de sincronização');
+        $this->info(' SIZEM — Rollback de sincronização');
         $this->info(' '.now()->format('Y-m-d H:i:s'));
         $this->info('========================================');
         $this->newLine();

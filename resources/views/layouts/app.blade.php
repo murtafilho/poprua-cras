@@ -9,11 +9,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="{{ config('app.brand', 'SIZEM BH') }}">
+    <meta name="apple-mobile-web-app-title" content="{{ config('app.brand', 'SIZEM') }}">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <link rel="apple-touch-icon" href="{{ asset('icons/icon-192x192.png') }}">
 
-    <title>{{ config('app.brand', 'SIZEM BH') }} — @yield('title', 'Sistema')</title>
+    <title>{{ config('app.brand', 'SIZEM') }} — @yield('title', 'Sistema')</title>
 
     {{-- Google Fonts — Outfit: geometric, field-legible --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,7 +44,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                         </svg>
                     </a>
-                    <span class="mobile-header-title">@yield('title', config('app.brand', 'SIZEM BH'))</span>
+                    <span class="mobile-header-title">@yield('title', config('app.brand', 'SIZEM'))</span>
                     <div style="width: 44px;"></div>
                 @endif
             </header>
