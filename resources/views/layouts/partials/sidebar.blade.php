@@ -48,13 +48,13 @@
                         </a>
                         @endcan
 
-                        <a href="#" id="nav-sync-fotos" class="nav-item" x-on:click.prevent="syncAllPendingPhotos()">
+                        <button type="button" id="nav-sync-fotos" class="nav-item">
                             <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>
                             <span class="nav-item-text">Sincronizar Imagens</span>
                             <span id="sync-badge" class="hidden" style="background: var(--color-warning); color: #000; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-left: auto;">0</span>
-                        </a>
+                        </button>
                     </div>
 
                     {{-- Menu Principal --}}

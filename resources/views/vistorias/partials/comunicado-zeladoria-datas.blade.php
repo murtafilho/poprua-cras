@@ -4,15 +4,15 @@
     <input type="datetime-local"
            name="data_comunicado"
            value="{{ old('data_comunicado', isset($vistoria) && $vistoria->data_comunicado ? $vistoria->data_comunicado->format('Y-m-d\TH:i') : date('Y-m-d\TH:i')) }}"
-           class="form-input">
+           class="form-input js-date-ptbr">
 </div>
 <div class="grid grid-cols-2 gap-3">
     <div class="form-group">
         <label class="form-label">Data de Agendamento</label>
         <input type="date"
                name="data_prevista_zeladoria"
-               value="{{ old('data_prevista_zeladoria', isset($vistoria) && $vistoria->data_prevista_zeladoria ? $vistoria->data_prevista_zeladoria->format('Y-m-d') : '') }}"
-               class="form-input">
+               value="{{ old('data_prevista_zeladoria', isset($vistoria) && $vistoria->data_prevista_zeladoria ? $vistoria->data_prevista_zeladoria->format('Y-m-d') : date('Y-m-d')) }}"
+               class="form-input js-date-ptbr">
     </div>
     <div class="form-group">
         <label class="form-label">Período de Agendamento</label>

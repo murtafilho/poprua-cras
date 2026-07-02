@@ -306,22 +306,7 @@
 
                 <!-- Aba 3: Relatorio, Acoes e Encaminhamentos -->
                 <div class="tab-content hidden" data-tab="2">
-                    <!-- Resultado da Acao -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label class="form-label required">Resultado da Acao</label>
-                                <select name="resultado_acao_id" required class="form-input form-select">
-                                    <option value="">Selecione...</option>
-                                    @foreach($resultadosAcao as $resultado)
-                                        @if($pontoProximo || !str_contains(strtolower($resultado->resultado), 'persiste'))
-                                            <option value="{{ $resultado->id }}">{{ $resultado->resultado }}</option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                    @include('vistorias.partials.resultado-acao-campo', ['pontoProximo' => $pontoProximo])
 
                     <!-- Acoes Realizadas: cada acao em seu proprio card -->
                     <h3 class="form-section-title" style="margin: var(--space-2) 0 var(--space-3);">Ações Realizadas</h3>

@@ -9,6 +9,7 @@ import {
     MAX_FILE_SIZE_BYTES,
 } from './offline-upload';
 import { initDynamicClickHandlers, initStepperNavigation } from './vistoria-delegation';
+import { updateComunicadoZeladoriaCampos as syncComunicadoZeladoriaCampos } from './comunicado-zeladoria-campos';
 
 const fotoTempId = initTempPhotoSession();
 
@@ -270,7 +271,7 @@ function toggleAutoNumero() {
 }
 
 function toggleComunicado() {
-    updateComunicadoZeladoriaCampos();
+    syncComunicadoZeladoriaCampos(shouldShowComunicadoZeladoriaCampos);
 }
 
 function isTipoComunicacaoZeladoria() {
@@ -288,33 +289,8 @@ function shouldShowComunicadoZeladoriaCampos() {
     return isTipoComunicacaoZeladoria() || _simNao('houve_comunicado');
 }
 
-function updateComunicadoZeladoriaCampos() {
-    const container = document.getElementById('comunicado-zeladoria-campos');
-    if (!container) {
-        return;
-    }
-
-    const show = shouldShowComunicadoZeladoriaCampos();
-    container.classList.toggle('hidden', !show);
-
-    if (!show) {
-        const dataComunicado = container.querySelector('[name="data_comunicado"]');
-        const dataPrevista = container.querySelector('[name="data_prevista_zeladoria"]');
-        const periodo = container.querySelector('[name="periodo_zeladoria"]');
-        if (dataComunicado) {
-            dataComunicado.value = '';
-        }
-        if (dataPrevista) {
-            dataPrevista.value = '';
-        }
-        if (periodo) {
-            periodo.value = '';
-        }
-    }
-}
-
 function toggleZeladoriaCampos() {
-    updateComunicadoZeladoriaCampos();
+    syncComunicadoZeladoriaCampos(shouldShowComunicadoZeladoriaCampos);
 }
 
 function atualizarCamposAbrigos() {

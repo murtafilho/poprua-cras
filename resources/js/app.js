@@ -177,6 +177,11 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast(`${enviadas} foto(s) enviada(s)` + (erros > 0 ? `, ${erros} erro(s)` : ''), erros > 0 ? 'warning' : 'success');
     };
 
+    document.getElementById('nav-sync-fotos')?.addEventListener('click', async function() {
+        closeSidebar();
+        await window.syncAllPendingPhotos();
+    });
+
     openFotosDB().then(() => cleanupOrphanedTempRecords()).catch(() => {});
     updateSyncBadge();
 });
