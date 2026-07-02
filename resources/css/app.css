@@ -5545,6 +5545,28 @@ body.slideshow-open {
     border: 1px solid #ccc;
     box-shadow: none;
   }
+
+  /* O app e um shell de altura fixa na viewport (html/body/#app com height:100%
+     e .page-content com overflow-y:auto). Sem resetar isso, a impressao/Salvar
+     como PDF captura apenas a primeira tela -> so a primeira pagina. Aqui
+     liberamos altura e overflow para o conteudo fluir por varias paginas. */
+  html,
+  body,
+  #app,
+  .main-wrapper,
+  .page,
+  .page-content {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex: none !important;
+    display: block !important;
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+  }
 }
 
 /* ── Acessibilidade de toque (WCAG 2.5.5 — alvo minimo 44px) ───────────────
