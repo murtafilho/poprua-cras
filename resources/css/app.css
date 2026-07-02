@@ -39,30 +39,30 @@
   --accent-glow: rgba(24, 65, 134, 0.16);
 
   /* Semantic Colors — afinadas para fundo claro, na paleta PBH */
-  --color-success: #009D67;
-  --color-success-dim: rgba(0, 157, 103, 0.12);
-  --color-warning: #B57E00;
-  --color-warning-dim: rgba(255, 193, 7, 0.20);
-  --color-danger: #E8424A;
-  --color-danger-dim: rgba(232, 66, 74, 0.12);
+  --color-success: #007A52;
+  --color-success-dim: rgba(0, 157, 103, 0.14);
+  --color-warning: #8F6500;
+  --color-warning-dim: rgba(255, 193, 7, 0.24);
+  --color-danger: #C62828;
+  --color-danger-dim: rgba(198, 40, 40, 0.14);
   --color-info: #184186;
   --color-info-dim: rgba(24, 65, 134, 0.12);
 
 /* Status Colors — SIZEM domain (+ aliases usados em KPIs/textos) */
-  --status-positivo: #009D67;
+  --status-positivo: #007A52;
   --status-negativo: #7A8597;
-  --status-recusa: #B57E00;
+  --status-recusa: #8F6500;
   --status-evasao: #6B4FBB;
   --status-em-acao: #184186;
   --status-info: #184186;
-  --status-success: #009D67;
-  --status-danger: #E8424A;
-  --status-warning: #B57E00;
+  --status-success: #007A52;
+  --status-danger: #C62828;
+  --status-warning: #8F6500;
 
   /* Text — azul-marinho escuro sobre claro (não preto puro) */
   --text-primary: #16223A;
   --text-secondary: #46566F;
-  --text-muted: #8A95A8;
+  --text-muted: #5C6778;
   --text-inverse: #FFFFFF;
 
   /* Borders — claras */
@@ -1595,6 +1595,11 @@ body.has-homolog-banner .skip-link:focus {
 }
 
 .badge-default {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.badge-secondary {
   background: var(--bg-tertiary);
   color: var(--text-secondary);
 }
