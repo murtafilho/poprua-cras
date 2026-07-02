@@ -102,6 +102,19 @@ services:
       PHP_MAX_EXECUTION_TIME: "300"
       PHP_UPLOAD_MAX_FILE_SIZE: "64M"
       PHP_POST_MAX_SIZE: "64M"
+      # OPcache: a imagem serversideup vem com OPcache OFF por default.
+      # VALIDATE_TIMESTAMPS=1 e obrigatorio aqui: o deploy e git pull em bind
+      # mount SEM restart do app (docker/deploy.sh) — com 0, serviria codigo velho.
+      PHP_OPCACHE_ENABLE: "1"
+      PHP_OPCACHE_VALIDATE_TIMESTAMPS: "1"
+    healthcheck:
+      # php-fpm-healthcheck ja vem na imagem serversideup (consulta o status do FPM);
+      # o Apache do host fala FastCGI direto na 9000, entao e o FPM que importa aqui.
+      test: ["CMD", "php-fpm-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     depends_on:
       init-perms:
         condition: service_completed_successfully
@@ -201,6 +214,9 @@ services:
     working_dir: /var/www/html/joomla_sufis/ginfi/poprua-cras
     environment:
       APP_BASE_DIR: /var/www/html/joomla_sufis/ginfi/poprua-cras
+      # OPcache tambem no worker (deploy.sh reinicia o queue quando o codigo muda)
+      PHP_OPCACHE_ENABLE: "1"
+      PHP_OPCACHE_VALIDATE_TIMESTAMPS: "1"
     volumes:
       - .:/var/www/html/joomla_sufis/ginfi/poprua-cras
     depends_on:
