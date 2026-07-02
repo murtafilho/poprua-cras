@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Parametro;
 use App\Models\TipoAbordagem;
 use App\Models\User;
+use App\Services\ParametroService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -102,6 +103,8 @@ class StoreVistoriaRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        $fotoRegras = app(ParametroService::class)->regrasValidacaoFoto();
+
         return [
             'ponto_id' => 'nullable|exists:pontos,id',
             'lat' => 'required|numeric|between:-90,90',
@@ -115,7 +118,7 @@ class StoreVistoriaRequest extends FormRequest
             'qtd_kg' => 'nullable|integer|min:0',
             'observacao' => 'nullable|string',
             'complemento_ponto' => 'nullable|string|max:255',
-            'fotos.*' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
+            'fotos.*' => $fotoRegras,
             'legendas_fotos' => 'nullable|array',
             'legendas_fotos.*' => 'nullable|string|max:500',
             'publicas_fotos' => 'nullable|array',

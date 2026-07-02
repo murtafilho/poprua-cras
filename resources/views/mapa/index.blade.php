@@ -192,5 +192,6 @@
 
 @push('scripts')
 <script>window.APP_BASE = "{{ rtrim(url('/'), '/') }}";</script>
+<script>window.MAPA_CONFIG = @json($mapaConfig);</script>
 @vite('resources/js/mapa.js')
 @endpush

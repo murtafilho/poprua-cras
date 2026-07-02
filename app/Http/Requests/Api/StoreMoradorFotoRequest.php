@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Services\ParametroService;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreMoradorFotoRequest extends FormRequest
@@ -16,10 +17,15 @@ class StoreMoradorFotoRequest extends FormRequest
      */
     public function rules(): array
     {
+        $fotoBase = array_values(array_filter(
+            app(ParametroService::class)->regrasValidacaoFoto(),
+            fn (string $regra): bool => $regra !== 'nullable'
+        ));
+
         return [
-            'foto' => ['required_without:fotos', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
+            'foto' => array_merge(['required_without:fotos'], $fotoBase),
             'fotos' => ['required_without:foto', 'array'],
-            'fotos.*' => ['image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
+            'fotos.*' => $fotoBase,
         ];
     }
 

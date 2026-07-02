@@ -84,6 +84,74 @@ class ParametroService
         return min($solicitado, $maximo);
     }
 
+    public function fotoMaxKb(): int
+    {
+        return max(1, (int) Parametro::get(
+            'foto_max_tamanho_kb',
+            config('parametros.defaults.foto_max_tamanho_kb', 10240)
+        ));
+    }
+
+    /** @return array{critico: int, alto: int, medio: int} */
+    public function limitesComplexidade(): array
+    {
+        $defaults = config('parametros.defaults', []);
+
+        return [
+            'critico' => max(1, (int) Parametro::get('complexidade_critico', $defaults['complexidade_critico'] ?? 8)),
+            'alto' => max(1, (int) Parametro::get('complexidade_alto', $defaults['complexidade_alto'] ?? 5)),
+            'medio' => max(1, (int) Parametro::get('complexidade_medio', $defaults['complexidade_medio'] ?? 3)),
+        ];
+    }
+
+    public function badgeComplexidade(int $complexidade): string
+    {
+        $limites = $this->limitesComplexidade();
+
+        return match (true) {
+            $complexidade >= $limites['critico'] => 'badge-danger',
+            $complexidade >= $limites['alto'] => 'badge-warning',
+            $complexidade >= $limites['medio'] => 'badge-info',
+            $complexidade >= 1 => 'badge-success',
+            default => 'badge-default',
+        };
+    }
+
+    public function corComplexidade(int $complexidade): string
+    {
+        $limites = $this->limitesComplexidade();
+
+        return match (true) {
+            $complexidade >= $limites['critico'] => '#dc2626',
+            $complexidade >= $limites['alto'] => '#f59e0b',
+            $complexidade >= $limites['medio'] => '#184186',
+            default => '#6b7280',
+        };
+    }
+
+    /** @return array{center: array{0: float, 1: float}, zoom: int, complexidade: array{critico: int, alto: int, medio: int}} */
+    public function configMapa(): array
+    {
+        $defaults = config('parametros.defaults', []);
+
+        return [
+            'center' => [
+                (float) Parametro::get('mapa_centro_lat', $defaults['mapa_centro_lat'] ?? -19.9135),
+                (float) Parametro::get('mapa_centro_lng', $defaults['mapa_centro_lng'] ?? -43.9514),
+            ],
+            'zoom' => max(1, (int) Parametro::get('mapa_zoom_padrao', $defaults['mapa_zoom_padrao'] ?? 12)),
+            'complexidade' => $this->limitesComplexidade(),
+        ];
+    }
+
+    public function sincronizarConfigApp(): void
+    {
+        config([
+            'app.brand' => Parametro::get('app_nome', config('app.brand')),
+            'app.orgao' => Parametro::get('app_orgao', config('app.orgao')),
+        ]);
+    }
+
     /** @return array{grupos: array<string, array{label: string, desc: string}>, contextos: array<string, string>} */
     public function metadadosUi(): array
     {
@@ -91,5 +159,16 @@ class ParametroService
             'grupos' => config('parametros.grupos', []),
             'contextos' => config('parametros.contextos', []),
         ];
+    }
+
+    /** @return list<string> */
+    public function regrasValidacaoFoto(bool $obrigatoria = false): array
+    {
+        $max = $this->fotoMaxKb();
+        $regras = ['image', 'mimes:jpeg,jpg,png,webp', "max:{$max}"];
+
+        return $obrigatoria
+            ? array_merge(['required'], $regras)
+            : array_merge(['nullable'], $regras);
     }
 }

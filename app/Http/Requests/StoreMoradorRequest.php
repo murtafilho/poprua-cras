@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\ParametroService;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreMoradorRequest extends FormRequest
@@ -16,6 +17,9 @@ class StoreMoradorRequest extends FormRequest
      */
     public function rules(): array
     {
+        $fotoRegras = app(ParametroService::class)->regrasValidacaoFoto();
+        $fotoItemRegras = array_values(array_filter($fotoRegras, fn (string $regra): bool => $regra !== 'nullable'));
+
         return [
             'nome_social' => ['required', 'string', 'max:255'],
             'nome_registro' => ['nullable', 'string', 'max:255'],
@@ -24,9 +28,9 @@ class StoreMoradorRequest extends FormRequest
             'observacoes' => ['nullable', 'string'],
             'documento' => ['nullable', 'string', 'max:50'],
             'contato' => ['nullable', 'string', 'max:50'],
-            'fotografia' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
+            'fotografia' => $fotoRegras,
             'fotografias' => ['nullable', 'array'],
-            'fotografias.*' => ['image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
+            'fotografias.*' => $fotoItemRegras,
             'ponto_id' => ['nullable', 'integer', 'exists:pontos,id'],
             'vistoria_id' => ['nullable', 'integer', 'exists:vistorias,id'],
         ];

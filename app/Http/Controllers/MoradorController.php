@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateMoradorRequest;
 use App\Models\Morador;
 use App\Models\Ponto;
 use App\Services\MoradorService;
+use App\Services\ParametroService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -15,11 +16,21 @@ use Illuminate\View\View;
 class MoradorController extends Controller
 {
     public function __construct(
-        private MoradorService $moradorService
+        private MoradorService $moradorService,
+        private ParametroService $parametroService,
     ) {}
 
     public function index(Request $request): View
     {
+        $perPageMax = $this->parametroService->perPageMaximo();
+
+        $request->validate([
+            'search' => 'nullable|string|max:200',
+            'genero' => 'nullable|string|max:50',
+            'situacao' => 'nullable|in:com_ponto,sem_ponto',
+            'per_page' => "nullable|integer|min:1|max:{$perPageMax}",
+        ]);
+
         $query = Morador::query()->with(['pontoAtual.enderecoAtualizado', 'media']);
 
         // Filtrar por termo de busca
@@ -46,7 +57,11 @@ class MoradorController extends Controller
             }
         }
 
-        $moradores = $query->orderBy('nome_social')->paginate(15);
+        $perPage = $this->parametroService->resolverPerPage(
+            $request->filled('per_page') ? (int) $request->input('per_page') : null
+        );
+
+        $moradores = $query->orderBy('nome_social')->paginate($perPage);
 
         // Gêneros únicos para filtro
         $generos = Morador::select('genero')
@@ -58,6 +73,7 @@ class MoradorController extends Controller
         return view('moradores.index', [
             'moradores' => $moradores,
             'generos' => $generos,
+            'perPagePadrao' => $this->parametroService->perPagePadrao(),
         ]);
     }
 

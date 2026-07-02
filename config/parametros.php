@@ -79,4 +79,22 @@ return [
         'max_per_page' => 100,
     ],
 
+    'defaults' => [
+        'foto_max_tamanho_kb' => 10240,
+        'complexidade_critico' => 8,
+        'complexidade_alto' => 5,
+        'complexidade_medio' => 3,
+        'mapa_centro_lat' => -19.9135,
+        'mapa_centro_lng' => -43.9514,
+        'mapa_zoom_padrao' => 12,
+        'app_orgao' => 'Prefeitura de Belo Horizonte',
+    ],
+
+    'peso_fatores' => [
+        'resistencia', 'num_reduzido', 'casal', 'catador_reciclados',
+        'fixacao_antiga', 'excesso_objetos', 'trafico_ilicitos', 'crianca_adolescente',
+        'idosos', 'gestante', 'lgbtqiapn', 'cena_uso_caracterizada',
+        'deficiente', 'agrupamento_quimico', 'saude_mental', 'animais',
+    ],
+
 ];

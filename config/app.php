@@ -15,6 +15,8 @@ return [
 
     'brand' => env('APP_BRAND', 'SIZEM'),
 
+    'orgao' => env('APP_ORGAO', 'Prefeitura de Belo Horizonte'),
+
     'name' => env('APP_NAME', 'SIZEM — Sistema Integrado de Zeladoria Municipal'),
 
     'version' => env('APP_VERSION', '2.0'),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Services\ParametroService;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreVistoriaFotoRequest extends FormRequest
@@ -18,7 +19,7 @@ class StoreVistoriaFotoRequest extends FormRequest
     {
         return [
             'vistoria_id' => ['required', 'integer', 'exists:vistorias,id'],
-            'foto' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
+            'foto' => app(ParametroService::class)->regrasValidacaoFoto(true),
             'descricao' => ['nullable', 'string', 'max:255'],
             'legenda' => ['nullable', 'string', 'max:255'],
             'publica' => ['nullable', 'in:0,1'],

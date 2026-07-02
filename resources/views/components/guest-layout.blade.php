@@ -30,7 +30,7 @@
             </div>
 
             <p class="guest-footer">
-                {{ config('app.brand', 'SIZEM') }} v2.0 &copy; {{ date('Y') }} — Prefeitura de Belo Horizonte
+                {{ config('app.brand', 'SIZEM') }} v2.0 &copy; {{ date('Y') }} — {{ config('app.orgao', 'Prefeitura de Belo Horizonte') }}
             </p>
         </div>
     </body>

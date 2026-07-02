@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Parametro;
 use App\Models\TipoAbordagem;
 use App\Models\User;
+use App\Services\ParametroService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -95,6 +96,8 @@ class UpdateVistoriaRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        $fotoRegras = app(ParametroService::class)->regrasValidacaoFoto();
+
         return [
             'ponto_id' => 'nullable|exists:pontos,id',
             'data_abordagem' => 'required|date_format:Y-m-d\TH:i',
@@ -105,7 +108,7 @@ class UpdateVistoriaRequest extends FormRequest
             'tipo_abrigo_desmontado_id' => 'nullable|exists:tipo_abrigo_desmontado,id',
             'qtd_kg' => 'nullable|integer|min:0',
             'observacao' => 'nullable|string',
-            'fotos.*' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
+            'fotos.*' => $fotoRegras,
             'legendas_fotos' => 'nullable|array',
             'legendas_fotos.*' => 'nullable|string|max:500',
             'publicas_fotos' => 'nullable|array',

@@ -9,6 +9,7 @@ use App\Models\Morador;
 use App\Models\Ponto;
 use App\Models\Vistoria;
 use App\Services\MoradorService;
+use App\Services\ParametroService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -16,7 +17,8 @@ use Illuminate\Http\UploadedFile;
 class MoradorController extends Controller
 {
     public function __construct(
-        private MoradorService $moradorService
+        private MoradorService $moradorService,
+        private ParametroService $parametroService,
     ) {}
 
     /**
@@ -46,7 +48,11 @@ class MoradorController extends Controller
             $query->whereNull('ponto_atual_id');
         }
 
-        $moradores = $query->orderBy('nome_social')->paginate(20);
+        $perPage = $this->parametroService->resolverPerPage(
+            $request->filled('per_page') ? (int) $request->per_page : null
+        );
+
+        $moradores = $query->orderBy('nome_social')->paginate($perPage);
 
         return response()->json($moradores);
     }
@@ -168,7 +174,11 @@ class MoradorController extends Controller
             });
         }
 
-        $moradores = $query->orderBy('deleted_at', 'desc')->paginate(20);
+        $perPage = $this->parametroService->resolverPerPage(
+            $request->filled('per_page') ? (int) $request->per_page : null
+        );
+
+        $moradores = $query->orderBy('deleted_at', 'desc')->paginate($perPage);
 
         return response()->json($moradores);
     }

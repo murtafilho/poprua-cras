@@ -10,8 +10,10 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', function() {
     const APP_BASE = window.APP_BASE;
 
-    const BH_CENTER = [-19.9135, -43.9514];
-    const DEFAULT_ZOOM = 12;
+    const mapConfig = window.MAPA_CONFIG || {};
+    const BH_CENTER = mapConfig.center || [-19.9135, -43.9514];
+    const DEFAULT_ZOOM = mapConfig.zoom ?? 12;
+    const COMPLEX_LIMITES = mapConfig.complexidade || { critico: 8, alto: 5, medio: 3 };
     const MIN_ZOOM_VISTORIA = 19;
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -475,7 +477,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             const p = marker.pontoData;
                             const totalVistorias = p.total_vistorias || 0;
                             const complexidade = p.complexidade || 0;
-                            const complexidadeCor = complexidade >= 8 ? '#dc2626' : complexidade >= 4 ? '#f59e0b' : '#6b7280';
+                            const complexidadeCor = complexidade >= COMPLEX_LIMITES.critico ? '#dc2626'
+                                : complexidade >= COMPLEX_LIMITES.alto ? '#f59e0b'
+                                : complexidade >= COMPLEX_LIMITES.medio ? '#184186'
+                                : '#6b7280';
                             const btnPonto = `<a href="${APP_BASE}/pontos/${p.id}" class="popup-btn popup-btn-primary">Relatório do ponto</a>`;
                             const btnVistoria = p.ultima_vistoria_id
                                 ? `<a href="#" class="popup-btn popup-btn-secondary popup-abrir-relatorio" data-vistoria-id="${p.ultima_vistoria_id}">Última vistoria</a>`

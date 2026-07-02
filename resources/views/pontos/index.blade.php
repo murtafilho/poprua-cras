@@ -113,10 +113,11 @@
                     @forelse($pontos as $ponto)
                         @php
                             $complexidade = $ponto->complexidade ?? 0;
-                            $complexBadge = match(true) {
-                                $complexidade >= 8 => 'badge-danger',
-                                $complexidade >= 5 => 'badge-warning',
-                                $complexidade >= 3 => 'badge-info',
+                            $limites = $complexidadeLimites ?? ['critico' => 8, 'alto' => 5, 'medio' => 3];
+                            $complexBadge = match (true) {
+                                $complexidade >= $limites['critico'] => 'badge-danger',
+                                $complexidade >= $limites['alto'] => 'badge-warning',
+                                $complexidade >= $limites['medio'] => 'badge-info',
                                 $complexidade >= 1 => 'badge-success',
                                 default => 'badge-default',
                             };

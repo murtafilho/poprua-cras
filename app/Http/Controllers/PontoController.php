@@ -39,7 +39,11 @@ class PontoController extends Controller
         $pontos = $this->pontoService->listarPontosComVistorias($filters, $perPage);
 
         return view('pontos.index', array_merge(
-            ['pontos' => $pontos, 'perPagePadrao' => $this->parametroService->perPagePadrao()],
+            [
+                'pontos' => $pontos,
+                'perPagePadrao' => $this->parametroService->perPagePadrao(),
+                'complexidadeLimites' => $this->parametroService->limitesComplexidade(),
+            ],
             $this->pontoService->getFilterData()
         ));
     }

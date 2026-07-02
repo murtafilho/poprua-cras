@@ -43,8 +43,21 @@ class MoradorControllerTest extends TestCase
                 'total',
             ]);
 
-        $this->assertCount(20, $response->json('data'));
+        $this->assertCount(5, $response->json('data'));
+        $this->assertSame(5, $response->json('per_page'));
         $this->assertEquals(25, $response->json('total'));
+    }
+
+    public function test_index_respeita_per_page_solicitado(): void
+    {
+        Morador::factory()->count(25)->create();
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/moradores?per_page=20');
+
+        $response->assertOk();
+        $this->assertCount(20, $response->json('data'));
+        $this->assertSame(20, $response->json('per_page'));
     }
 
     public function test_index_requires_authentication(): void

@@ -156,6 +156,6 @@
         </div>
 
         {{-- Paginacao --}}
-        <x-pagination-bar :paginator="$moradores->withQueryString()" label="moradores" />
+        <x-pagination-bar :paginator="$moradores->withQueryString()" label="moradores" :defaultPerPage="$perPagePadrao" />
     </div>
 @endsection
