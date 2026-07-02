@@ -26,6 +26,7 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
+        $response->assertSessionHasNoErrors();
         $this->assertAuthenticated();
         $response->assertRedirect(route('mapa.index', absolute: false));
     }

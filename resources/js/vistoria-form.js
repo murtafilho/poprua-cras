@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initBuscaPessoa();
 
-    initStepperNavigation({ goToStep, getCurrentTab: () => currentTab, totalTabs });
+    initStepperNavigation({ goToStep, getCurrentTab: () => currentTab, totalTabs, withPrevNext: true });
     initDynamicClickHandlers({
         goToStep,
         removerFoto,
@@ -100,11 +100,18 @@ function updateStepper(currentIndex) {
 
 function showTab(index) {
     currentTab = index;
+    window.__currentTab = index;
     updateStepper(index);
 
     document.querySelectorAll('.tab-content').forEach((content, i) => {
         content.classList.toggle('hidden', i !== index);
     });
+
+    // Atualizar visibilidade dos botoes Anterior/Proximo
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    if (btnPrev) btnPrev.style.display = index === 0 ? 'none' : '';
+    if (btnNext) btnNext.style.display = index === totalTabs - 1 ? 'none' : '';
 
     // Ao entrar na aba de revisao, montar checklist
     if (index === 6) {

@@ -662,6 +662,18 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Navegacao entre abas -->
+            <div class="form-step-nav" id="form-step-nav">
+                <button type="button" id="btn-prev" class="btn btn-secondary" style="display: none;">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Anterior
+                </button>
+                <button type="button" id="btn-next" class="btn btn-primary">
+                    Proximo
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </div>
         </form>
     </div>
 

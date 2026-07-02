@@ -105,12 +105,42 @@ class VistoriaService
     }
 
     /**
-     * Listagem paginada com todos os filtros (admin / index).
+     * Cache key para listagem de vistorias
      *
+     * @param  array<string, mixed>  $filtros
+     */
+    private function getListCacheKey(array $filtros, int $perPage, int $page): string
+    {
+        $filtrosHash = md5(serialize($filtros));
+
+        return "vistorias:list:{$filtrosHash}:{$perPage}:{$page}";
+    }
+
+    /**
      * @param  array<string, mixed>  $filtros
      * @return LengthAwarePaginator<int, \stdClass>
      */
     public function listarComFiltros(array $filtros, int $perPage): LengthAwarePaginator
+    {
+        $page = request()->input('page', 1);
+        $cacheKey = $this->getListCacheKey($filtros, $perPage, $page);
+        $cacheTags = ['vistorias', 'vistorias_list'];
+
+        // Cache por 2 minutos para filtros sem data (mais estaveis)
+        // Cache por 30 segundos para filtros com data (mais dinamicos)
+        $temFiltroData = ! empty($filtros['data_inicio']) || ! empty($filtros['data_fim']);
+        $ttl = $temFiltroData ? 30 : 120;
+
+        return Cache::tags($cacheTags)->remember($cacheKey, $ttl, function () use ($filtros, $perPage) {
+            return $this->executarListarComFiltros($filtros, $perPage);
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $filtros
+     * @return LengthAwarePaginator<int, \stdClass>
+     */
+    private function executarListarComFiltros(array $filtros, int $perPage): LengthAwarePaginator
     {
         $query = $this->buildBaseListQuery()
             ->leftJoin('users as u', 'u.id', '=', 'v.user_id')
@@ -132,6 +162,19 @@ class VistoriaService
                 DB::raw('(SELECT MAX(v2.data_abordagem) FROM vistorias v2 WHERE v2.ponto_id = v.ponto_id AND v2.deleted_at IS NULL) as ultima_vistoria_ponto'),
             ]);
 
+        $this->aplicarFiltros($query, $filtros);
+
+        return $query->orderBy('v.data_abordagem', 'desc')->paginate($perPage);
+    }
+
+    /**
+     * Aplicar filtros na query
+     */
+    /**
+     * @param  array<string, mixed>  $filtros
+     */
+    private function aplicarFiltros(Builder $query, array $filtros): void
+    {
         if (! empty($filtros['endereco'])) {
             $query->where('ea.NOME_LOGRADOURO', $filtros['endereco']);
         }
@@ -177,8 +220,6 @@ class VistoriaService
         if (! empty($filtros['retorno_previsto'])) {
             $this->applyRetornoPrevisto($query, $filtros['retorno_previsto']);
         }
-
-        return $query->orderBy('v.data_abordagem', 'desc')->paginate($perPage);
     }
 
     /**

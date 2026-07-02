@@ -3,6 +3,8 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
 use RuntimeException;
 
 abstract class TestCase extends BaseTestCase
@@ -34,5 +36,14 @@ abstract class TestCase extends BaseTestCase
         }
 
         parent::setUp();
+
+        if (app()->environment('testing')) {
+            // bootstrap/app.php usa throttleWithRedis() — alias 'throttle' resolve para
+            // ThrottleRequestsWithRedis, não ThrottleRequests (TBL-NEW-THROTTLE-REDIS).
+            $this->withoutMiddleware([
+                ThrottleRequests::class,
+                ThrottleRequestsWithRedis::class,
+            ]);
+        }
     }
 }

@@ -47,14 +47,16 @@ if (searchInput && searchResults) {
         }
 
         const { texto, numero } = parseEnderecoInput(this.value);
-        if (texto.length < 2) {
+        // Minimo 3 caracteres para buscar (reduz carga no banco)
+        if (texto.length < 3) {
             hideResults();
             return;
         }
 
+        // Debounce aumentado para 400ms (menos requisicoes)
         searchTimeout = setTimeout(() => {
             buscarLogradouros(texto, numero);
-        }, 300);
+        }, 400);
     });
 
     searchInput.addEventListener('keydown', function(e) {
