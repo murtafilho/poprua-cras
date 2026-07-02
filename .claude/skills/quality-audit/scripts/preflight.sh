@@ -10,12 +10,16 @@
 # os 9 checks criticos (echo OK/FAIL/WARN). O orquestrador interpreta a saida
 # conforme a "Matriz de severidade" da SKILL.md e grava env-report.json.
 
-# --- Detector: host vs container (inline — NAO usar funcao+return+$() — TBL-023) ---
+# --- Detector: local (dev nativo) vs host (servidor prod) vs container (inline — TBL-023) ---
+PROJECT_ROOT_LOCAL="/data/projects/poprua-cras"
 RUNTIME="host"
 if [ -f /.dockerenv ] || grep -qa 'docker\|containerd' /proc/1/cgroup 2>/dev/null; then
   if [ "$(hostname)" = "php84-poprua-cras" ] || { [ -d /var/www/html/ ] && php -v 2>/dev/null | grep -q "PHP 8\.4"; }; then
     RUNTIME="container"
   fi
+elif [ -f "$PROJECT_ROOT_LOCAL/artisan" ] && php -v 2>/dev/null | grep -q "PHP 8\.4"; then
+  # Maquina de dev local: PHP/PG/Redis nativos, PG18 na porta 5433 (ver CLAUDE.md)
+  RUNTIME="local"
 fi
 
 # --- Resolver variaveis conforme runtime ---
@@ -27,6 +31,11 @@ if [ "$RUNTIME" = "container" ]; then
   EXEC=""                                                              # comandos diretos
   DB_EXEC="psql -h pg17-poprua-cras -U poprua_cras"                    # via rede docker
   IN_CONTAINER=1
+elif [ "$RUNTIME" = "local" ]; then
+  PROJECT_ROOT="$PROJECT_ROOT_LOCAL"
+  EXEC=""                                                              # comandos diretos
+  DB_EXEC="env PGPASSWORD=poprua_cras psql -h 127.0.0.1 -p 5433 -U poprua_cras"
+  IN_CONTAINER=0
 else
   PROJECT_ROOT="$PROJECT_ROOT_HOST"
   # IMPORTANTE: WorkingDir padrao do container e /var/www/html (onde NAO esta o codigo).

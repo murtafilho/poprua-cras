@@ -154,7 +154,8 @@ ls app/Http/Resources/**/*.php app/Http/Resources/*.php 2>/dev/null | wc -l
 $DB_EXEC -d poprua_cras -t -c "
   SELECT f_table_name, f_geometry_column, srid, type
   FROM geometry_columns
-  WHERE f_table_name IN $GEO_CRAS_TABLES
+  WHERE f_table_schema = 'public'
+    AND f_table_name IN $GEO_CRAS_TABLES
   ORDER BY f_table_name;
 "
 
@@ -167,13 +168,15 @@ $DB_EXEC -d poprua_cras -t -c "
    AND pi.indexdef LIKE '%USING gist%'
    AND pi.indexdef LIKE '%' || gc.f_geometry_column || '%'
   WHERE pi.indexname IS NULL
+    AND gc.f_table_schema = 'public'
     AND gc.f_table_name IN $GEO_CRAS_TABLES;
 "
 
 # SRID != 4326 (so dominio CRAS)
 $DB_EXEC -d poprua_cras -t -c "
   SELECT f_table_name, srid FROM geometry_columns
-  WHERE srid != 4326 AND f_table_name IN $GEO_CRAS_TABLES;
+  WHERE srid != 4326 AND f_table_schema = 'public'
+    AND f_table_name IN $GEO_CRAS_TABLES;
 "
 
 # Bounding box BH/MG (lat ~-21..-19, lng ~-45..-42)
@@ -187,10 +190,10 @@ $DB_EXEC -d poprua_cras -t -c "
 grep -rn "ST_\|whereRaw.*geom\|selectRaw.*ST_" "$PROJECT_ROOT/app/" --include="*.php" 2>/dev/null \
   | grep -v "app/Models/\|app/Services/" | wc -l
 
-# Pontos orfaos (sem EnderecoAtualizado)
+# Pontos orfaos (sem EnderecoAtualizado) — FK real: pontos.endereco_atualizado_id (TBL-NEW-b725ea)
 $DB_EXEC -d poprua_cras -t -c "
   SELECT count(*) FROM pontos p
-  LEFT JOIN endereco_atualizados e ON e.ponto_id = p.id
+  LEFT JOIN endereco_atualizados e ON e.id = p.endereco_atualizado_id
   WHERE e.id IS NULL;
 " 2>/dev/null || true
 
