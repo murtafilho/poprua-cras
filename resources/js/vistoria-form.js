@@ -455,6 +455,9 @@ function processPhotoFile(file) {
                     if (entry.legenda !== '') {
                         updatePendingPhotoLegenda(pendingId, entry.legenda).catch(() => {});
                     }
+                    if (entry.publica) {
+                        updatePendingPhotoPublica(pendingId, entry.publica).catch(() => {});
+                    }
                 })
                 .catch((err) => {
                     console.error('Erro ao salvar foto localmente:', err);
@@ -554,6 +557,7 @@ function atualizarPublica(index, publica) {
             console.error('Erro ao atualizar publica local:', err);
         });
     }
+    // Se pendingId ainda nao chegou, sera sincronizado pelo callback do savePendingPhoto
 }
 
 function removerFoto(index) {
