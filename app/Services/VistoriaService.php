@@ -255,6 +255,13 @@ class VistoriaService
         if (! empty($filtros['retorno_previsto'])) {
             $this->applyRetornoPrevisto($query, $filtros['retorno_previsto']);
         }
+        if (! empty($filtros['situacao']) && $filtros['situacao'] !== 'todas') {
+            match ($filtros['situacao']) {
+                'aberta' => $query->where('v.finalizada', false)->where('v.cancelada', false),
+                'finalizada' => $query->where('v.finalizada', true)->where('v.cancelada', false),
+                default => null,
+            };
+        }
     }
 
     /**

@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
-@php $isMinhas = request()->boolean('_minhas'); @endphp
+@php
+    $isMinhas = request()->boolean('_minhas');
+    $rotaListagem = $isMinhas ? route('vistorias.minhas') : route('vistorias.index');
+    $situacaoMinhas = request('situacao', 'aberta');
+@endphp
 
 @section('title', $isMinhas ? 'Minhas Zeladorias' : 'Zeladorias')
 
@@ -41,7 +45,10 @@
         {{-- Busca por Endereco --}}
         <div class="card mb-4" style="overflow: visible;">
             <div class="card-body">
-                <form method="GET" action="{{ route('vistorias.index') }}" id="form-busca-endereco">
+                <form method="GET" action="{{ $rotaListagem }}" id="form-busca-endereco">
+                    @if($isMinhas)
+                        <input type="hidden" name="situacao" value="{{ $situacaoMinhas }}">
+                    @endif
                     @if(request('bairro'))<input type="hidden" name="bairro" value="{{ request('bairro') }}">@endif
                     @if(request('regional'))<input type="hidden" name="regional" value="{{ request('regional') }}">@endif
                     @if(request('resultado'))<input type="hidden" name="resultado" value="{{ request('resultado') }}">@endif
@@ -78,10 +85,19 @@
 
         {{-- Busca Avancada --}}
         @php
-            $temFiltroAvancado = request('logradouro') || request('numero') || request('bairro') || request('regional') || request('resultado') || request('data_inicio') || request('data_fim') || request('tipo_abordagem') || request('situacao_comunicado') || request('retorno_previsto') || request('supervisor') || request('data_prevista_inicio') || request('data_prevista_fim');
+            $camposFiltroAvancado = [
+                'logradouro', 'numero', 'bairro', 'regional', 'resultado',
+                'data_inicio', 'data_fim', 'tipo_abordagem', 'situacao_comunicado',
+                'retorno_previsto', 'data_prevista_inicio', 'data_prevista_fim',
+            ];
+            if (! $isMinhas) {
+                $camposFiltroAvancado[] = 'supervisor';
+            }
+            $temFiltroAvancado = collect($camposFiltroAvancado)
+                ->contains(fn (string $campo) => filled(request($campo)));
         @endphp
-        <details class="card mb-4" {{ $temFiltroAvancado ? 'open' : '' }}>
-            <summary class="card-header" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; list-style: none;">
+        <details class="card mb-4">
+            <summary class="card-header" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); user-select: none; list-style: none;">
                 <span style="display: flex; align-items: center; gap: var(--space-2); font-weight: var(--font-medium); font-size: var(--text-sm);">
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
@@ -91,12 +107,40 @@
                         <span class="badge badge-info" style="font-size: var(--text-xs);">Ativo</span>
                     @endif
                 </span>
-                <svg class="details-chevron" style="width: 16px; height: 16px; transition: transform 0.2s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                @if($isMinhas)
+                    <form method="GET" action="{{ $rotaListagem }}" class="filtro-situacao-minhas" onclick="event.stopPropagation();">
+                        @foreach(request()->except(['situacao', 'page']) as $campo => $valor)
+                            @if(is_array($valor))
+                                @foreach($valor as $item)
+                                    <input type="hidden" name="{{ $campo }}[]" value="{{ $item }}">
+                                @endforeach
+                            @else
+                                <input type="hidden" name="{{ $campo }}" value="{{ $valor }}">
+                            @endif
+                        @endforeach
+                        <select
+                            name="situacao"
+                            class="form-input form-select"
+                            style="width: auto; min-width: 7.5rem; font-size: var(--text-xs);"
+                            aria-label="Situação da zeladoria"
+                            onchange="this.form.submit()"
+                            onclick="event.stopPropagation();"
+                        >
+                            <option value="aberta" @selected($situacaoMinhas === 'aberta')>Aberta</option>
+                            <option value="finalizada" @selected($situacaoMinhas === 'finalizada')>Finalizada</option>
+                            <option value="todas" @selected($situacaoMinhas === 'todas')>Todas</option>
+                        </select>
+                    </form>
+                @endif
+                <svg class="details-chevron" style="width: 16px; height: 16px; transition: transform 0.2s; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </summary>
             <div class="card-body">
-                <form method="GET" action="{{ route('vistorias.index') }}" style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <form method="GET" action="{{ $rotaListagem }}" style="display: flex; flex-direction: column; gap: var(--space-3);">
+                    @if($isMinhas)
+                        <input type="hidden" name="situacao" value="{{ $situacaoMinhas }}">
+                    @endif
                     @if(request('endereco'))<input type="hidden" name="endereco" value="{{ request('endereco') }}">@endif
                     @if(request('numero_endereco'))<input type="hidden" name="numero_endereco" value="{{ request('numero_endereco') }}">@endif
                     <div class="form-row form-row-2">
@@ -213,7 +257,7 @@
                             </svg>
                             Filtrar
                         </button>
-                        <a href="{{ route('vistorias.index') }}" class="btn btn-secondary">Limpar</a>
+                        <a href="{{ $rotaListagem }}" class="btn btn-secondary">Limpar</a>
                     </div>
                     @if(request('data_prevista_inicio'))
                         <div style="margin-top: var(--space-2); display: flex; gap: var(--space-2);">

@@ -165,6 +165,41 @@ class WorkflowZeladoriaTest extends TestCase
             ->assertSee('Minhas Zeladorias');
     }
 
+    public function test_minhas_vistorias_filtra_abertas_por_padrao(): void
+    {
+        $ponto = Ponto::factory()->create();
+
+        $aberta = Vistoria::factory()->create([
+            'ponto_id' => $ponto->id,
+            'user_id' => $this->user->id,
+            'finalizada' => false,
+            'cancelada' => false,
+        ]);
+
+        $finalizada = Vistoria::factory()->finalizada()->create([
+            'ponto_id' => $ponto->id,
+            'user_id' => $this->user->id,
+        ]);
+
+        $response = $this->actingAs($this->user)->get(route('vistorias.minhas'));
+        $response->assertOk();
+        $ids = collect($response->viewData('vistorias')->items())->pluck('id');
+        $this->assertTrue($ids->contains($aberta->id));
+        $this->assertFalse($ids->contains($finalizada->id));
+
+        $response = $this->actingAs($this->user)->get(route('vistorias.minhas', ['situacao' => 'finalizada']));
+        $response->assertOk();
+        $ids = collect($response->viewData('vistorias')->items())->pluck('id');
+        $this->assertTrue($ids->contains($finalizada->id));
+        $this->assertFalse($ids->contains($aberta->id));
+
+        $response = $this->actingAs($this->user)->get(route('vistorias.minhas', ['situacao' => 'todas']));
+        $response->assertOk();
+        $ids = collect($response->viewData('vistorias')->items())->pluck('id');
+        $this->assertTrue($ids->contains($aberta->id));
+        $this->assertTrue($ids->contains($finalizada->id));
+    }
+
     public function test_listagem_vistorias_renderiza_tabela_crud(): void
     {
         $ponto = Ponto::factory()->create();

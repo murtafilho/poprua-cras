@@ -362,6 +362,10 @@ class VistoriaController extends Controller
 
     public function minhas(Request $request): View
     {
+        if (! $request->has('situacao')) {
+            $request->merge(['situacao' => 'aberta']);
+        }
+
         $request->merge(['supervisor' => (string) auth()->id(), '_minhas' => true]);
 
         return $this->index($request, skipAuth: true);
@@ -389,6 +393,7 @@ class VistoriaController extends Controller
             'tipo_abordagem' => 'nullable|integer|exists:tipo_abordagem,id',
             'situacao_comunicado' => 'nullable|in:com_comunicado,sem_comunicado,aguardando_retorno',
             'retorno_previsto' => 'nullable|in:vencidos,proximos_7,proximos_30',
+            'situacao' => 'nullable|in:aberta,finalizada,todas',
             'per_page' => 'nullable|integer|min:1|max:100',
         ]);
 
@@ -396,7 +401,7 @@ class VistoriaController extends Controller
             $request->only(['endereco', 'numero_endereco', 'logradouro', 'numero', 'bairro',
                 'regional', 'resultado', 'data_inicio', 'data_fim', 'supervisor',
                 'data_prevista_inicio', 'data_prevista_fim',
-                'tipo_abordagem', 'situacao_comunicado', 'retorno_previsto']),
+                'tipo_abordagem', 'situacao_comunicado', 'retorno_previsto', 'situacao']),
             min((int) $request->input('per_page', 5), 100)
         );
 
