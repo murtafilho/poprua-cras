@@ -4,10 +4,16 @@
 
 @push('styles')
 <style>
+    .param-toolbar {
+        display: flex;
+    }
     .param-tabs {
+        flex: 1;
         display: flex;
         gap: 0;
-        background: var(--pbh-azul);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-primary);
+        border-bottom: none;
         border-radius: var(--card-radius) var(--card-radius) 0 0;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -15,23 +21,23 @@
     }
     .param-tabs::-webkit-scrollbar { display: none; }
     .param-tab {
-        padding: 12px 18px;
+        padding: var(--space-3) var(--space-4);
         font-size: var(--text-sm);
-        font-weight: var(--font-semibold);
-        color: rgba(255,255,255,0.6);
+        font-weight: var(--font-medium);
+        color: var(--text-muted);
         background: none;
         border: none;
-        border-bottom: 3px solid transparent;
+        border-bottom: 2px solid transparent;
         cursor: pointer;
         white-space: nowrap;
-        transition: all 0.15s;
+        transition: all var(--transition-fast);
         font-family: var(--font-body);
     }
-    .param-tab:hover { color: #FFFFFF; background: rgba(255,255,255,0.06); }
+    .param-tab:hover { color: var(--text-primary); background: var(--bg-elevated); }
     .param-tab.active {
-        color: var(--pbh-amarelo);
-        border-bottom-color: var(--pbh-amarelo);
-        background: rgba(255,255,255,0.08);
+        color: var(--accent-primary);
+        border-bottom-color: var(--accent-primary);
+        font-weight: var(--font-semibold);
     }
     .param-tab .tab-count {
         display: inline-flex;
@@ -40,25 +46,85 @@
         min-width: 18px;
         height: 18px;
         font-size: 10px;
-        background: rgba(255,255,255,0.15);
-        color: rgba(255,255,255,0.7);
+        background: var(--bg-tertiary);
+        color: var(--text-muted);
         border-radius: 9px;
         margin-left: 4px;
         padding: 0 5px;
     }
     .param-tab.active .tab-count {
-        background: rgba(255,215,0,0.2);
-        color: var(--pbh-amarelo);
+        background: var(--accent-dim);
+        color: var(--accent-primary);
     }
     .param-panel { display: none; }
     .param-panel.active { display: block; }
     .param-grupo-desc {
-        padding: 12px 16px;
+        padding: var(--space-3) var(--space-4);
         background: var(--bg-tertiary);
         border-bottom: 1px solid var(--border-primary);
         font-size: var(--text-xs);
         color: var(--text-secondary);
         line-height: 1.5;
+    }
+
+    /* Card dos painéis conecta diretamente sob a barra de abas */
+    .param-card {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    /* Cabeçalho de colunas */
+    .param-head {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-2) var(--space-4);
+        border-bottom: 1px solid var(--border-primary);
+        background: var(--bg-tertiary);
+    }
+    .param-head span {
+        font-size: 10px;
+        font-weight: var(--font-bold);
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    /* Linha de parâmetro */
+    .param-row {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        border-bottom: 1px solid var(--border-primary);
+        flex-wrap: wrap;
+        transition: background var(--transition-fast);
+    }
+    .param-row:hover { background: var(--bg-elevated); }
+    .param-row.even { background: var(--bg-tertiary); }
+    .param-row.even:hover { background: var(--bg-elevated); }
+    .param-row:last-child { border-bottom: none; }
+    .param-row__label {
+        font-weight: var(--font-semibold);
+        font-size: var(--text-sm);
+        display: block;
+        color: var(--text-primary);
+    }
+    .param-row__chave {
+        font-size: 10px;
+        font-family: var(--font-mono);
+        color: var(--text-muted);
+    }
+    .param-col-nome { flex: 2; min-width: 150px; }
+    .param-col-contexto { flex: 3; }
+    .param-col-valor {
+        flex: 0 0 320px;
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+    @media (max-width: 767px) {
+        .param-col-valor { flex: 1 1 100%; }
     }
 </style>
 @endpush
@@ -92,8 +158,8 @@
             @csrf
             @method('PUT')
 
-            {{-- Barra fixa: abas + salvar --}}
-            <div style="position: sticky; top: var(--header-height); z-index: 10; background: var(--bg-base);">
+            {{-- Barra de abas + salvar --}}
+            <div class="param-toolbar">
                 <div class="param-tabs" id="param-tabs">
                     @foreach($parametros as $grupo => $params)
                         <button type="button" class="param-tab {{ $loop->first ? 'active' : '' }}" data-target="panel-{{ $grupo }}">
@@ -113,7 +179,7 @@
             </div>
 
             {{-- Painéis --}}
-            <div class="card mb-4">
+            <div class="card param-card mb-4">
 
                 @foreach($parametros as $grupo => $params)
                     <div class="param-panel {{ $loop->first ? 'active' : '' }}" id="panel-{{ $grupo }}">
@@ -121,49 +187,47 @@
                             {{ $gruposInfo[$grupo]['desc'] ?? '' }}
                         </div>
                         {{-- Header de colunas --}}
-                        <div style="display: flex; align-items: center; gap: var(--space-3); padding: 8px 16px; margin-top: var(--space-4); border-bottom: 1px solid var(--border-primary); background: var(--bg-tertiary);">
-                            <span style="flex: 2; min-width: 150px; font-size: 10px; font-weight: var(--font-bold); color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em;">Parâmetro</span>
-                            <span class="hide-mobile" style="flex: 3; font-size: 10px; font-weight: var(--font-bold); color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em;">Contexto de aplicação</span>
-                            <span style="flex: 0 0 320px; font-size: 10px; font-weight: var(--font-bold); color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em;">Valor</span>
+                        <div class="param-head">
+                            <span class="param-col-nome">Parâmetro</span>
+                            <span class="hide-mobile param-col-contexto">Contexto de aplicação</span>
+                            <span class="param-col-valor">Valor</span>
                             <span style="width: 36px;"></span>
                         </div>
                         @foreach($params as $param)
-                            <div class="vistoria-card-item {{ $loop->even ? 'even' : '' }}" style="border-left: none;">
-                                <div style="display: flex; align-items: flex-start; gap: var(--space-3); width: 100%; flex-wrap: wrap;">
-                                    <div style="flex: 2; min-width: 150px;">
-                                        <label for="param-{{ $param->chave }}" style="font-weight: var(--font-semibold); font-size: var(--text-sm); display: block;">
-                                            {{ $param->descricao ?: ucfirst(str_replace('_', ' ', $param->chave)) }}
-                                        </label>
-                                        <span class="text-muted" style="font-size: 10px; font-family: var(--font-mono);">{{ $param->chave }}</span>
-                                    </div>
-                                    <div class="hide-mobile" style="flex: 3;">
-                                        <span style="font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.4;">{{ $contextos[$param->chave] ?? '' }}</span>
-                                    </div>
-                                    <div style="flex: 0 0 320px; display: flex; align-items: center; gap: var(--space-2);">
-                                        @if($param->tipo === 'boolean')
-                                            <select name="parametros[{{ $param->chave }}]" id="param-{{ $param->chave }}" class="form-input form-select" style="max-width: 140px;">
-                                                <option value="1" {{ $param->valor ? 'selected' : '' }}>Sim</option>
-                                                <option value="0" {{ !$param->valor ? 'selected' : '' }}>Não</option>
-                                            </select>
-                                        @else
-                                            <input type="{{ $param->tipo === 'integer' ? 'number' : 'text' }}"
-                                                   name="parametros[{{ $param->chave }}]"
-                                                   id="param-{{ $param->chave }}"
-                                                   value="{{ $param->valor }}"
-                                                   class="form-input"
-                                                   {{ $param->tipo === 'integer' ? 'step=1' : '' }}
-                                                   {{ $param->tipo === 'float' ? 'step=0.000001' : '' }}>
-                                        @endif
-                                        <span class="badge badge-default" style="font-size: 9px;">{{ $param->tipo }}</span>
-                                    </div>
-                                    <button type="button" class="btn btn-ghost btn-sm" title="Remover" style="color: var(--color-danger);"
-                                            data-delete-url="{{ route('admin.parametros.destroy', $param->chave) }}"
-                                            data-delete-chave="{{ $param->chave }}">
-                                        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                    </button>
+                            <div class="param-row {{ $loop->even ? 'even' : '' }}">
+                                <div class="param-col-nome">
+                                    <label for="param-{{ $param->chave }}" class="param-row__label">
+                                        {{ $param->descricao ?: ucfirst(str_replace('_', ' ', $param->chave)) }}
+                                    </label>
+                                    <span class="param-row__chave">{{ $param->chave }}</span>
                                 </div>
+                                <div class="hide-mobile param-col-contexto">
+                                    <span style="font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.4;">{{ $contextos[$param->chave] ?? '' }}</span>
+                                </div>
+                                <div class="param-col-valor">
+                                    @if($param->tipo === 'boolean')
+                                        <select name="parametros[{{ $param->chave }}]" id="param-{{ $param->chave }}" class="form-input form-select" style="max-width: 140px;">
+                                            <option value="1" {{ $param->valor ? 'selected' : '' }}>Sim</option>
+                                            <option value="0" {{ !$param->valor ? 'selected' : '' }}>Não</option>
+                                        </select>
+                                    @else
+                                        <input type="{{ $param->tipo === 'integer' ? 'number' : 'text' }}"
+                                               name="parametros[{{ $param->chave }}]"
+                                               id="param-{{ $param->chave }}"
+                                               value="{{ $param->valor }}"
+                                               class="form-input"
+                                               {{ $param->tipo === 'integer' ? 'step=1' : '' }}
+                                               {{ $param->tipo === 'float' ? 'step=0.000001' : '' }}>
+                                    @endif
+                                    <span class="badge badge-default" style="font-size: 9px;">{{ $param->tipo }}</span>
+                                </div>
+                                <button type="button" class="btn btn-ghost btn-sm" title="Remover" style="color: var(--color-danger);"
+                                        data-delete-url="{{ route('admin.parametros.destroy', $param->chave) }}"
+                                        data-delete-chave="{{ $param->chave }}">
+                                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
                             </div>
                         @endforeach
                     </div>
