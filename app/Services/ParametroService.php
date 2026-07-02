@@ -14,11 +14,19 @@ class ParametroService
     {
         $ordemGrupos = config('parametros.ordem_grupos', []);
 
-        return Parametro::query()
+        $agrupados = Parametro::query()
             ->orderBy('chave')
             ->get()
             ->groupBy('grupo')
             ->sortBy(fn (Collection $items, string $grupo): int => ($pos = array_search($grupo, $ordemGrupos, true)) !== false ? (int) $pos : 99);
+
+        /** @var Collection<string, Collection<int, Parametro>> $result */
+        $result = new Collection;
+        foreach ($agrupados as $grupo => $items) {
+            $result->put((string) $grupo, Collection::make($items->values()->all()));
+        }
+
+        return $result;
     }
 
     /** @param  array<string, string|null>  $parametros */

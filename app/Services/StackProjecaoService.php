@@ -138,9 +138,11 @@ class StackProjecaoService
                 $etl = (int) $etlPorSemestre->total;
             }
 
+            $organicoRow = $organicos->get($label);
+
             return [
                 'semestre' => $label,
-                'organico' => (int) ($organicos->get($label)?->total ?? 0),
+                'organico' => (int) ($organicoRow === null ? 0 : $organicoRow->total),
                 'etl' => $etl,
             ];
         })->all();
