@@ -124,6 +124,29 @@ class VistoriaPaginationTest extends TestCase
             ->assertSee('3'); // Total filtrado
     }
 
+    public function test_listagem_exibe_nome_de_quem_lancou_vistoria(): void
+    {
+        $ponto = Ponto::factory()->create();
+        $outroUser = User::factory()->create(['name' => 'Maria Zeladora', 'ativo' => true]);
+
+        Vistoria::factory()->create([
+            'ponto_id' => $ponto->id,
+            'user_id' => $outroUser->id,
+            'data_abordagem' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->get(route('vistorias.index'))
+            ->assertOk()
+            ->assertSee('Agente')
+            ->assertSee('Maria Zeladora');
+
+        $this->actingAs($outroUser)
+            ->get(route('vistorias.minhas'))
+            ->assertOk()
+            ->assertSee('Maria Zeladora');
+    }
+
     /**
      * Testa filtro por data
      */

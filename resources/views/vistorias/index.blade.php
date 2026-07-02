@@ -295,6 +295,7 @@
                     <tr>
                         <th>Data</th>
                         <th>Endereço</th>
+                        <th class="hide-mobile">Agente</th>
                         <th class="hide-mobile">Tipo</th>
                         <th>Situação</th>
                         <th class="hide-mobile">Resultado</th>
@@ -353,6 +354,9 @@
                                     <span class="text-muted" style="font-size: var(--text-xs); display: block;">{{ $vistoria->bairro }} · {{ $vistoria->regional ?? 'N/A' }}</span>
                                 </a>
                             </td>
+                            <td class="hide-mobile" style="white-space: nowrap;">
+                                <span style="font-size: var(--text-sm);">{{ $vistoria->usuario ?? '—' }}</span>
+                            </td>
                             <td class="hide-mobile">
                                 @if($vistoria->tipo_abordagem)
                                     <span class="badge {{ $tipoBadge }}">{{ $vistoria->tipo_abordagem }}</span>
@@ -394,7 +398,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 <div class="empty-state">
                                     <p class="empty-state-title">Nenhuma zeladoria encontrada</p>
                                     <p class="empty-state-description">Ajuste os filtros ou crie uma nova zeladoria.</p>
