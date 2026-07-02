@@ -130,7 +130,7 @@ class VistoriaFotoControllerTest extends TestCase
         ]);
 
         $response->assertCreated();
-        $response->assertJsonStructure(['id', 'url', 'thumb']);
+        $response->assertJsonStructure(['id', 'url', 'thumb', 'publica', 'legenda']);
 
         // Verify media was attached to the vistoria
         $this->assertCount(1, $this->vistoria->getMedia('fotos'));
@@ -231,7 +231,7 @@ class VistoriaFotoControllerTest extends TestCase
         $response->assertOk();
         $response->assertJsonStructure([
             'fotos' => [
-                '*' => ['id', 'url', 'thumb', 'name'],
+                '*' => ['id', 'url', 'thumb', 'name', 'publica', 'legenda'],
             ],
         ]);
     }
@@ -243,5 +243,105 @@ class VistoriaFotoControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertJsonPath('fotos', []);
+    }
+
+    // ---------------------------------------------------------------
+    // store: com publica
+    // ---------------------------------------------------------------
+
+    public function test_store_com_publica_true_salva_flag(): void
+    {
+        Queue::fake();
+        Storage::fake('media');
+
+        $file = UploadedFile::fake()->image('test-publica.jpg', 640, 480)->size(1024);
+
+        $response = $this->actingAs($this->owner)->postJson('/api/vistorias/fotos', [
+            'vistoria_id' => $this->vistoria->id,
+            'foto' => $file,
+            'publica' => '1',
+        ]);
+
+        $response->assertCreated();
+        $response->assertJsonPath('publica', true);
+
+        $media = $this->vistoria->getMedia('fotos')->first();
+        $this->assertTrue((bool) $media->getCustomProperty('publica', false));
+    }
+
+    public function test_store_sem_publica_default_false(): void
+    {
+        Queue::fake();
+        Storage::fake('media');
+
+        $file = UploadedFile::fake()->image('test-default.jpg', 640, 480)->size(1024);
+
+        $response = $this->actingAs($this->owner)->postJson('/api/vistorias/fotos', [
+            'vistoria_id' => $this->vistoria->id,
+            'foto' => $file,
+        ]);
+
+        $response->assertCreated();
+        $response->assertJsonPath('publica', false);
+
+        $media = $this->vistoria->getMedia('fotos')->first();
+        $this->assertFalse((bool) $media->getCustomProperty('publica', false));
+    }
+
+    // ---------------------------------------------------------------
+    // store: com legenda e publica
+    // ---------------------------------------------------------------
+
+    public function test_store_com_legenda_e_publica_salva_ambas_propriedades(): void
+    {
+        Queue::fake();
+        Storage::fake('media');
+
+        $file = UploadedFile::fake()->image('test-completo.jpg', 640, 480)->size(1024);
+
+        $response = $this->actingAs($this->owner)->postJson('/api/vistorias/fotos', [
+            'vistoria_id' => $this->vistoria->id,
+            'foto' => $file,
+            'legenda' => 'Foto teste com legenda',
+            'publica' => '1',
+        ]);
+
+        $response->assertCreated();
+        $response->assertJsonPath('legenda', 'Foto teste com legenda');
+        $response->assertJsonPath('publica', true);
+
+        $media = $this->vistoria->getMedia('fotos')->first();
+        $this->assertEquals('Foto teste com legenda', $media->getCustomProperty('legenda'));
+        $this->assertTrue((bool) $media->getCustomProperty('publica', false));
+    }
+
+    // ---------------------------------------------------------------
+    // toggle-publica endpoint
+    // ---------------------------------------------------------------
+
+    public function test_toggle_publica_alterna_flag(): void
+    {
+        Queue::fake();
+        Storage::fake('media');
+
+        // Cria foto publica
+        $file = UploadedFile::fake()->image('toggle.jpg', 640, 480)->size(1024);
+        $this->actingAs($this->owner)->postJson('/api/vistorias/fotos', [
+            'vistoria_id' => $this->vistoria->id,
+            'foto' => $file,
+            'publica' => '1',
+        ]);
+
+        $media = $this->vistoria->getMedia('fotos')->first();
+
+        // Toggle para false
+        $response = $this->actingAs($this->owner)
+            ->postJson("/api/vistorias/{$this->vistoria->id}/fotos/{$media->id}/toggle-publica");
+
+        $response->assertOk();
+        $response->assertJsonPath('publica', false);
+
+        $media->refresh();
+        $this->assertFalse((bool) $media->getCustomProperty('publica', false));
     }
 }

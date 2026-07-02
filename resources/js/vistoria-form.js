@@ -6,10 +6,12 @@ import {
     removePendingPhotoByName,
     savePendingPhoto,
     updatePendingPhotoLegenda,
+    updatePendingPhotoPublica,
     MAX_FILE_SIZE_BYTES,
 } from './offline-upload';
 import { initDynamicClickHandlers, initStepperNavigation } from './vistoria-delegation';
 import { updateComunicadoZeladoriaCampos as syncComunicadoZeladoriaCampos } from './comunicado-zeladoria-campos';
+import { renderFotosGrid } from './foto-preview';
 
 const fotoTempId = initTempPhotoSession();
 
@@ -443,11 +445,11 @@ function processPhotoFile(file) {
         canvas.toBlob(function(blob) {
             const compressed = new File([blob], imgName(file.name), { type: imgType(), lastModified: Date.now() });
             const preview = canvas.toDataURL(imgType(), 0.5);
-            const entry = { file: compressed, preview, id: Date.now() + Math.random(), legenda: '', pendingId: null };
+            const entry = { file: compressed, preview, id: Date.now() + Math.random(), legenda: '', publica: false, pendingId: null };
             fotosSelecionadas.push(entry);
             formDirty = true;
             renderFotosPreview();
-            savePendingPhoto(fotoTempId, compressed, { name: compressed.name, legenda: '' })
+            savePendingPhoto(fotoTempId, compressed, { name: compressed.name, legenda: '', publica: false })
                 .then((pendingId) => {
                     entry.pendingId = pendingId;
                     if (entry.legenda !== '') {
@@ -514,23 +516,14 @@ if (fotosDropZone && galleryInput) {
 
 function renderFotosPreview() {
     const container = document.getElementById('fotos-preview');
-    container.innerHTML = '';
-    fotosSelecionadas.forEach((foto, index) => {
-        const div = document.createElement('div');
-        div.className = 'photo-preview';
-        div.innerHTML = `
-            <img src="${foto.preview}" alt="Foto ${index + 1}">
-            <button type="button" data-foto-index="${index}" class="photo-remove-btn">
-                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-            <input type="text" name="legendas_fotos[]" placeholder="Legenda..." value="${foto.legenda || ''}"
-                   onchange="atualizarLegenda(${index}, this.value)"
-                   style="width: 100%; font-size: 11px; padding: 4px 6px; margin-top: 4px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary);">
-        `;
-        container.appendChild(div);
+    if (!container) return;
+
+    renderFotosGrid(container, fotosSelecionadas, {
+        onLegendaChange: (index, value) => atualizarLegenda(index, value),
+        onPublicaChange: (index, checked) => atualizarPublica(index, checked),
+        onRemove: (index) => removerFoto(index),
     });
+
     document.getElementById('foto-count').textContent = fotosSelecionadas.length;
 }
 
@@ -547,6 +540,20 @@ function atualizarLegenda(index, legenda) {
         });
     }
     // Se pendingId ainda nao chegou, sera sincronizado pelo callback do savePendingPhoto
+}
+
+function atualizarPublica(index, publica) {
+    const foto = fotosSelecionadas[index];
+    if (!foto) {
+        return;
+    }
+    foto.publica = publica;
+    formDirty = true;
+    if (foto.pendingId != null) {
+        updatePendingPhotoPublica(foto.pendingId, publica).catch((err) => {
+            console.error('Erro ao atualizar publica local:', err);
+        });
+    }
 }
 
 function removerFoto(index) {
@@ -1048,6 +1055,7 @@ window.toggleComunicado = toggleComunicado;
 window.toggleZeladoriaCampos = toggleZeladoriaCampos;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
 window.atualizarLegenda = atualizarLegenda;
+window.atualizarPublica = atualizarPublica;
 
 // === Busca e vinculação de pessoas existentes ===
 function initBuscaPessoa() {

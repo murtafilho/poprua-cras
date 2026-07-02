@@ -5,12 +5,14 @@ import {
     removePendingPhotoByName,
     savePendingPhoto,
     updatePendingPhotoLegenda,
+    updatePendingPhotoPublica,
     getPendingPhotosFor,
     uploadPendingPhoto,
     MAX_FILE_SIZE_BYTES,
 } from './offline-upload';
 import { initDynamicClickHandlers, initStepperNavigation } from './vistoria-delegation';
 import { updateComunicadoZeladoriaCampos as syncComunicadoZeladoriaCampos } from './comunicado-zeladoria-campos';
+import { renderFotosGrid } from './foto-preview';
 
 const vistoriaId = window.VISTORIA_ID;
 
@@ -340,10 +342,18 @@ async function requestFotoApi(vistoriaId, mediaId, action, options = {}) {
 }
 
 function initFotosExistentes() {
-    document.getElementById('fotos-existentes')?.addEventListener('change', (e) => {
+    const container = document.getElementById('fotos-existentes');
+    if (!container) return;
+
+    container.addEventListener('change', (e) => {
         const input = e.target.closest('.photo-legenda-input');
         if (input?.dataset.mediaId) {
             salvarLegendaFoto(Number(input.dataset.mediaId), input.value);
+        }
+
+        const checkbox = e.target.closest('.photo-publica-checkbox');
+        if (checkbox?.dataset.mediaId) {
+            togglePublicaFoto(Number(checkbox.dataset.mediaId));
         }
     });
 }
@@ -353,24 +363,27 @@ async function togglePublicaFoto(mediaId) {
     if (!wrapper) {
         return;
     }
-    const btn = wrapper.querySelector('.photo-publica-btn');
-    btn.disabled = true;
+    const checkbox = wrapper.querySelector('.photo-publica-checkbox');
+    if (!checkbox) {
+        return;
+    }
+
+    const estadoAnterior = !checkbox.checked;
+    checkbox.disabled = true;
     try {
         const data = await requestFotoApi(wrapper.dataset.vistoriaId, mediaId, 'toggle-publica', {
             method: 'POST',
         });
-        const publica = data.publica;
-        btn.dataset.publica = publica ? '1' : '0';
-        btn.title = publica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app';
+        const publica = !!data.publica;
+        checkbox.checked = publica;
         wrapper.classList.toggle('foto-publica', publica);
-        btn.innerHTML = publica
-            ? '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-            : '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>';
     } catch (e) {
         console.error('Falha ao alternar pública:', e);
+        checkbox.checked = estadoAnterior;
+        wrapper.classList.toggle('foto-publica', estadoAnterior);
         alert('Não foi possível atualizar. Tente novamente.');
     } finally {
-        btn.disabled = false;
+        checkbox.disabled = false;
     }
 }
 
@@ -462,18 +475,21 @@ function processPhotoFile(file) {
         canvas.toBlob(function(blob) {
             const compressed = new File([blob], imgName(file.name), { type: imgType(), lastModified: Date.now() });
             const preview = canvas.toDataURL(imgType(), 0.5);
-            const entry = { file: compressed, preview, id: Date.now() + Math.random(), legenda: '', pendingId: null };
+            const entry = { file: compressed, preview, id: Date.now() + Math.random(), legenda: '', publica: false, pendingId: null };
             fotosSelecionadas.push(entry);
             formDirty = true;
             renderFotosPreview();
-            // Salvar legenda vazia no IndexedDB junto com a foto
-            savePendingPhoto(vistoriaId, compressed, { name: compressed.name, legenda: '' })
+            // Salvar legenda e publica no IndexedDB junto com a foto
+            savePendingPhoto(vistoriaId, compressed, { name: compressed.name, legenda: '', publica: false })
                 .then((pendingId) => {
                     entry.pendingId = pendingId;
                     // Se o usuario ja digitou legenda antes do pendingId chegar,
                     // sincronizar agora
                     if (entry.legenda !== '') {
                         updatePendingPhotoLegenda(pendingId, entry.legenda).catch(() => {});
+                    }
+                    if (entry.publica) {
+                        updatePendingPhotoPublica(pendingId, entry.publica).catch(() => {});
                     }
                 })
                 .catch((err) => {
@@ -535,23 +551,14 @@ if (fotosDropZone && galleryInput) {
 
 function renderFotosPreview() {
     const container = document.getElementById('fotos-preview');
-    container.innerHTML = '';
-    fotosSelecionadas.forEach((foto, index) => {
-        const div = document.createElement('div');
-        div.className = 'photo-preview';
-        div.innerHTML = `
-            <img src="${foto.preview}" alt="Foto ${index + 1}">
-            <button type="button" data-foto-index="${index}" class="photo-remove-btn">
-                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-            <input type="text" name="legendas_fotos[]" placeholder="Legenda..." value="${foto.legenda || ''}"
-                   onchange="atualizarLegenda(${index}, this.value)"
-                   style="width: 100%; font-size: 11px; padding: 4px 6px; margin-top: 4px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary);">
-        `;
-        container.appendChild(div);
+    if (!container) return;
+
+    renderFotosGrid(container, fotosSelecionadas, {
+        onLegendaChange: (index, value) => atualizarLegenda(index, value),
+        onPublicaChange: (index, checked) => atualizarPublica(index, checked),
+        onRemove: (index) => removerFoto(index),
     });
+
     document.getElementById('foto-count').textContent = fotosSelecionadas.length;
 }
 
@@ -569,6 +576,20 @@ function atualizarLegenda(index, legenda) {
     }
     // Se pendingId ainda nao chegou, a legenda sera sincronizada
     // pelo callback do savePendingPhoto quando o pendingId chegar
+}
+
+function atualizarPublica(index, publica) {
+    const foto = fotosSelecionadas[index];
+    if (!foto) {
+        return;
+    }
+    foto.publica = publica;
+    formDirty = true;
+    if (foto.pendingId != null) {
+        updatePendingPhotoPublica(foto.pendingId, publica).catch((err) => {
+            console.error('Erro ao atualizar publica local:', err);
+        });
+    }
 }
 
 function removerFoto(index) {
@@ -906,6 +927,7 @@ window.toggleComunicado = toggleComunicado;
 window.toggleZeladoriaCampos = toggleZeladoriaCampos;
 window.atualizarCamposAbrigos = atualizarCamposAbrigos;
 window.atualizarLegenda = atualizarLegenda;
+window.atualizarPublica = atualizarPublica;
 
 const buscaPontoInput = document.getElementById('busca-ponto');
 if (buscaPontoInput) {

@@ -178,7 +178,7 @@ test.describe('CRUD de Fotos — E2E', () => {
     console.log('F3: Upload e preview OK');
   });
 
-  test('F4 — Fotos existentes: toggle publica e legenda', async ({ page }) => {
+  test('F4 — Fotos existentes: checkbox "Incluir em relatório" e legenda', async ({ page }) => {
     await loginAndGoToEdit(page);
     await goToFotosTab(page);
 
@@ -193,15 +193,14 @@ test.describe('CRUD de Fotos — E2E', () => {
 
     await page.screenshot({ path: `${SCREENSHOT_DIR}/f4-existing.png`, fullPage: false });
 
-    // Toggle publica na primeira foto
-    const firstPublicaBtn = existingWraps.first().locator('.photo-publica-btn');
-    if (await firstPublicaBtn.count() > 0) {
-      // Use JS click to avoid visibility issues
-      const initialState = await firstPublicaBtn.getAttribute('data-publica');
-      await firstPublicaBtn.click({ force: true });
+    // Checkbox "Incluir em relatório" na primeira foto
+    const firstPublicaCheckbox = existingWraps.first().locator('.photo-publica-checkbox');
+    if (await firstPublicaCheckbox.count() > 0) {
+      const initialState = await firstPublicaCheckbox.isChecked();
+      await firstPublicaCheckbox.click({ force: true });
       await page.waitForTimeout(800);
-      const newState = await firstPublicaBtn.getAttribute('data-publica');
-      console.log(`F4: Toggle publica ${initialState} -> ${newState} (esperado: invertido)`);
+      const newState = await firstPublicaCheckbox.isChecked();
+      console.log(`F4: Checkbox "Incluir em relatório" ${initialState} -> ${newState} (esperado: invertido)`);
       expect(newState).not.toBe(initialState);
     }
 
@@ -218,7 +217,7 @@ test.describe('CRUD de Fotos — E2E', () => {
     }
 
     await page.screenshot({ path: `${SCREENSHOT_DIR}/f4-toggled.png`, fullPage: false });
-    console.log('F4: Toggle publica e legenda OK');
+    console.log('F4: Checkbox "Incluir em relatório" e legenda OK');
   });
 
   test('F5 — Remover foto existente', async ({ page }) => {

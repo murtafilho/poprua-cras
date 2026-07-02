@@ -176,4 +176,35 @@ class VistoriaPaginationTest extends TestCase
             ->get(route('vistorias.index', ['per_page' => 200]))
             ->assertSessionHasErrors('per_page');
     }
+
+    /**
+     * Garante que mutacoes invalidam o cache da listagem (nao exibe total obsoleto).
+     */
+    public function test_listagem_atualiza_total_apos_exclusao(): void
+    {
+        $ponto = Ponto::factory()->create();
+        $vistorias = [];
+
+        for ($i = 0; $i < 3; $i++) {
+            $vistorias[] = Vistoria::factory()->create([
+                'ponto_id' => $ponto->id,
+                'user_id' => $this->user->id,
+                'data_abordagem' => now()->subDays($i),
+            ]);
+        }
+
+        $this->actingAs($this->user)
+            ->get(route('vistorias.index'))
+            ->assertOk()
+            ->assertSee('3');
+
+        $this->actingAs($this->user)
+            ->delete(route('vistorias.destroy', $vistorias[0]))
+            ->assertRedirect(route('vistorias.index'));
+
+        $this->actingAs($this->user)
+            ->get(route('vistorias.index'))
+            ->assertOk()
+            ->assertSee('2');
+    }
 }

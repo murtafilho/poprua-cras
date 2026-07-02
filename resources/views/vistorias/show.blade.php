@@ -515,6 +515,9 @@
                             aria-label="Ampliar foto {{ $index + 1 }}"
                         >
                             <img src="{{ $foto->hasGeneratedConversion('thumb') ? $foto->getUrl('thumb') : $foto->getUrl() }}" alt="Foto da vistoria" loading="lazy" x-on:error="$el.src='{{ $foto->getUrl() }}'">
+                            @if($foto->getCustomProperty('publica', false))
+                                <span class="photo-item-badge photo-item-badge--relatorio">No relatório</span>
+                            @endif
                             @if($foto->getCustomProperty('legenda'))
                                 <div class="photo-item-caption">{{ $foto->getCustomProperty('legenda') }}</div>
                             @endif

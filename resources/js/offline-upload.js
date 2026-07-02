@@ -107,6 +107,26 @@ export async function updatePendingPhotoLegenda(id, legenda) {
     });
 }
 
+export async function updatePendingPhotoPublica(id, publica) {
+    const db = await openFotosDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.get(id);
+        req.onsuccess = () => {
+            const record = req.result;
+            if (record) {
+                record.publica = !!publica;
+                store.put(record);
+            }
+        };
+        req.onerror = () => reject(req.error);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
 export async function savePendingPhoto(vistoriaId, file, options = {}) {
     const data = await file.arrayBuffer();
     const db = await openFotosDB();
@@ -118,6 +138,7 @@ export async function savePendingPhoto(vistoriaId, file, options = {}) {
         created_at: new Date().toISOString(),
         status: 'pending',
         legenda: options.legenda ?? '',
+        publica: options.publica ?? false,
     };
 
     return new Promise((resolve, reject) => {
@@ -226,6 +247,7 @@ export async function uploadPendingPhoto(foto, options = {}) {
     if (foto.legenda) {
         formData.append('legenda', foto.legenda);
     }
+    formData.append('publica', foto.publica ? '1' : '0');
 
     const response = await fetch(`${appBase}/api/vistorias/fotos`, {
         method: 'POST',

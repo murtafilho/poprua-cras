@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class VistoriaService
 {
+    private const LIST_CACHE_TAGS = ['vistorias', 'vistorias_list'];
+
+    private const LIST_CACHE_VERSION_KEY = 'vistorias:list:version';
+
     /**
      * Dados para os selects do formulário de criação/edição.
      *
@@ -105,15 +109,43 @@ class VistoriaService
     }
 
     /**
-     * Cache key para listagem de vistorias
-     *
+     * Invalida o cache da listagem admin (/vistorias).
+     * Chamado após create/update/delete/finalizar/cancelar/reativar.
+     */
+    public function invalidarCacheListagem(): void
+    {
+        if ($this->cacheListagemSuportaTags()) {
+            Cache::tags(self::LIST_CACHE_TAGS)->flush();
+
+            return;
+        }
+
+        Cache::put(
+            self::LIST_CACHE_VERSION_KEY,
+            $this->versaoCacheListagem() + 1,
+            now()->addYear()
+        );
+    }
+
+    /**
      * @param  array<string, mixed>  $filtros
      */
     private function getListCacheKey(array $filtros, int $perPage, int $page): string
     {
         $filtrosHash = md5(serialize($filtros));
+        $versao = $this->versaoCacheListagem();
 
-        return "vistorias:list:{$filtrosHash}:{$perPage}:{$page}";
+        return "vistorias:list:v{$versao}:{$filtrosHash}:{$perPage}:{$page}";
+    }
+
+    private function versaoCacheListagem(): int
+    {
+        return (int) Cache::get(self::LIST_CACHE_VERSION_KEY, 1);
+    }
+
+    private function cacheListagemSuportaTags(): bool
+    {
+        return method_exists(Cache::getStore(), 'tags');
     }
 
     /**
@@ -122,18 +154,21 @@ class VistoriaService
      */
     public function listarComFiltros(array $filtros, int $perPage): LengthAwarePaginator
     {
-        $page = request()->input('page', 1);
+        $page = (int) request()->input('page', 1);
         $cacheKey = $this->getListCacheKey($filtros, $perPage, $page);
-        $cacheTags = ['vistorias', 'vistorias_list'];
 
         // Cache por 2 minutos para filtros sem data (mais estaveis)
         // Cache por 30 segundos para filtros com data (mais dinamicos)
         $temFiltroData = ! empty($filtros['data_inicio']) || ! empty($filtros['data_fim']);
         $ttl = $temFiltroData ? 30 : 120;
 
-        return Cache::tags($cacheTags)->remember($cacheKey, $ttl, function () use ($filtros, $perPage) {
-            return $this->executarListarComFiltros($filtros, $perPage);
-        });
+        $loader = fn () => $this->executarListarComFiltros($filtros, $perPage);
+
+        if ($this->cacheListagemSuportaTags()) {
+            return Cache::tags(self::LIST_CACHE_TAGS)->remember($cacheKey, $ttl, $loader);
+        }
+
+        return Cache::remember($cacheKey, $ttl, $loader);
     }
 
     /**

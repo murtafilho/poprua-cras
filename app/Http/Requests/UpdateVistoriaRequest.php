@@ -108,6 +108,8 @@ class UpdateVistoriaRequest extends FormRequest
             'fotos.*' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
             'legendas_fotos' => 'nullable|array',
             'legendas_fotos.*' => 'nullable|string|max:500',
+            'publicas_fotos' => 'nullable|array',
+            'publicas_fotos.*' => 'nullable|in:0,1',
             'remover_fotos' => 'nullable|array',
             'remover_fotos.*' => 'integer',
             // Campos boolean de complexidade

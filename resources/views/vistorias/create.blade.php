@@ -571,6 +571,9 @@
                     <div class="card mb-4">
                         <div class="card-body">
                             <label class="form-label mb-3">Fotos da Vistoria</label>
+                            <p class="text-muted mb-3" style="font-size: var(--text-xs);">
+                                Adicione legenda opcional e marque &quot;Incluir em relatório&quot; para fotos que devem constar no PDF.
+                            </p>
 
                             <input type="file" id="camera-input-back" accept="image/*" capture="environment" class="hidden">
                             <input type="file" id="gallery-input" accept="image/*" multiple class="hidden">

@@ -4869,6 +4869,64 @@ body.slideshow-open {
   height: 14px;
 }
 
+.photo-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.photo-preview-wrap.foto-publica .photo-preview {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.photo-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.photo-meta .photo-legenda-input {
+  font-size: var(--text-xs);
+  padding: 4px 8px;
+  height: auto;
+}
+
+.photo-publica-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.photo-publica-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-primary);
+}
+
+.photo-publica-text {
+  user-select: none;
+}
+
+.photo-item-badge {
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  line-height: 1.2;
+}
+
+.photo-item-badge--relatorio {
+  background: var(--accent-primary);
+  color: var(--text-inverse, #fff);
+}
+
 /* Modal Bottom (full width on mobile) */
 .modal-bottom {
   position: fixed;

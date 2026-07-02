@@ -25,6 +25,7 @@ class VistoriaFotoController extends Controller
         if ($legenda !== '') {
             $propriedades['legenda'] = $legenda;
         }
+        $propriedades['publica'] = $request->validated('publica') === '1' || $request->validated('publica') === true;
 
         $resultado = $this->fotoService->adicionarFoto(
             $vistoria,

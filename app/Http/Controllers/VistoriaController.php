@@ -156,23 +156,28 @@ class VistoriaController extends Controller
                 ->each(fn ($media) => $media->delete());
         }
 
-        // Processar upload de novas fotos (com legenda, igual ao store())
+        // Processar upload de novas fotos (com legenda e publica)
         if ($request->hasFile('fotos')) {
             $legendas = $request->input('legendas_fotos', []);
+            $publicas = $request->input('publicas_fotos', []);
             foreach ($request->file('fotos') as $index => $foto) {
                 if ($foto->isValid()) {
                     $safeName = preg_replace('/[^a-zA-Z0-9._-]/', '_', pathinfo($foto->getClientOriginalName(), PATHINFO_FILENAME));
                     $legenda = $legendas[$index] ?? '';
+                    $publica = ($publicas[$index] ?? '0') === '1';
                     $media = $vistoria->addMedia($foto)
                         ->usingName($safeName)
-                        ->withCustomProperties(['legenda' => $legenda])
+                        ->withCustomProperties([
+                            'legenda' => $legenda,
+                            'publica' => $publica,
+                        ])
                         ->toMediaCollection('fotos');
 
                 }
             }
         }
 
-        Cache::forget('dashboard:dados_mensais');
+        $this->invalidarCachesPosMutacaoVistoria();
 
         if ($request->boolean('finalizar_apos_salvar')) {
             $vistoria->update([
@@ -197,6 +202,8 @@ class VistoriaController extends Controller
             'finalizada_por' => auth()->id(),
         ]);
 
+        $this->invalidarCachesPosMutacaoVistoria();
+
         return redirect()->route('vistorias.show', $vistoria)->with('success', 'Zeladoria finalizada com sucesso!');
     }
 
@@ -210,6 +217,8 @@ class VistoriaController extends Controller
             'finalizada_por' => null,
         ]);
 
+        $this->invalidarCachesPosMutacaoVistoria();
+
         return redirect()->route('vistorias.show', $vistoria)->with('success', 'Zeladoria reativada. O responsavel pode retomar a edicao.');
     }
 
@@ -222,6 +231,8 @@ class VistoriaController extends Controller
             'cancelada_em' => now(),
             'cancelada_por' => auth()->id(),
         ]);
+
+        $this->invalidarCachesPosMutacaoVistoria();
 
         return redirect()->route('vistorias.show', $vistoria)->with('success', 'Zeladoria cancelada.');
     }
@@ -259,8 +270,7 @@ class VistoriaController extends Controller
 
         $vistoria->delete();
 
-        Cache::forget('dashboard:totais');
-        Cache::forget('dashboard:dados_mensais');
+        $this->invalidarCachesPosMutacaoVistoria();
 
         return redirect()->route('vistorias.index')->with('success', 'Zeladoria excluida com sucesso!');
     }
@@ -490,7 +500,9 @@ class VistoriaController extends Controller
     {
         $validated = $request->validated();
 
-        $vistoria = DB::transaction(function () use ($request, $validated) {
+        $pontoNovo = false;
+
+        $vistoria = DB::transaction(function () use ($request, $validated, &$pontoNovo) {
             $pontoId = $validated['ponto_id'] ?? null;
             $pontoNovo = false;
 
@@ -529,13 +541,18 @@ class VistoriaController extends Controller
             // Processar upload de fotos usando Spatie Media Library
             if ($request->hasFile('fotos')) {
                 $legendas = $request->input('legendas_fotos', []);
+                $publicas = $request->input('publicas_fotos', []);
                 foreach ($request->file('fotos') as $index => $foto) {
                     if ($foto->isValid()) {
                         $safeName = preg_replace('/[^a-zA-Z0-9._-]/', '_', pathinfo($foto->getClientOriginalName(), PATHINFO_FILENAME));
                         $legenda = $legendas[$index] ?? '';
+                        $publica = ($publicas[$index] ?? '0') === '1';
                         $media = $vistoria->addMedia($foto)
                             ->usingName($safeName)
-                            ->withCustomProperties(['legenda' => $legenda])
+                            ->withCustomProperties([
+                                'legenda' => $legenda,
+                                'publica' => $publica,
+                            ])
                             ->toMediaCollection('fotos');
 
                     }
@@ -566,9 +583,7 @@ class VistoriaController extends Controller
             return $vistoria;
         });
 
-        Cache::forget('dashboard:total_pontos');
-        Cache::forget('dashboard:totais');
-        Cache::forget('dashboard:dados_mensais');
+        $this->invalidarCachesPosMutacaoVistoria($pontoNovo);
 
         $this->rascunhoService->descartarAposStore(
             $request->user(),
@@ -652,5 +667,16 @@ class VistoriaController extends Controller
     private function getFilterData(): array
     {
         return $this->vistoriaService->getFilterData();
+    }
+
+    private function invalidarCachesPosMutacaoVistoria(bool $novoPonto = false): void
+    {
+        if ($novoPonto) {
+            Cache::forget('dashboard:total_pontos');
+        }
+
+        Cache::forget('dashboard:totais');
+        Cache::forget('dashboard:dados_mensais');
+        $this->vistoriaService->invalidarCacheListagem();
     }
 }

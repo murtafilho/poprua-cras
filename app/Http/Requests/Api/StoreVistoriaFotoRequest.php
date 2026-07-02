@@ -21,6 +21,7 @@ class StoreVistoriaFotoRequest extends FormRequest
             'foto' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
             'descricao' => ['nullable', 'string', 'max:255'],
             'legenda' => ['nullable', 'string', 'max:255'],
+            'publica' => ['nullable', 'in:0,1'],
         ];
     }
 

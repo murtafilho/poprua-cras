@@ -497,23 +497,16 @@
                             @php $fotosExistentes = $vistoria->getMedia('fotos'); @endphp
                             @if($fotosExistentes->count() > 0)
                                 <div class="mb-4">
-                                    <p class="text-muted mb-2" style="font-size: var(--text-xs);">Fotos existentes — clique no cadeado para tornar pública (aparece no relatório). Texto sob a foto vira legenda.</p>
+                                    <p class="text-muted mb-2" style="font-size: var(--text-xs);">Fotos existentes — marque "Incluir em relatório" para incluir no PDF. Texto sob a foto vira legenda.</p>
                                     <div class="photos-grid" id="fotos-existentes">
                                         @foreach($fotosExistentes as $foto)
                                             @php
                                                 $fotoPublica = (bool) $foto->getCustomProperty('publica', false);
                                                 $fotoLegenda = (string) $foto->getCustomProperty('legenda', '');
                                             @endphp
-                                            <div class="photo-preview-wrap" id="foto-existente-{{ $foto->id }}" data-vistoria-id="{{ $vistoria->id }}">
-                                                <div class="photo-preview {{ $fotoPublica ? 'foto-publica' : '' }}">
+                                            <div class="photo-preview-wrap {{ $fotoPublica ? 'foto-publica' : '' }}" id="foto-existente-{{ $foto->id }}" data-vistoria-id="{{ $vistoria->id }}">
+                                                <div class="photo-preview">
                                                     <img src="{{ $foto->getUrl('thumb') }}" alt="Foto" loading="lazy">
-                                                    <button type="button" x-on:click="togglePublicaFoto({{ $foto->id }})" class="photo-publica-btn" data-publica="{{ $fotoPublica ? '1' : '0' }}" title="{{ $fotoPublica ? 'Pública — aparece no relatório do processo' : 'Privada — só no app' }}">
-                                                        @if($fotoPublica)
-                                                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                                        @else
-                                                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>
-                                                        @endif
-                                                    </button>
                                                     <button type="button" x-on:click="marcarRemoverFoto({{ $foto->id }})" class="photo-remove-btn">
                                                         <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -525,47 +518,18 @@
                                                        maxlength="255"
                                                        value="{{ $fotoLegenda }}"
                                                        data-media-id="{{ $foto->id }}">
+                                                <label class="photo-publica-label">
+                                                    <input type="checkbox"
+                                                           class="photo-publica-checkbox"
+                                                           data-media-id="{{ $foto->id }}"
+                                                           {{ $fotoPublica ? 'checked' : '' }}>
+                                                    <span class="photo-publica-text">Incluir em relatório</span>
+                                                </label>
                                             </div>
                                         @endforeach
                                     </div>
                                 </div>
                                 <style>
-                                    .photo-publica-btn {
-                                        position: absolute;
-                                        bottom: 6px;
-                                        right: 6px;
-                                        width: 28px;
-                                        height: 28px;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        border-radius: 50%;
-                                        border: none;
-                                        background: rgba(17, 18, 20, 0.78);
-                                        color: var(--text-secondary, #a1a9b4);
-                                        cursor: pointer;
-                                        transition: all 120ms;
-                                    }
-                                    .photo-publica-btn[data-publica="1"] {
-                                        background: var(--accent-primary, #2dd4bf);
-                                        color: var(--text-inverse, #111214);
-                                    }
-                                    .photo-publica-btn:hover { transform: scale(1.08); }
-                                    .photo-preview.foto-publica {
-                                        outline: 2px solid var(--accent-primary, #2dd4bf);
-                                        outline-offset: 1px;
-                                        border-radius: 6px;
-                                    }
-                                    .photo-preview-wrap {
-                                        display: flex;
-                                        flex-direction: column;
-                                        gap: var(--space-1);
-                                    }
-                                    .photo-legenda-input {
-                                        font-size: var(--text-xs);
-                                        padding: 4px 8px;
-                                        height: auto;
-                                    }
                                     .photo-legenda-input.saving { opacity: 0.6; }
                                     .photo-legenda-input.saved {
                                         border-color: var(--accent-primary, #2dd4bf);

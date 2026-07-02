@@ -118,6 +118,8 @@ class StoreVistoriaRequest extends FormRequest
             'fotos.*' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
             'legendas_fotos' => 'nullable|array',
             'legendas_fotos.*' => 'nullable|string|max:500',
+            'publicas_fotos' => 'nullable|array',
+            'publicas_fotos.*' => 'nullable|in:0,1',
             // Campos boolean de complexidade
             'resistencia' => 'nullable|boolean',
             'num_reduzido' => 'nullable|boolean',
