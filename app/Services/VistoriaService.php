@@ -2,9 +2,14 @@
 
 namespace App\Services;
 
+use App\Http\Requests\StoreVistoriaRequest;
+use App\Models\Ponto;
 use App\Models\User;
+use App\Models\Vistoria;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -15,6 +20,174 @@ class VistoriaService
     private const LIST_CACHE_TAGS = ['vistorias', 'vistorias_list'];
 
     private const LIST_CACHE_VERSION_KEY = 'vistorias:list:version';
+
+    public function __construct(
+        private MoradorService $moradorService,
+        private PontoService $pontoService,
+    ) {}
+
+    /**
+     * Cria a vistoria com todos os relacionamentos numa única transação:
+     * ponto (novo ou existente), participantes, "Minha Equipe" do owner,
+     * fotos (Spatie MediaLibrary) e moradores (novos + presença).
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array{vistoria: Vistoria, ponto_novo: bool}
+     */
+    public function criarComRelacionamentos(StoreVistoriaRequest $request, array $validated): array
+    {
+        $pontoNovo = false;
+
+        $vistoria = DB::transaction(function () use ($request, $validated, &$pontoNovo) {
+            $pontoId = $validated['ponto_id'] ?? null;
+            $pontoNovo = false;
+
+            if (! $pontoId) {
+                $result = $this->pontoService->findOrCreateFromCoordinates(
+                    (float) $validated['lat'],
+                    (float) $validated['lng'],
+                    $validated['complemento_ponto'] ?? null
+                );
+                $pontoId = $result['id'];
+                $pontoNovo = $result['created'];
+            }
+
+            $fields = $this->montarCamposVistoria($request, $validated);
+            $fields['ponto_id'] = $pontoId;
+            $fields['user_id'] = $request->user()->id;
+
+            $vistoria = Vistoria::create($fields);
+
+            // Sincronizar participantes da equipe
+            /** @var array<int, int> $participantesIds */
+            $participantesIds = $validated['participantes'] ?? [];
+            if (! empty($participantesIds)) {
+                $vistoria->participantes()->sync($participantesIds);
+            }
+
+            // Regra: a equipe marcada na vistoria atualiza a "Minha Equipe" do owner
+            // (no store, o owner é sempre o usuário logado).
+            $idsParaEquipe = collect($participantesIds)
+                ->filter(fn ($id) => (int) $id !== (int) $request->user()->id)
+                ->unique()
+                ->values()
+                ->all();
+            $request->user()->team()->sync($idsParaEquipe);
+
+            // Processar upload de fotos usando Spatie Media Library
+            if ($request->hasFile('fotos')) {
+                $legendas = $request->input('legendas_fotos', []);
+                $publicas = $request->input('publicas_fotos', []);
+                foreach ($request->file('fotos') as $index => $foto) {
+                    if ($foto->isValid()) {
+                        $safeName = preg_replace('/[^a-zA-Z0-9._-]/', '_', pathinfo($foto->getClientOriginalName(), PATHINFO_FILENAME));
+                        $legenda = $legendas[$index] ?? '';
+                        $publica = ($publicas[$index] ?? '0') === '1';
+                        $vistoria->addMedia($foto)
+                            ->usingName($safeName)
+                            ->withCustomProperties([
+                                'legenda' => $legenda,
+                                'publica' => $publica,
+                            ])
+                            ->toMediaCollection('fotos');
+                    }
+                }
+            }
+
+            // Atualizar complemento do ponto existente se informado
+            $ponto = Ponto::find($pontoId);
+            if ($ponto && ! $pontoNovo && ! empty($validated['complemento_ponto'])) {
+                $ponto->update(['complemento' => $validated['complemento_ponto']]);
+            }
+
+            // Criar novos moradores e vincular ao ponto
+            if (! empty($validated['novos_moradores'])) {
+                foreach ($validated['novos_moradores'] as $dadosMorador) {
+                    $this->moradorService->criarComEntrada($dadosMorador, $ponto, $vistoria);
+                }
+            }
+
+            // Atualizar presenca dos moradores existentes
+            if (! empty($validated['moradores_presentes'])) {
+                $this->moradorService->atualizarPresencaVistoria(
+                    $vistoria,
+                    $validated['moradores_presentes']
+                );
+            }
+
+            return $vistoria;
+        });
+
+        return ['vistoria' => $vistoria, 'ponto_novo' => $pontoNovo];
+    }
+
+    /**
+     * Monta os campos da vistoria a partir do request validado (store e update).
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    public function montarCamposVistoria(Request $request, array $validated): array
+    {
+        $abrigosTipos = null;
+        if (! empty($validated['abrigos_tipos'])) {
+            $abrigosTipos = array_values(array_filter($validated['abrigos_tipos'], fn ($v) => ! empty($v)));
+            if (empty($abrigosTipos)) {
+                $abrigosTipos = null;
+            }
+        }
+
+        return [
+            'data_abordagem' => Carbon::createFromFormat('Y-m-d\TH:i', $validated['data_abordagem']),
+            'tipo_abordagem_id' => $validated['tipo_abordagem_id'],
+            'quantidade_pessoas' => $validated['quantidade_pessoas'] ?? 0,
+            'nomes_pessoas' => $validated['nomes_pessoas'] ?? '',
+            'resultado_acao_id' => $validated['resultado_acao_id'],
+            'tipo_abrigo_desmontado_id' => $validated['tipo_abrigo_desmontado_id'] ?? null,
+            'qtd_kg' => $validated['qtd_kg'] ?? 0,
+            'observacao' => $validated['observacao'] ?? '',
+            'resistencia' => $request->boolean('resistencia') ? 1 : 0,
+            'num_reduzido' => $request->boolean('num_reduzido') ? 1 : 0,
+            'casal' => $request->boolean('casal') ? 1 : 0,
+            'qtd_casais' => $request->boolean('casal') ? ($validated['qtd_casais'] ?? 1) : 0,
+            'catador_reciclados' => $request->boolean('catador_reciclados') ? 1 : 0,
+            'fixacao_antiga' => $request->boolean('fixacao_antiga') ? 1 : 0,
+            'excesso_objetos' => $request->boolean('excesso_objetos') ? 1 : 0,
+            'trafico_ilicitos' => $request->boolean('trafico_ilicitos') ? 1 : 0,
+            'crianca_adolescente' => $request->boolean('crianca_adolescente') ? 1 : 0,
+            'idosos' => $request->boolean('idosos') ? 1 : 0,
+            'gestante' => $request->boolean('gestante') ? 1 : 0,
+            'lgbtqiapn' => $request->boolean('lgbtqiapn') ? 1 : 0,
+            'cena_uso_caracterizada' => $request->boolean('cena_uso_caracterizada') ? 1 : 0,
+            'deficiente' => $request->boolean('deficiente') ? 1 : 0,
+            'agrupamento_quimico' => $request->boolean('agrupamento_quimico') ? 1 : 0,
+            'saude_mental' => $request->boolean('saude_mental') ? 1 : 0,
+            'animais' => $request->boolean('animais') ? 1 : 0,
+            'qtd_animais' => $request->boolean('animais') ? ($validated['qtd_animais'] ?? 1) : 0,
+            'qtd_abrigos_provisorios' => $validated['qtd_abrigos_provisorios'] ?? 0,
+            'abrigos_tipos' => $abrigosTipos,
+            'conducao_forcas_seguranca' => ($validated['conducao_forcas_seguranca'] ?? '0') === '1',
+            'conducao_forcas_observacao' => ($validated['conducao_forcas_seguranca'] ?? '0') === '1'
+                ? ($validated['conducao_forcas_observacao'] ?? '')
+                : null,
+            'apreensao_fiscal' => $request->boolean('apreensao_fiscal') ? 1 : 0,
+            'auto_fiscalizacao_aplicado' => ($validated['auto_fiscalizacao_aplicado'] ?? '0') === '1',
+            'auto_fiscalizacao_numero' => ($validated['auto_fiscalizacao_aplicado'] ?? '0') === '1'
+                ? ($validated['auto_fiscalizacao_numero'] ?? '')
+                : null,
+            'e1_id' => $validated['e1_id'] ?? null,
+            'e2_id' => $validated['e2_id'] ?? null,
+            'e3_id' => $validated['e3_id'] ?? null,
+            'e4_id' => $validated['e4_id'] ?? null,
+            'e5_id' => $validated['e5_id'] ?? null,
+            'e6_id' => $validated['e6_id'] ?? null,
+            'houve_lavacao' => $request->boolean('houve_lavacao') ? 1 : 0,
+            'houve_comunicado' => $request->boolean('houve_comunicado') ? 1 : 0,
+            'data_comunicado' => $request->boolean('houve_comunicado') ? ($validated['data_comunicado'] ?? null) : null,
+            'data_prevista_zeladoria' => $validated['data_prevista_zeladoria'] ?? null,
+            'periodo_zeladoria' => $validated['periodo_zeladoria'] ?? null,
+        ];
+    }
 
     /**
      * Dados para os selects do formulário de criação/edição.
