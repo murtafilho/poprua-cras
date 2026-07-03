@@ -334,7 +334,7 @@
 <body>
     <div class="no-print">
         <a href="{{ route('vistorias.show', $vistoria) }}">Voltar</a>
-        <button onclick="window.print()">Imprimir / Salvar PDF</button>
+        <button type="button" id="btn-imprimir">Imprimir / Salvar PDF</button>
     </div>
 
     <div class="sheet">
@@ -645,5 +645,10 @@
         </div>
 
     </div>
+    <script>
+        document.getElementById('btn-imprimir').addEventListener('click', function () {
+            window.print();
+        });
+    </script>
 </body>
 </html>
