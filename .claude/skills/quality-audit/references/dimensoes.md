@@ -132,8 +132,9 @@ find app/Models/ -name "*.php" -exec grep -l "DB::raw\|whereRaw\|selectRaw" {} \
 ls app/Http/Requests/**/*.php app/Http/Requests/*.php 2>/dev/null | wc -l
 ls app/Services/**/*.php app/Services/*.php 2>/dev/null | wc -l
 ls app/Http/Controllers/**/*.php app/Http/Controllers/*.php 2>/dev/null | wc -l
-grep -rn "->each\|->map" app/ --include="*.php" 2>/dev/null | grep -v "Closure\|//" | wc -l
-grep -rc "->with(\|->load(" app/ --include="*.php" 2>/dev/null | grep -v ":0" | wc -l
+# TBL-017: pattern comeca com "-" — usar -e para o grep nao ler como opcao
+grep -rn --include="*.php" -e "->each\|->map" app/ 2>/dev/null | grep -v "Closure\|//" | wc -l
+grep -rc --include="*.php" -e "->with(\|->load(" app/ 2>/dev/null | grep -v ":0" | wc -l
 
 for m in Ponto Vistoria Morador; do
   grep -l "SoftDeletes" app/Models/$m.php 2>/dev/null
@@ -164,7 +165,8 @@ $DB_EXEC -d poprua_cras -t -c "
   SELECT gc.f_table_name, gc.f_geometry_column
   FROM geometry_columns gc
   LEFT JOIN pg_indexes pi
-    ON pi.tablename = gc.f_table_name
+    ON pi.schemaname = gc.f_table_schema
+   AND pi.tablename = gc.f_table_name
    AND pi.indexdef LIKE '%USING gist%'
    AND pi.indexdef LIKE '%' || gc.f_geometry_column || '%'
   WHERE pi.indexname IS NULL
