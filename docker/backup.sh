@@ -9,15 +9,19 @@ set -euo pipefail
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="${BACKUP_DIR:-/opt/docker/poprua-cras/backups}"
 
+mkdir -p "${BACKUP_DIR}"
+
 if [ "${1:-}" = "--local" ]; then
     PGPASSWORD=poprua_cras pg_dump -U poprua_cras -h 127.0.0.1 -d poprua_cras \
         --format=custom --compress=9 \
         -f "${BACKUP_DIR}/poprua_cras_${TIMESTAMP}.dump"
 else
+    # Dump via stdout: o container não tem volume em /var/backups, então gravar
+    # lá deixaria o arquivo em camada efêmera, invisível para a retenção abaixo.
     sudo docker exec pg17-poprua-cras \
         pg_dump -U poprua_cras -d poprua_cras \
         --format=custom --compress=9 \
-        -f "/var/backups/poprua_cras_${TIMESTAMP}.dump"
+        > "${BACKUP_DIR}/poprua_cras_${TIMESTAMP}.dump"
 fi
 
 # Manter apenas últimos 7 backups
