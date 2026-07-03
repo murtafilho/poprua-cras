@@ -3,7 +3,15 @@
 @section('title', 'Projeção de Uso')
 
 @section('header')
-    <h1 class="page-title">Projeção de Uso</h1>
+    <div class="mobile-header-content" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <a href="{{ route('dashboard') }}" class="btn btn-ghost btn-icon" style="margin-left: -8px;">
+            <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <span class="mobile-header-title">Projeção de Uso</span>
+        <div style="width: 44px;"></div>
+    </div>
 @endsection
 
 @push('styles')

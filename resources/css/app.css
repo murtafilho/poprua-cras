@@ -5737,6 +5737,8 @@ body.slideshow-open {
 .sidebar-version { color: var(--chrome-text); background: var(--chrome-hover); }
 
 /* Botões/links dentro do header (a maioria já é branca por estilo inline) */
+.mobile-header h1,
+.mobile-header .page-title { color: var(--chrome-text); font-size: var(--text-lg); font-weight: var(--font-semibold); margin: 0; }
 .mobile-header-back,
 .mobile-header a { color: var(--chrome-text); }
 .mobile-header .btn-ghost { color: var(--chrome-text-dim); }
