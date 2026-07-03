@@ -95,7 +95,58 @@
 
             <div class="card sp-section">
                 <div class="card-body">
-                    <h2>1. Premissas de projeção</h2>
+                    <h2>1. Stack de desenvolvimento</h2>
+                    <p>Projeção baseada na stack em produção no host <code>vlcp-sufis01</code> (SUFIS/PBH), com containers Docker em rede <code>poprua-cras</code> e proxy Apache → FastCGI <code>127.0.0.1:9086</code>.</p>
+                    <div class="sp-table-wrap">
+                        <table class="sp-table">
+                            <thead>
+                                <tr><th>Camada</th><th>Tecnologia</th><th>Versão</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Runtime</td><td>PHP</td><td>{{ $phpVersion }}</td></tr>
+                                <tr><td>Framework</td><td>Laravel</td><td>{{ $versoes['laravel'] }}</td></tr>
+                                <tr><td>Banco</td><td>PostgreSQL + PostGIS</td><td>17 · 3.5</td></tr>
+                                <tr><td>Cache / filas</td><td>Redis</td><td>7</td></tr>
+                                <tr><td>Mídia</td><td>Spatie MediaLibrary</td><td>{{ $versoes['medialibrary'] }}</td></tr>
+                                <tr><td>Frontend</td><td>Blade · Alpine.js · Vite · Leaflet</td><td>{{ $versoes['alpinejs'] }} · {{ $versoes['vite'] }} · {{ $versoes['leaflet'] }}</td></tr>
+                                <tr><td>PWA</td><td>Service Worker + IndexedDB (fotos offline)</td><td>—</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="font-size:var(--text-xs);color:var(--text-muted);margin-bottom:0">
+                        Containers: <code>php84-poprua-cras</code>, <code>pg17-poprua-cras</code>, <code>redis-poprua-cras</code>, <code>queue-poprua-cras</code> (fila <code>media-conversions</code>).
+                        Especificação completa em <code>docs/ESPECIFICACAO_TECNOLOGIA_E_INFRAESTRUTURA.md</code>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card sp-section">
+                <div class="card-body">
+                    <h2>2. Arquitetura de imagens</h2>
+                    <p>Fotografias de zeladorias e moradores seguem fluxo <strong>offline-first</strong>: compactação WebP no cliente (até 1920 px), fila local em IndexedDB e envio assíncrono via Service Worker. No servidor, o Spatie MediaLibrary persiste o original e enfileira derivações WebP.</p>
+                    <div class="sp-table-wrap">
+                        <table class="sp-table">
+                            <thead>
+                                <tr><th>Derivação</th><th>Dimensões</th><th>Formato</th><th>Uso</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Original</td><td>até 1920 px (cliente)</td><td>WebP / JPEG</td><td>Armazenamento e relatórios</td></tr>
+                                <tr><td><code>thumb</code></td><td>300×300 px</td><td>WebP (80%)</td><td>Grades e listagens</td></tr>
+                                <tr><td><code>preview</code></td><td>800×600 px</td><td>WebP (85%)</td><td>Visualização ampliada</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul>
+                        <li><strong>Armazenamento:</strong> disco <code>storage/app/public/</code> (coleção <code>fotos</code> em <code>Vistoria</code> e <code>Morador</code>).</li>
+                        <li><strong>Processamento:</strong> conversões assíncronas na fila Redis <code>media-conversions</code>, worker <code>queue-poprua-cras</code>.</li>
+                        <li><strong>Estimativa de volume:</strong> cada fotografia gera <strong>três arquivos</strong> (original + thumb + preview), com média de ~430 KB por conjunto — base das colunas de mídia abaixo.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card sp-section">
+                <div class="card-body">
+                    <h2>3. Premissas de projeção</h2>
                     <div class="sp-table-wrap">
                         <table class="sp-table">
                             <thead>
@@ -119,7 +170,7 @@
 
             <div class="card sp-section">
                 <div class="card-body">
-                    <h2>2. Volume projetado (5 anos)</h2>
+                    <h2>4. Volume projetado (5 anos)</h2>
                     <div class="sp-table-wrap">
                         <table class="sp-table">
                             <thead>
@@ -159,7 +210,7 @@
 
             <div class="card sp-section">
                 <div class="card-body">
-                    <h2>3. Cenários alternativos (ano 5 — operação plena)</h2>
+                    <h2>5. Cenários alternativos (ano 5 — operação plena)</h2>
                     <div class="sp-table-wrap">
                         <table class="sp-table">
                             <thead>
@@ -199,7 +250,7 @@
 
             <div class="card sp-section">
                 <div class="card-body">
-                    <h2>4. Necessidades de infraestrutura</h2>
+                    <h2>6. Necessidades de infraestrutura</h2>
                     <p>Com o crescimento projetado de zeladorias, consultas geoespaciais e armazenamento de fotografias, recomenda-se a segregação da infraestrutura em ambientes dedicados, conforme padrões de provisionamento da Prefeitura:</p>
                     <ul>
                         <li><strong>Banco de dados dedicado</strong> — PostgreSQL com extensão geoespacial, separado da camada de aplicação, com política de backup e recuperação adequada ao volume de dados transacionais e consultas de mapa.</li>

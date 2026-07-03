@@ -24,6 +24,11 @@ class StackProjecaoControllerTest extends TestCase
             ->get(route('stack-projecao.index'))
             ->assertOk()
             ->assertViewIs('stack-projecao.index')
-            ->assertViewHas('dados');
+            ->assertViewHas('dados')
+            ->assertViewHas('versoes')
+            ->assertViewHas('phpVersion')
+            ->assertSee('Stack de desenvolvimento')
+            ->assertSee('Arquitetura de imagens')
+            ->assertSee('Spatie MediaLibrary');
     }
 }
