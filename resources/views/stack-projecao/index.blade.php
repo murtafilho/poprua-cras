@@ -481,12 +481,81 @@
                 </div>
             </div>
 
-            {{-- 7. Síntese --}}
+            {{-- 7. Recomendação de infraestrutura --}}
             <div class="card sp-section">
                 <div class="card-body">
-                    <h2>7. Síntese</h2>
+                    <h2>7. Recomendação de infraestrutura — servidores dedicados</h2>
+                    <p>Com o crescimento projetado de zeladorias, fotografias e consultas geoespaciais, recomenda-se a segregação da infraestrutura em servidores dedicados a partir do <strong>Ano 2</strong>.</p>
+
+                    <h3>7.1 Servidor de banco de dados dedicado</h3>
+                    <p>O PostgreSQL com PostGIS executa queries geoespaciais (ST_DWithin, ST_MakeEnvelope) sobre milhares de pontos com índices GIST. À medida que a base de pontos e vistorias cresce, essas consultas competem por CPU e memória com a aplicação.</p>
+
+                    <div class="sp-table-wrap">
+                        <table class="sp-table">
+                            <thead>
+                                <tr><th>Aspecto</th><th>Situação atual (container único)</th><th>Recomendação (servidor dedicado)</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Engine</td><td>PostgreSQL 17 + PostGIS 3.5 no mesmo host da aplicação</td><td>Instância dedicada (VM ou managed — ex.: RDS, Cloud SQL)</td></tr>
+                                <tr><td>CPU / RAM</td><td>Compartilhada com PHP-FPM, Redis e Nginx</td><td>4 vCPU / 16 GB RAM (ajustar shared_buffers, work_mem)</td></tr>
+                                <tr><td>Armazenamento</td><td>Disco do container (SSD genérico)</td><td>SSD NVMe, IOPS provisionado p/ índices GIST</td></tr>
+                                <tr><td>Backup</td><td>pg_dump via cron no container</td><td>WAL archiving + point-in-time recovery (PITR)</td></tr>
+                                <tr><td>Réplica de leitura</td><td>Não disponível</td><td>Read replica para dashboards e relatórios PDF pesados</td></tr>
+                                <tr><td>Conexão</td><td>Socket local / localhost</td><td>Rede privada (VPC) via PgBouncer (pool de conexões)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="sp-callout">
+                        <strong>Gatilho sugerido:</strong> migrar o banco quando as queries de mapa ou geração de relatório ultrapassarem 500 ms (p95), ou quando a base de mídia comprometer I/O do disco compartilhado.
+                    </div>
+
+                    <h3>7.2 Servidor / serviço de arquivos dedicado</h3>
+                    <p>As fotografias são o maior vetor de crescimento de armazenamento. Cada foto gera 3 derivações (~430 KB total); a projeção de 5 anos aponta <strong>{{ number_format($ultimaProjecao['midiaGb'] ?? 0, 0, ',', '.') }} GB</strong> de mídia acumulada. Manter arquivos no mesmo volume do banco e da aplicação gera contenção de I/O e dificulta backup granular.</p>
+
+                    <div class="sp-table-wrap">
+                        <table class="sp-table">
+                            <thead>
+                                <tr><th>Aspecto</th><th>Situação atual (storage local)</th><th>Recomendação (storage dedicado)</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Localização</td><td>storage/app/public/ no volume Docker</td><td>NFS montado ou object storage (S3, MinIO, Azure Blob)</td></tr>
+                                <tr><td>Capacidade</td><td>Limitada ao disco do host</td><td>Escalável sob demanda (object storage ilimitado)</td></tr>
+                                <tr><td>Redundância</td><td>Sem redundância (backup manual)</td><td>Replicação automática + versionamento de objetos</td></tr>
+                                <tr><td>CDN</td><td>Servido pelo Nginx do container</td><td>CDN edge (CloudFront, Cloudflare R2) para thumbs/previews</td></tr>
+                                <tr><td>Custo estimado (Ano 5)</td><td>—</td><td>~R$ 50–80/mês (S3 Standard, {{ number_format($ultimaProjecao['midiaGb'] ?? 0, 0, ',', '.') }} GB)</td></tr>
+                                <tr><td>Integração Laravel</td><td>Filesystem driver <code>local</code></td><td>Filesystem driver <code>s3</code> (Spatie MediaLibrary suporta nativamente)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="sp-callout warn">
+                        <strong>Benefício imediato:</strong> separar o storage de mídia permite backup incremental das fotos sem impactar pg_dump, reduz I/O no disco do banco e viabiliza servir thumbnails via CDN — melhorando a experiência em campo (3G/4G).
+                    </div>
+
+                    <h3>7.3 Arquitetura alvo sugerida</h3>
+                    <div class="sp-pipeline">┌─────────────┐     ┌──────────────────────┐     ┌───────────────────────┐
+│  Aplicação   │────▸│  Banco de Dados      │     │  Armazenamento        │
+│  PHP-FPM     │     │  PostgreSQL + PostGIS │     │  de Arquivos          │
+│  + Nginx     │     │  (servidor dedicado)  │     │  (S3/MinIO/NFS)       │
+│  + Redis     │     │                      │     │                       │
+└──────┬───────┘     │  • 4 vCPU / 16 GB    │     │  • Object storage     │
+       │             │  • SSD NVMe          │     │  • CDN para thumbs    │
+       │             │  • PITR + réplica    │     │  • Backup incremental │
+       ├────────────▸│  • PgBouncer         │     │  • Driver s3 Laravel  │
+       │             └──────────────────────┘     └───────────────────────┘
+       │                                                    ▲
+       └────────────────────────────────────────────────────┘
+                    upload via Spatie MediaLibrary</div>
+                </div>
+            </div>
+
+            {{-- 8. Síntese --}}
+            <div class="card sp-section">
+                <div class="card-body">
+                    <h2>8. Síntese</h2>
                     <ul>
-                        <li>A aplicação SIZEM BH opera sobre stack <strong>Laravel 12 / PHP 8.4 / PostgreSQL+PostGIS / Redis</strong>, com fotos offline-first via PWA e Spatie MediaLibrary.</li>
+                        <li>A aplicação SIZEM opera sobre stack <strong>Laravel 12 / PHP 8.4 / PostgreSQL+PostGIS / Redis</strong>, com fotos offline-first via PWA e Spatie MediaLibrary.</li>
                         <li>O histórico de vistorias (2019–2025) reflete operação POPRUA Geo (~2.000–2.400/semestre); a operação SIZEM pós-migração registra crescimento orgânico em 2026.</li>
                         <li>Pontos mapeados: crescimento orgânico acelerado a partir de 2024, sobre base ETL de fev/2026.</li>
                         <li>Fotografias hoje: média <strong>{{ number_format($fotoStats['media'], 1, ',', '.') }} fotos/vistoria</strong> (legado); a nova versão tende a <strong>10–15 fotos/vistoria</strong>, mais fotos individuais de moradores.</li>
@@ -498,7 +567,7 @@
             </div>
 
             <p class="sp-footer-note">
-                SIZEM BH · Stack e projeção de uso · Dados extraídos em tempo real de {{ config('database.connections.pgsql.database', 'poprua_cras') }}
+                SIZEM · Stack e projeção de uso · Dados extraídos em tempo real de {{ config('database.connections.pgsql.database', 'poprua_cras') }}
             </p>
         </div>
     </div>
