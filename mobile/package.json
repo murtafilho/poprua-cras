@@ -1,0 +1,17 @@
+{
+  "name": "sizem-campo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shell Android (Capacitor) do SIZEM — ação em campo",
+  "scripts": {
+    "sync": "cap sync android",
+    "apk": "cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.6.7"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.6.7",
+    "typescript": "^5.9.3"
+  }
+}
