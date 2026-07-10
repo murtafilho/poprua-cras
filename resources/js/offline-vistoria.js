@@ -38,12 +38,14 @@ export async function enqueueVistoria(payload) {
         created_at: new Date().toISOString(),
         status: 'pending',
     };
-    return new Promise((resolve, reject) => {
+    const id = await new Promise((resolve, reject) => {
         const tx = db.transaction(STORE, 'readwrite');
         const req = tx.objectStore(STORE).add(record);
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
     });
+    await registerVistoriaSync();
+    return id;
 }
 
 export async function getPendingVistorias() {
@@ -116,4 +118,16 @@ export async function syncPendingVistorias(options = {}) {
         } catch { /* mantém na fila p/ nova tentativa */ }
     }
     return { total: pendentes.length, enviadas };
+}
+
+/** Agenda a sincronização (Background Sync, com fallback para o evento online). */
+export async function registerVistoriaSync() {
+    try {
+        const reg = await navigator.serviceWorker?.ready;
+        if (reg && 'sync' in reg) {
+            await reg.sync.register('sync-vistorias');
+            return;
+        }
+    } catch { /* cai no fallback */ }
+    // Fallback: dispara ao voltar a conexão (tratado nas páginas via evento online).
 }
