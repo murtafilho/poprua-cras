@@ -1,4 +1,4 @@
-const CACHE_VERSION = 34;
+const CACHE_VERSION = 36;
 const CACHE_NAME = 'poprua-v' + CACHE_VERSION;
 const TILE_CACHE = 'poprua-tiles-v1';
 const API_CACHE = 'poprua-api-v1';
@@ -105,6 +105,9 @@ self.addEventListener('sync', function(event) {
             syncPendingPhotos()
         );
     }
+    if (event.tag === 'sync-vistorias') {
+        event.waitUntil(syncPendingVistorias());
+    }
 });
 
 // --- Sincronizacao de fotos pendentes (Background Sync) ---
@@ -198,4 +201,121 @@ async function syncPendingPhotos() {
         } catch (e) { /* mantem na fila p/ nova tentativa */ }
     }
     db.close();
+}
+
+// --- Sincronizacao de vistorias pendentes (Background Sync) ---
+// Le a outbox poprua_vistorias, faz POST JSON /api/vistorias autenticado via
+// cookie XSRF, reconcilia as fotos temp -> id real no banco poprua_fotos e,
+// ao final, dispara o sync das fotos ja reconciliadas.
+
+function vistoriasDbOpen() {
+    return new Promise(function(resolve, reject) {
+        var req = indexedDB.open('poprua_vistorias', 1);
+        req.onsuccess = function(e) { resolve(e.target.result); };
+        req.onerror = function() { reject(req.error); };
+    });
+}
+
+function idbGetAllStore(db, store) {
+    return new Promise(function(resolve) {
+        if (!db.objectStoreNames.contains(store)) return resolve([]);
+        var tx = db.transaction(store, 'readonly');
+        var req = tx.objectStore(store).getAll();
+        req.onsuccess = function() { resolve(req.result || []); };
+        req.onerror = function() { resolve([]); };
+    });
+}
+
+function idbDeleteFrom(db, store, id) {
+    return new Promise(function(resolve) {
+        var tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).delete(id);
+        tx.oncomplete = function() { resolve(); };
+        tx.onerror = function() { resolve(); };
+    });
+}
+
+// Atualiza (merge) um registro existente de uma store, mantendo o mesmo id.
+// Usado para marcar status='failed' sem apagar o registro (dead-letter).
+function idbUpdateIn(db, store, id, changes) {
+    return new Promise(function(resolve) {
+        var tx = db.transaction(store, 'readwrite');
+        var os = tx.objectStore(store);
+        var req = os.get(id);
+        req.onsuccess = function() {
+            var record = req.result;
+            if (record) {
+                os.put(Object.assign({}, record, changes));
+            }
+        };
+        req.onerror = function() { resolve(); };
+        tx.oncomplete = function() { resolve(); };
+        tx.onerror = function() { resolve(); };
+    });
+}
+
+// Status HTTP que indicam rejeicao PERMANENTE pelo servidor — reenviar nao
+// vai adiantar (espelha PERMANENT_REJECTION_STATUSES em offline-vistoria.js).
+var PERMANENT_REJECTION_STATUSES = [422, 409, 403];
+
+// Reescreve vistoria_id temp_* -> id real no banco de fotos poprua_fotos.
+async function reconcilePhotosInSw(tempId, realId) {
+    if (!tempId) return;
+    var db;
+    try { db = await idbOpen(); } catch (e) { return; }
+    var fotos = (await idbGetAll(db)).filter(function(f) {
+        return (f.vistoria_id || f.vistoriaId) === tempId;
+    });
+    await new Promise(function(resolve) {
+        var tx = db.transaction('pendentes', 'readwrite');
+        var store = tx.objectStore('pendentes');
+        fotos.forEach(function(f) { f.vistoria_id = realId; delete f.vistoriaId; store.put(f); });
+        tx.oncomplete = function() { resolve(); };
+        tx.onerror = function() { resolve(); };
+    });
+    db.close();
+}
+
+async function syncPendingVistorias() {
+    var db;
+    try { db = await vistoriasDbOpen(); } catch (e) { return; }
+    var todos = await idbGetAllStore(db, 'pendentes');
+    var pendentes = todos.filter(function(r) { return r.status !== 'failed'; });
+    if (pendentes.length === 0) { db.close(); return; }
+
+    var xsrf = await getXsrfToken();
+    var endpoint = new URL('api/vistorias', self.registration.scope).toString();
+    var reconciliouAlguma = false;
+
+    for (var i = 0; i < pendentes.length; i++) {
+        var rec = pendentes[i];
+        try {
+            var headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+            if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
+            var resp = await fetch(endpoint, {
+                method: 'POST',
+                body: JSON.stringify(rec.payload),
+                headers: headers,
+                credentials: 'same-origin'
+            });
+            if (resp.ok) {
+                var data = await resp.json();
+                await reconcilePhotosInSw(rec.temp_photo_id, data.id);
+                await idbDeleteFrom(db, 'pendentes', rec.id);
+                reconciliouAlguma = true;
+            } else if (PERMANENT_REJECTION_STATUSES.indexOf(resp.status) !== -1) {
+                // Rejeicao permanente do servidor (dado invalido/duplicidade/
+                // autorizacao): marca como 'failed' em vez de deixar 'pending'
+                // para nao ficar retentando para sempre (dead-letter).
+                await idbUpdateIn(db, 'pendentes', rec.id, { status: 'failed' });
+            }
+            // 5xx/outros: mantem 'pending' na fila para nova tentativa.
+        } catch (e) { /* falha de rede: mantem na fila p/ nova tentativa */ }
+    }
+    db.close();
+
+    // Fotos agora reconciliadas podem subir.
+    if (reconciliouAlguma) {
+        await syncPendingPhotos();
+    }
 }

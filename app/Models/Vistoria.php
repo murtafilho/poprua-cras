@@ -36,6 +36,7 @@ class Vistoria extends Model implements HasMedia
     protected $table = 'vistorias';
 
     protected $fillable = [
+        'client_uuid',
         'data_abordagem',
         'nomes_pessoas',
         'quantidade_pessoas',

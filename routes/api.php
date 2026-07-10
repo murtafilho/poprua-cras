@@ -48,6 +48,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 
 // Fotos de Vistorias (upload offline-first via Service Worker)
 Route::middleware(['web', 'auth'])->group(function () {
+    Route::post('/vistorias', [App\Http\Controllers\Api\VistoriaController::class, 'store']);
     Route::post('/vistorias/fotos', [VistoriaFotoController::class, 'store']);
     Route::get('/vistorias/{vistoria}/fotos/status', [VistoriaFotoController::class, 'status']);
     Route::post('/vistorias/{vistoria}/fotos/{mediaId}/toggle-publica', [VistoriaFotoController::class, 'togglePublica']);

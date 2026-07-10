@@ -56,6 +56,10 @@ class VistoriaService
             $fields['ponto_id'] = $pontoId;
             $fields['user_id'] = $request->user()->id;
 
+            if (! empty($validated['client_uuid'])) {
+                $fields['client_uuid'] = $validated['client_uuid'];
+            }
+
             $vistoria = Vistoria::create($fields);
 
             // Sincronizar participantes da equipe
