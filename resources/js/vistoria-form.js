@@ -915,7 +915,10 @@ function buildApiPayloadFromForm(form) {
     const data = new FormData(form);
     const payload = {};
     for (const [rawKey, value] of data.entries()) {
-        if (rawKey === '_token' || rawKey === '_method' || rawKey.startsWith('fotos')) continue;
+        if (rawKey === '_token' || rawKey === '_method') continue;
+        if (rawKey.startsWith('fotos') || rawKey.startsWith('legendas_fotos') || rawKey.startsWith('publicas_fotos')) {
+            continue; // fotos trafegam pela fila própria, não neste payload JSON
+        }
         setNestedFormValue(payload, parseFormFieldPath(rawKey), value);
     }
     return payload;
@@ -1145,8 +1148,9 @@ if (formEl) {
         payload.client_uuid = crypto.randomUUID();
         const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
+        let resp;
         try {
-            const resp = await fetch(`${APP_BASE}/api/vistorias`, {
+            resp = await fetch(`${APP_BASE}/api/vistorias`, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
@@ -1156,30 +1160,36 @@ if (formEl) {
                 },
                 body: JSON.stringify(payload),
             });
-            if (!resp.ok) {
-                if (resp.status === 422) {
-                    const err = await resp.json().catch(() => ({}));
-                    const msg = err.message || 'Verifique os campos obrigatórios.';
-                    window.showToast?.(msg, 'warning');
-                    formSubmitting = false;
-                    resetSubmitIndicator();
-                    return;
-                }
-                throw new Error(`status ${resp.status}`);
-            }
-            const data = await resp.json();
-            await reconcileTempId(getTempPhotoId(), data.id);
-            limparRascunho();
-            window.location.assign(data.redirect_url);
-        } catch (_) {
-            // Rede indisponível (ou erro inesperado que não seja 422) →
-            // enfileira na outbox e sincroniza depois, quando a conexão voltar.
+        } catch (_networkErr) {
+            // Rede indisponível → enfileira e sincroniza depois.
             await enqueueVistoria(payload);
             limparRascunho();
             window.updateSyncBadge?.();
             window.showToast?.('Vistoria salva no aparelho — será enviada quando houver conexão.', 'info');
             window.location.assign(`${APP_BASE}/minhas-vistorias`);
+            return;
         }
+
+        // O servidor respondeu: NÃO enfileirar (não é offline).
+        if (!resp.ok) {
+            if (resp.status === 422) {
+                const err = await resp.json().catch(() => ({}));
+                window.showToast?.(err.message || 'Verifique os campos obrigatórios.', 'warning');
+            } else {
+                window.showToast?.('Não foi possível registrar a vistoria. Tente novamente.', 'error');
+            }
+            formSubmitting = false;
+            resetSubmitIndicator();
+            return;
+        }
+
+        const data = await resp.json();
+        // Sucesso: reconcilia as fotos (tolerante a falha do IndexedDB — a vistoria já existe).
+        try {
+            await reconcileTempId(getTempPhotoId(), data.id);
+        } catch (_reconcileErr) { /* não bloqueia o redirect */ }
+        limparRascunho();
+        window.location.assign(data.redirect_url);
     });
 
     formEl.addEventListener('change', () => {
