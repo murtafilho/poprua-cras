@@ -204,14 +204,7 @@ class VistoriaController extends Controller
     public function finalizar(Vistoria $vistoria): RedirectResponse
     {
         $this->authorize('update', $vistoria);
-
-        $vistoria->update([
-            'finalizada' => true,
-            'finalizada_em' => now(),
-            'finalizada_por' => auth()->id(),
-        ]);
-
-        $this->invalidarCachesPosMutacaoVistoria();
+        $this->vistoriaService->finalizar($vistoria);
 
         return redirect()->route('vistorias.show', $vistoria)->with('success', 'Zeladoria finalizada com sucesso!');
     }
@@ -219,14 +212,7 @@ class VistoriaController extends Controller
     public function reativar(Vistoria $vistoria): RedirectResponse
     {
         $this->authorize('reativar', $vistoria);
-
-        $vistoria->update([
-            'finalizada' => false,
-            'finalizada_em' => null,
-            'finalizada_por' => null,
-        ]);
-
-        $this->invalidarCachesPosMutacaoVistoria();
+        $this->vistoriaService->reativar($vistoria);
 
         return redirect()->route('vistorias.show', $vistoria)->with('success', 'Zeladoria reativada. O responsavel pode retomar a edicao.');
     }
@@ -234,14 +220,7 @@ class VistoriaController extends Controller
     public function cancelar(Vistoria $vistoria): RedirectResponse
     {
         $this->authorize('cancelar', $vistoria);
-
-        $vistoria->update([
-            'cancelada' => true,
-            'cancelada_em' => now(),
-            'cancelada_por' => auth()->id(),
-        ]);
-
-        $this->invalidarCachesPosMutacaoVistoria();
+        $this->vistoriaService->cancelar($vistoria);
 
         return redirect()->route('vistorias.show', $vistoria)->with('success', 'Zeladoria cancelada.');
     }

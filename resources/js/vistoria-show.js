@@ -7,6 +7,7 @@ import {
     removePendingPhotoById,
     uploadPendingPhoto,
 } from './offline-upload';
+import { enqueueAcao, getPendingAcoes } from './offline-vistoria-acao';
 
 const slideshowUrls = [...(window.SLIDESHOW_URLS || [])];
 const slideshowLegends = [...(window.SLIDESHOW_LEGENDS || [])];
@@ -279,3 +280,76 @@ bindSlideshowUi();
 })();
 
 document.getElementById('btn-print-vistoria')?.addEventListener('click', () => window.print());
+
+(function wireAcoesEstado() {
+    const APP_BASE = document.querySelector('meta[name="app-base"]')?.content ?? '';
+    const forms = document.querySelectorAll('form[data-acao-offline]');
+
+    forms.forEach((form) => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const acao = form.getAttribute('data-acao-offline');
+            const msg = form.getAttribute('data-confirm');
+            if (msg && !confirm(msg)) return;
+
+            const vistoriaId = window.VISTORIA_ID;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+            const botoes = document.querySelectorAll('form[data-acao-offline] button');
+            botoes.forEach((b) => (b.disabled = true));
+
+            let resp;
+            try {
+                resp = await fetch(`${APP_BASE}/api/vistorias/${vistoriaId}/${acao}`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
+                });
+            } catch (_networkErr) {
+                await enqueueAcao({ vistoria_id: vistoriaId, acao });
+                window.updateSyncBadge?.();
+                window.showToast?.('Ação salva no aparelho — será enviada quando houver conexão.', 'info');
+                marcarPendente(form);
+                aguardarResolucaoAcao(vistoriaId, botoes);
+                return;
+            }
+
+            if (!resp.ok) {
+                botoes.forEach((b) => (b.disabled = false));
+                window.showToast?.('Não foi possível registrar a ação. Tente novamente.', 'error');
+                return;
+            }
+            window.location.reload(); // reflete o novo estado (espelha o comportamento web)
+        });
+    });
+
+    function marcarPendente(form) {
+        const btn = form.querySelector('button');
+        if (btn) btn.textContent = 'Pendente de envio…';
+    }
+
+    // Observa a fila até a ação desta vistoria ser resolvida — por qualquer via
+    // (Background Sync do SW OU sync em nível de página) — e reflete na tela,
+    // sem depender de quem efetuou a sincronização.
+    function aguardarResolucaoAcao(vistoriaId, botoes) {
+        const intervalo = setInterval(async () => {
+            let acoes;
+            try {
+                acoes = await getPendingAcoes();
+            } catch {
+                return;
+            }
+            const minha = acoes.find((a) => String(a.vistoria_id) === String(vistoriaId));
+            if (!minha) {
+                // sincronizada e removida da fila → reflete o novo estado
+                clearInterval(intervalo);
+                window.location.reload();
+            } else if (minha.status === 'failed') {
+                // recusada pelo servidor (dead-letter) → avisa e mostra o estado real
+                clearInterval(intervalo);
+                botoes.forEach((b) => (b.disabled = false));
+                window.showToast?.('A ação foi recusada pelo servidor (o estado pode ter mudado).', 'warning');
+                setTimeout(() => window.location.reload(), 2500);
+            }
+        }, 2000);
+    }
+})();
