@@ -1,10 +1,17 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "murtafilho/poprua-cras",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "SIZEM — Sistema Integrado de Zeladoria Municipal (geo + vistorias + CRAS). Fork de poprua-geo.",
+    "keywords": ["sizem", "zeladoria", "cras", "postgis", "laravel", "pwa", "fiscalizacao"],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Roberto Luciano",
+            "email": "murtafilho@gmail.com"
+        }
+    ],
+    "homepage": "https://github.com/murtafilho/poprua-cras",
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
