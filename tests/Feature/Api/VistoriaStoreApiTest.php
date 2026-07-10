@@ -71,6 +71,22 @@ class VistoriaStoreApiTest extends TestCase
         $this->assertSame(1, Vistoria::where('client_uuid', $uuid)->count());
     }
 
+    public function test_client_uuid_de_outro_usuario_retorna_conflito_em_vez_de_500(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+        $uuid = '66666666-6666-4666-8666-666666666666';
+
+        $rA = $this->actingAs($userA)->postJson('/api/vistorias', $this->payloadValido($uuid));
+        $rA->assertOk();
+
+        $rB = $this->actingAs($userB)->postJson('/api/vistorias', $this->payloadValido($uuid));
+
+        $rB->assertStatus(409);
+        $this->assertNotSame($rA->json('id'), $rB->json('id'));
+        $this->assertSame(1, Vistoria::where('client_uuid', $uuid)->count());
+    }
+
     public function test_valida_campos_obrigatorios(): void
     {
         $user = User::factory()->create();

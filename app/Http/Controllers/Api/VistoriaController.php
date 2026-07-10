@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreVistoriaApiRequest;
 use App\Models\Vistoria;
 use App\Services\VistoriaService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 
 class VistoriaController extends Controller
@@ -30,10 +31,29 @@ class VistoriaController extends Controller
             return $this->respostaVistoria($existente->id, $validated['client_uuid']);
         }
 
-        $result = $this->vistoriaService->criarComRelacionamentos($request, $validated);
-        $this->vistoriaService->invalidarCacheListagem();
+        try {
+            $result = $this->vistoriaService->criarComRelacionamentos($request, $validated);
+            $this->vistoriaService->invalidarCacheListagem();
 
-        return $this->respostaVistoria($result['vistoria']->id, $validated['client_uuid']);
+            return $this->respostaVistoria($result['vistoria']->id, $validated['client_uuid']);
+        } catch (QueryException $e) {
+            if (! $this->ehViolacaoUnicidade($e)) {
+                throw $e;
+            }
+
+            // Corrida: outra requisição criou primeiro. Se for do mesmo usuário, devolve idempotente.
+            $existente = Vistoria::query()
+                ->where('user_id', $userId)
+                ->where('client_uuid', $validated['client_uuid'])
+                ->first();
+
+            if ($existente) {
+                return $this->respostaVistoria($existente->id, $validated['client_uuid']);
+            }
+
+            // client_uuid pertence a outro usuário — conflito real, não vaza dado alheio.
+            return response()->json(['message' => 'client_uuid já utilizado por outro registro.'], 409);
+        }
     }
 
     private function respostaVistoria(int $id, string $clientUuid): JsonResponse
@@ -43,5 +63,10 @@ class VistoriaController extends Controller
             'redirect_url' => route('vistorias.show', $id),
             'client_uuid' => $clientUuid,
         ]);
+    }
+
+    private function ehViolacaoUnicidade(QueryException $e): bool
+    {
+        return $e->getCode() === '23505';
     }
 }
