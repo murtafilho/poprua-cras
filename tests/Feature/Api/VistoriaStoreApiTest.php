@@ -83,7 +83,7 @@ class VistoriaStoreApiTest extends TestCase
         $rB = $this->actingAs($userB)->postJson('/api/vistorias', $this->payloadValido($uuid));
 
         $rB->assertStatus(409);
-        $this->assertNotSame($rA->json('id'), $rB->json('id'));
+        $this->assertArrayNotHasKey('id', $rB->json());
         $this->assertSame(1, Vistoria::where('client_uuid', $uuid)->count());
     }
 

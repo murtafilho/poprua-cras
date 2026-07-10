@@ -37,8 +37,8 @@ class VistoriaController extends Controller
 
             return $this->respostaVistoria($result['vistoria']->id, $validated['client_uuid']);
         } catch (QueryException $e) {
-            if (! $this->ehViolacaoUnicidade($e)) {
-                throw $e;
+            if (! $this->ehViolacaoClientUuid($e)) {
+                throw $e; // ex.: user_team_unique e outras violações → 500 honesto/retryável
             }
 
             // Corrida: outra requisição criou primeiro. Se for do mesmo usuário, devolve idempotente.
@@ -65,8 +65,9 @@ class VistoriaController extends Controller
         ]);
     }
 
-    private function ehViolacaoUnicidade(QueryException $e): bool
+    private function ehViolacaoClientUuid(QueryException $e): bool
     {
-        return $e->getCode() === '23505';
+        return $e->getCode() === '23505'
+            && str_contains($e->getMessage(), 'vistorias_client_uuid_unique');
     }
 }
