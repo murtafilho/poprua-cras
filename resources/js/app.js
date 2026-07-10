@@ -9,6 +9,7 @@ import {
     uploadPendingPhoto,
 } from './offline-upload';
 import { countPendingVistorias, syncPendingVistorias } from './offline-vistoria';
+import { countPendingAcoes, syncPendingAcoes } from './offline-vistoria-acao';
 
 // Alpine.js (usado pelo Breeze)
 import Alpine from 'alpinejs';
@@ -143,11 +144,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     async function updateSyncBadge() {
-        const [fotos, vistorias] = await Promise.all([
+        const [fotos, vistorias, acoes] = await Promise.all([
             countSyncablePhotos(),
             countPendingVistorias(),
+            countPendingAcoes(),
         ]);
-        const count = fotos + vistorias;
+        const count = fotos + vistorias + acoes;
         const badge = document.getElementById('sync-badge');
         if (badge) {
             badge.textContent = count;
@@ -158,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.syncAllPendingPhotos = async function() {
         const rv = await syncPendingVistorias({ appBase: APP_BASE, csrfToken });
+        await syncPendingAcoes({ appBase: APP_BASE, csrfToken });
         await updateSyncBadge();
 
         // Vistorias tem prioridade na mensagem: recusa permanente (dead-letter)
@@ -221,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (rv.enviadas > 0) {
                 showToast(`${rv.enviadas} vistoria(s) enviada(s).`, 'success');
             }
+            await syncPendingAcoes({ appBase: APP_BASE, csrfToken });
             await updateSyncBadge();
         } finally {
             autoSyncEmAndamento = false;
