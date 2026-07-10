@@ -1,12 +1,14 @@
 # SIZEM — Sistema Integrado de Zeladoria Municipal
 
-Sistema de gestao geoespacial de vistorias e zeladoria urbana para CRAS (Centro de Referencia de Assistencia Social).
+Sistema de gestão geoespacial de vistorias e zeladoria urbana, com foco em fluxos de CRAS (Centro de Referência de Assistência Social) e monitoramento territorial de população em situação de rua.
 
-> Fork do [poprua-geo](https://github.com/murtafilho/poprua-geo) — herda Ponto/Vistoria/Morador + PostGIS + PWA, adaptado para os fluxos especificos do CRAS e zeladoria municipal.
+> Fork do [poprua-geo](https://github.com/murtafilho/poprua-geo) — herda Ponto / Vistoria / Morador + PostGIS + PWA, adaptado para zeladoria e assistência.
+
+**Licença:** [MIT](LICENSE) · Copyright © 2025–2026 Roberto Luciano
 
 ## Stack
 
-| Componente | Versao |
+| Componente | Versão |
 |------------|--------|
 | PHP | 8.4 |
 | Laravel | 12 |
@@ -15,30 +17,40 @@ Sistema de gestao geoespacial de vistorias e zeladoria urbana para CRAS (Centro 
 | Leaflet.js | Mapa interativo |
 | Alpine.js | JavaScript reativo |
 | Vite | Build de assets |
+| Capacitor | App Android (pasta `mobile/`) |
+
+## Funcionalidades
+
+- Mapa de pontos de concentração (PostGIS)
+- Vistorias / zeladorias em campo (web + PWA offline)
+- Cadastro de moradores e anexos fotográficos
+- Relatórios e gestão com RBAC (Spatie Permission)
+- App mobile Capacitor (sincronização / outbox)
 
 ## Primeiros passos
 
-O projeto roda em containers Docker. Todos os comandos artisan/composer/npm devem ser executados dentro do container.
+O projeto roda em containers Docker. Comandos `artisan` / `composer` / `npm` devem rodar dentro do container.
 
 ```bash
-# Prefixo para execucao no container
+# Prefixo para execução no container
 EXEC="sudo docker exec -u root php84-poprua-cras"
 
 # 1. Clonar e configurar
-git clone <repo-url> && cd poprua-cras
+git clone https://github.com/murtafilho/poprua-cras.git
+cd poprua-cras
 cp .env.example .env
-# Editar .env: DB_PASSWORD, APP_KEY (depois)
+# Editar .env: DB_PASSWORD, etc.
 
 # 2. Subir containers
 docker compose up -d
 
-# 3. Instalar dependencias e migrar
+# 3. Dependências e migrate
 $EXEC composer install --no-interaction
 $EXEC npm install && $EXEC npm run build
 $EXEC php artisan key:generate --no-interaction
 $EXEC php artisan migrate --no-interaction
 
-# 4. Criar usuario admin
+# 4. Usuário admin
 $EXEC php artisan tinker --execute="
     \$u = \App\Models\User::create(['name'=>'Admin','email'=>'admin@example.com','password'=>bcrypt('password')]);
     \$r = \Spatie\Permission\Models\Role::firstOrCreate(['name'=>'admin']);
@@ -48,46 +60,33 @@ $EXEC php artisan tinker --execute="
 
 Acesse `http://localhost:9086`.
 
-## Containers
+## Containers (dev)
 
-| Container | Porta Host | Uso |
-|-----------|-----------|-----|
-| `php84-poprua-cras` | 9086 | PHP-FPM 8.4 (codigo via bind mount) |
-| `pg17-poprua-cras` | 5434 | PostgreSQL 17 + PostGIS 3.5 |
-| `redis-poprua-cras` | 6380 | Cache/queue |
-| `ssh-poprua-cras` | 2226 | Sidecar SSH para acesso remoto |
+| Container | Porta host | Uso |
+|-----------|------------|-----|
+| `php84-poprua-cras` | 9086 | PHP-FPM 8.4 |
+| `pg17-poprua-cras` | 5434 | PostgreSQL 17 + PostGIS |
+| `redis-poprua-cras` | 6380 | Cache / queue |
 | `queue-poprua-cras` | — | Worker Redis |
 
-## Producao
-
-URL: `https://sufis.pbh.gov.br/ginfi/poprua-cras/public`
-
-Deploy no `vlcp-sufis01`:
-
-```bash
-# No host
-sudo mkdir -p /var/www/html/joomla_sufis/ginfi/poprua-cras
-cd /var/www/html/joomla_sufis/ginfi
-sudo git clone https://github.com/murtafilho/poprua-cras.git poprua-cras
-sudo chown -R www-data:www-data poprua-cras
-
-sudo bash poprua-cras/docker/rebuild.sh
-```
-
-O script `rebuild.sh` gera o `docker-compose.yml` em `/opt/docker/poprua-cras/` com bind mounts absolutos e portas finais.
-
-## Comandos uteis
+## Comandos úteis
 
 ```bash
 EXEC="sudo docker exec -u root php84-poprua-cras"
 
-$EXEC php artisan test                        # Testes
-$EXEC php artisan test --filter=NomeDoTeste   # Teste especifico
-$EXEC vendor/bin/pint --dirty                 # Lint
-$EXEC vendor/bin/phpstan analyse              # Analise estatica (level 6)
-$EXEC php artisan migrate --no-interaction    # Rodar migrations
+$EXEC php artisan test
+$EXEC vendor/bin/pint --dirty
+$EXEC vendor/bin/phpstan analyse
 ```
 
-## Licenca
+## Contribuindo
 
-Projeto proprietario — Prefeitura de Belo Horizonte
+Issues e PRs são bem-vindos. Antes de abrir PR:
+
+1. Rode os testes (`php artisan test`)
+2. Mantenha o estilo com Pint
+3. Não versionar `.env`, dumps SQL nem mídia de produção
+
+## Licença
+
+Distribuído sob a licença **MIT**. Veja [LICENSE](LICENSE).

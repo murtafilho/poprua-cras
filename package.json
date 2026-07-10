@@ -1,6 +1,8 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
+    "name": "poprua-cras",
     "private": true,
+    "license": "MIT",
     "type": "module",
     "scripts": {
         "build": "vite build",
