@@ -598,7 +598,7 @@
         @if(!$vistoria->finalizada)
             @can('update', $vistoria)
                 <form action="{{ route('vistorias.finalizar', $vistoria) }}" method="POST" style="margin-bottom: var(--space-3);"
-                      x-on:submit="if(!confirm('Deseja finalizar esta zeladoria? Apos a finalizacao, nao sera possivel editar.')) $event.preventDefault()">
+                      data-acao-offline="finalizar" data-confirm="Deseja finalizar esta zeladoria? Apos a finalizacao, nao sera possivel editar.">
                     @csrf
                     <button type="submit" class="btn btn-primary w-full">
                         <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -611,7 +611,7 @@
         @else
             @can('reativar', $vistoria)
                 <form action="{{ route('vistorias.reativar', $vistoria) }}" method="POST" style="margin-bottom: var(--space-3);"
-                      x-on:submit="if(!confirm('Deseja reativar esta zeladoria para que o responsavel possa retomar a edicao?')) $event.preventDefault()">
+                      data-acao-offline="reativar" data-confirm="Deseja reativar esta zeladoria para que o responsavel possa retomar a edicao?">
                     @csrf
                     <button type="submit" class="btn btn-secondary w-full">
                         <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -643,7 +643,7 @@
         {{-- Botao Cancelar --}}
         @can('cancelar', $vistoria)
             <form action="{{ route('vistorias.cancelar', $vistoria) }}" method="POST" style="margin-bottom: var(--space-3);"
-                  x-on:submit="if(!confirm('Deseja cancelar esta zeladoria? Esta acao nao podera ser desfeita.')) $event.preventDefault()">
+                  data-acao-offline="cancelar" data-confirm="Deseja cancelar esta zeladoria? Esta acao nao podera ser desfeita.">
                 @csrf
                 <button type="submit" class="btn btn-danger w-full">
                     <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
