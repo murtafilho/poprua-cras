@@ -1,4 +1,4 @@
-const CACHE_VERSION = 36;
+const CACHE_VERSION = 37;
 const CACHE_NAME = 'poprua-v' + CACHE_VERSION;
 const TILE_CACHE = 'poprua-tiles-v1';
 const API_CACHE = 'poprua-api-v1';
@@ -107,6 +107,9 @@ self.addEventListener('sync', function(event) {
     }
     if (event.tag === 'sync-vistorias') {
         event.waitUntil(syncPendingVistorias());
+    }
+    if (event.tag === 'sync-acoes-vistoria') {
+        event.waitUntil(syncPendingAcoes());
     }
 });
 
@@ -318,4 +321,43 @@ async function syncPendingVistorias() {
     if (reconciliouAlguma) {
         await syncPendingPhotos();
     }
+}
+
+// --- Sincronizacao de acoes de estado (finalizar/cancelar/reativar) ---
+// Le a outbox poprua_vistoria_acoes (Task 3), faz POST idempotente para
+// /api/vistorias/{id}/{acao} autenticado via cookie XSRF. Como os endpoints
+// de acao sao idempotentes (Task 2), reenviar uma acao ja aplicada retorna
+// 200 — por isso o dead-letter aqui e so [403, 404, 422] (sem 409).
+
+function acoesDbOpen() {
+    return new Promise(function(resolve, reject) {
+        var req = indexedDB.open('poprua_vistoria_acoes', 1);
+        req.onsuccess = function(e) { resolve(e.target.result); };
+        req.onerror = function() { reject(req.error); };
+    });
+}
+
+async function syncPendingAcoes() {
+    var db;
+    try { db = await acoesDbOpen(); } catch (e) { return; }
+    var acoes = (await idbGetAllStore(db, 'pendentes')).filter(function(a) { return a.status !== 'failed'; });
+    if (acoes.length === 0) { db.close(); return; }
+
+    var xsrf = await getXsrfToken();
+    for (var i = 0; i < acoes.length; i++) {
+        var a = acoes[i];
+        try {
+            var endpoint = new URL('api/vistorias/' + a.vistoria_id + '/' + a.acao, self.registration.scope).toString();
+            var headers = { 'Accept': 'application/json' };
+            if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
+            var resp = await fetch(endpoint, { method: 'POST', headers: headers, credentials: 'same-origin' });
+            if (resp.ok) {
+                await idbDeleteFrom(db, 'pendentes', a.id);
+            } else if ([403, 404, 422].indexOf(resp.status) !== -1) {
+                await idbUpdateIn(db, 'pendentes', a.id, { status: 'failed' });
+            }
+            // 5xx/outros: mantem 'pending' na fila para nova tentativa.
+        } catch (e) { /* falha de rede: mantem na fila p/ nova tentativa */ }
+    }
+    db.close();
 }
