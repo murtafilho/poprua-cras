@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\MoradorController;
 use App\Http\Controllers\Api\MoradorFotoController;
 use App\Http\Controllers\Api\PontoController;
+use App\Http\Controllers\Api\VistoriaAcaoController;
 use App\Http\Controllers\Api\VistoriaFotoController;
 use App\Http\Controllers\Api\VistoriaRascunhoController;
 use App\Http\Controllers\VistoriaController;
@@ -53,6 +54,11 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/vistorias/{vistoria}/fotos/status', [VistoriaFotoController::class, 'status']);
     Route::post('/vistorias/{vistoria}/fotos/{mediaId}/toggle-publica', [VistoriaFotoController::class, 'togglePublica']);
     Route::patch('/vistorias/{vistoria}/fotos/{mediaId}/legenda', [VistoriaFotoController::class, 'setLegenda']);
+
+    // Ações de estado (offline-first): finalizar/cancelar/reativar via JSON
+    Route::post('/vistorias/{vistoria}/finalizar', [VistoriaAcaoController::class, 'finalizar']);
+    Route::post('/vistorias/{vistoria}/cancelar', [VistoriaAcaoController::class, 'cancelar']);
+    Route::post('/vistorias/{vistoria}/reativar', [VistoriaAcaoController::class, 'reativar']);
 });
 
 // Client logs (debug mobile)
