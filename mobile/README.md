@@ -34,3 +34,7 @@ cd android && ./gradlew assembleDebug
 ```bash
 adb install -r mobile/android/app/build/outputs/apk/debug/app-debug.apk
 ```
+
+## Status
+
+- APK debug gerado com sucesso em app/build/outputs/apk/debug/app-debug.apk
