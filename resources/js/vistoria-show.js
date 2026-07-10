@@ -7,7 +7,7 @@ import {
     removePendingPhotoById,
     uploadPendingPhoto,
 } from './offline-upload';
-import { enqueueAcao } from './offline-vistoria-acao';
+import { enqueueAcao, getPendingAcoes } from './offline-vistoria-acao';
 
 const slideshowUrls = [...(window.SLIDESHOW_URLS || [])];
 const slideshowLegends = [...(window.SLIDESHOW_LEGENDS || [])];
@@ -284,7 +284,6 @@ document.getElementById('btn-print-vistoria')?.addEventListener('click', () => w
 (function wireAcoesEstado() {
     const APP_BASE = document.querySelector('meta[name="app-base"]')?.content ?? '';
     const forms = document.querySelectorAll('form[data-acao-offline]');
-    let acaoEnfileiradaNestaPagina = false;
 
     forms.forEach((form) => {
         form.addEventListener('submit', async (e) => {
@@ -307,10 +306,10 @@ document.getElementById('btn-print-vistoria')?.addEventListener('click', () => w
                 });
             } catch (_networkErr) {
                 await enqueueAcao({ vistoria_id: vistoriaId, acao });
-                acaoEnfileiradaNestaPagina = true;
                 window.updateSyncBadge?.();
                 window.showToast?.('Ação salva no aparelho — será enviada quando houver conexão.', 'info');
                 marcarPendente(form);
+                aguardarResolucaoAcao(vistoriaId, botoes);
                 return;
             }
 
@@ -328,16 +327,29 @@ document.getElementById('btn-print-vistoria')?.addEventListener('click', () => w
         if (btn) btn.textContent = 'Pendente de envio…';
     }
 
-    // Reage ao resultado da sincronização feita pelo app.js (sync único).
-    window.addEventListener('poprua:acoes-sync', (e) => {
-        if (!acaoEnfileiradaNestaPagina) return;
-        const r = e.detail || {};
-        if (r.enviadas > 0) {
-            window.location.reload(); // aplicada no servidor: reflete o novo estado
-        } else if (r.falhas > 0) {
-            acaoEnfileiradaNestaPagina = false;
-            document.querySelectorAll('form[data-acao-offline] button').forEach((b) => { b.disabled = false; });
-            // o toast de falha já vem do app.js
-        }
-    });
+    // Observa a fila até a ação desta vistoria ser resolvida — por qualquer via
+    // (Background Sync do SW OU sync em nível de página) — e reflete na tela,
+    // sem depender de quem efetuou a sincronização.
+    function aguardarResolucaoAcao(vistoriaId, botoes) {
+        const intervalo = setInterval(async () => {
+            let acoes;
+            try {
+                acoes = await getPendingAcoes();
+            } catch {
+                return;
+            }
+            const minha = acoes.find((a) => String(a.vistoria_id) === String(vistoriaId));
+            if (!minha) {
+                // sincronizada e removida da fila → reflete o novo estado
+                clearInterval(intervalo);
+                window.location.reload();
+            } else if (minha.status === 'failed') {
+                // recusada pelo servidor (dead-letter) → avisa e mostra o estado real
+                clearInterval(intervalo);
+                botoes.forEach((b) => (b.disabled = false));
+                window.showToast?.('A ação foi recusada pelo servidor (o estado pode ter mudado).', 'warning');
+                setTimeout(() => window.location.reload(), 2500);
+            }
+        }, 2000);
+    }
 })();
