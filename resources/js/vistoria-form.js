@@ -8,10 +8,13 @@ import {
     updatePendingPhotoLegenda,
     updatePendingPhotoPublica,
     MAX_FILE_SIZE_BYTES,
+    reconcileTempId,
+    getTempPhotoId,
 } from './offline-upload';
 import { initDynamicClickHandlers, initStepperNavigation } from './vistoria-delegation';
 import { updateComunicadoZeladoriaCampos as syncComunicadoZeladoriaCampos } from './comunicado-zeladoria-campos';
 import { renderFotosGrid } from './foto-preview';
+import { enqueueVistoria, syncPendingVistorias } from './offline-vistoria';
 
 const fotoTempId = initTempPhotoSession();
 
@@ -585,6 +588,9 @@ function showSubmitSavingIndicator() {
         return;
     }
 
+    if (btn.dataset.originalHtml === undefined) {
+        btn.dataset.originalHtml = btn.innerHTML;
+    }
     btn.dataset.submitting = '1';
     btn.disabled = true;
     btn.classList.add('btn-disabled');
@@ -609,6 +615,38 @@ function showSubmitSavingIndicator() {
         rascunhoEl.textContent = 'Registrando zeladoria...';
         rascunhoEl.style.color = 'var(--text-muted)';
     }
+}
+
+/**
+ * Reverte showSubmitSavingIndicator() quando o envio falha com 422 e o
+ * usuário permanece na página (sem isso o botão ficaria travado
+ * "Registrando..." para sempre, já que não há mais reload de página nesse
+ * caminho — o submit agora é via fetch, não form nativo).
+ */
+function resetSubmitIndicator() {
+    const btn = document.getElementById('btn-submit');
+    if (btn) {
+        btn.dataset.submitting = '';
+        btn.disabled = false;
+        btn.classList.remove('btn-disabled');
+        btn.removeAttribute('aria-busy');
+        if (btn.dataset.originalHtml !== undefined) {
+            btn.innerHTML = btn.dataset.originalHtml;
+        }
+    }
+
+    const statusEl = document.getElementById('submit-status');
+    if (statusEl) statusEl.style.display = 'none';
+
+    const cancelBtn = document.getElementById('btn-cancelar-vistoria');
+    if (cancelBtn) {
+        cancelBtn.style.pointerEvents = '';
+        cancelBtn.style.opacity = '';
+        cancelBtn.removeAttribute('aria-disabled');
+    }
+
+    const rascunhoEl = document.getElementById('rascunho-status');
+    if (rascunhoEl) rascunhoEl.style.display = 'none';
 }
 
 function startVoiceInput(inputId) {
@@ -821,6 +859,68 @@ function serializeFormToPayload(form) {
     return draft;
 }
 
+// Converte "novos_moradores[0][nome_social]" ou "participantes[]" em uma
+// lista de segmentos ["novos_moradores", "0", "nome_social"] / ["participantes", ""].
+function parseFormFieldPath(key) {
+    const match = key.match(/^([^[\]]+)((?:\[[^\]]*\])*)$/);
+    if (!match) return [key];
+
+    const segments = [match[1]];
+    const bracketsRe = /\[([^\]]*)\]/g;
+    let m;
+    while ((m = bracketsRe.exec(match[2])) !== null) {
+        segments.push(m[1]);
+    }
+    return segments;
+}
+
+// Atribui `value` em `target` seguindo os segmentos de parseFormFieldPath,
+// criando arrays (quando o próximo segmento é "" ou numérico) ou objetos
+// (caso contrário) conforme necessário.
+function setNestedFormValue(target, path, value) {
+    let cur = target;
+    for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        const nextKey = path[i + 1];
+        const nextIsIndex = nextKey === '' || /^\d+$/.test(nextKey);
+        if (cur[key] === undefined) {
+            cur[key] = nextIsIndex ? [] : {};
+        }
+        cur = cur[key];
+    }
+
+    const lastKey = path[path.length - 1];
+    if (lastKey === '') {
+        cur.push(value);
+    } else {
+        cur[lastKey] = value;
+    }
+}
+
+/**
+ * Monta o payload JSON exatamente como o navegador enviaria via multipart —
+ * a API (StoreVistoriaApiRequest extends StoreVistoriaRequest) valida os
+ * MESMOS nomes de campo do form nativo. NÃO usar serializeFormToPayload()
+ * aqui: aquela função é para o RASCUNHO (mantém as chaves com colchetes
+ * literais e usa `_moradores`/`_pessoas_vinculadas`/`_step`), o que não bate
+ * com o formato aninhado (`novos_moradores[].nome_social`,
+ * `moradores_presentes: []`, etc.) exigido pelo endpoint.
+ *
+ * Fotos NÃO passam por aqui: os inputs de arquivo (camera-input-back,
+ * gallery-input) não têm atributo `name` — as fotos são geridas
+ * inteiramente via IndexedDB (offline-upload.js) e enviadas depois para
+ * /api/vistorias/fotos, já com o id real da vistoria reconciliado.
+ */
+function buildApiPayloadFromForm(form) {
+    const data = new FormData(form);
+    const payload = {};
+    for (const [rawKey, value] of data.entries()) {
+        if (rawKey === '_token' || rawKey === '_method' || rawKey.startsWith('fotos')) continue;
+        setNestedFormValue(payload, parseFormFieldPath(rawKey), value);
+    }
+    return payload;
+}
+
 function setRascunhoStatus(state, savedAt = null) {
     const el = document.getElementById('rascunho-status');
     if (!el) return;
@@ -1025,10 +1125,61 @@ function scheduleSalvarRascunho() {
 
 const formEl = document.getElementById('vistoria-form');
 if (formEl) {
-    formEl.addEventListener('submit', function() {
+    formEl.addEventListener('submit', async function(e) {
+        // Só interceptamos a CRIAÇÃO (POST em vistorias.store). A edição
+        // (vistoria-edit.js, method=POST + _method=PUT) segue com submit nativo.
+        const isCreate = formEl.getAttribute('method')?.toUpperCase() === 'POST'
+            && !formEl.querySelector('input[name="_method"]');
+        if (!isCreate) {
+            formSubmitting = true;
+            showSubmitSavingIndicator();
+            limparRascunho();
+            return;
+        }
+
+        e.preventDefault();
         formSubmitting = true;
         showSubmitSavingIndicator();
-        limparRascunho();
+
+        const payload = buildApiPayloadFromForm(formEl);
+        payload.client_uuid = crypto.randomUUID();
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+        try {
+            const resp = await fetch(`${APP_BASE}/api/vistorias`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                },
+                body: JSON.stringify(payload),
+            });
+            if (!resp.ok) {
+                if (resp.status === 422) {
+                    const err = await resp.json().catch(() => ({}));
+                    const msg = err.message || 'Verifique os campos obrigatórios.';
+                    window.showToast?.(msg, 'warning');
+                    formSubmitting = false;
+                    resetSubmitIndicator();
+                    return;
+                }
+                throw new Error(`status ${resp.status}`);
+            }
+            const data = await resp.json();
+            await reconcileTempId(getTempPhotoId(), data.id);
+            limparRascunho();
+            window.location.assign(data.redirect_url);
+        } catch (_) {
+            // Rede indisponível (ou erro inesperado que não seja 422) →
+            // enfileira na outbox e sincroniza depois, quando a conexão voltar.
+            await enqueueVistoria(payload);
+            limparRascunho();
+            window.updateSyncBadge?.();
+            window.showToast?.('Vistoria salva no aparelho — será enviada quando houver conexão.', 'info');
+            window.location.assign(`${APP_BASE}/minhas-vistorias`);
+        }
     });
 
     formEl.addEventListener('change', () => {
@@ -1040,6 +1191,13 @@ if (formEl) {
         scheduleSalvarRascunho();
     });
 }
+
+// Ao voltar a conexão, tenta sincronizar vistorias enfileiradas nesta página.
+window.addEventListener('online', () => {
+    syncPendingVistorias().then((r) => {
+        if (r.enviadas > 0) window.updateSyncBadge?.();
+    });
+});
 
 window.salvarRascunho = salvarRascunho;
 window.limparRascunho = limparRascunho;
