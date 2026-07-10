@@ -8,6 +8,7 @@ import {
     removePendingPhotoById,
     uploadPendingPhoto,
 } from './offline-upload';
+import { countPendingVistorias, syncPendingVistorias } from './offline-vistoria';
 
 // Alpine.js (usado pelo Breeze)
 import Alpine from 'alpinejs';
@@ -142,15 +143,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     async function updateSyncBadge() {
-        const count = await countSyncablePhotos();
+        const [fotos, vistorias] = await Promise.all([
+            countSyncablePhotos(),
+            countPendingVistorias(),
+        ]);
+        const count = fotos + vistorias;
         const badge = document.getElementById('sync-badge');
         if (badge) {
             badge.textContent = count;
             badge.classList.toggle('hidden', count === 0);
         }
     }
+    window.updateSyncBadge = updateSyncBadge;
 
     window.syncAllPendingPhotos = async function() {
+        const rv = await syncPendingVistorias({ appBase: APP_BASE, csrfToken });
+        if (rv.enviadas > 0) {
+            showToast(`${rv.enviadas} vistoria(s) enviada(s).`, 'success');
+        }
+        await updateSyncBadge();
+
         const fotos = await getSyncablePhotos();
 
         if (fotos.length === 0) {
