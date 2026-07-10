@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\Morador;
 use App\Models\User;
 use App\Models\Vistoria;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class VistoriaStoreApiTest extends TestCase
@@ -100,5 +103,81 @@ class VistoriaStoreApiTest extends TestCase
     public function test_exige_autenticacao(): void
     {
         $this->postJson('/api/vistorias', [])->assertStatus(401);
+    }
+
+    /**
+     * Reproduz o SHAPE exato que buildApiPayloadFromForm() (vistoria-form.js)
+     * monta a partir do FormData do formulário nativo: novos_moradores como
+     * array de objetos (novos_moradores[0][nome_social] etc.), participantes
+     * e moradores_presentes como arrays simples (participantes[], value=id),
+     * e campos de complexidade booleanos chegando como STRING de form
+     * ('1'/'0') — só um deles como bool nativo, pra cobrir os dois formatos
+     * que o request aceita. Isso trava o contrato cliente↔servidor da fila
+     * offline: se o formato do payload divergir do esperado pela API, este
+     * teste quebra antes de virar perda silenciosa de dado em produção.
+     */
+    public function test_cria_vistoria_com_payload_aninhado_do_formulario_offline(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        Permission::firstOrCreate(['name' => 'participar de equipes vistoria', 'guard_name' => 'web']);
+
+        $user = User::factory()->create(['ativo' => true]);
+        $participante = User::factory()->create(['ativo' => true]);
+        $participante->givePermissionTo('participar de equipes vistoria');
+
+        $moradorExistente = Morador::factory()->create(['nome_social' => 'Pessoa Já Cadastrada']);
+
+        $uuid = '77777777-7777-4777-8777-777777777777';
+
+        $payload = array_merge($this->payloadValido($uuid), [
+            'novos_moradores' => [
+                [
+                    'nome_social' => 'Fulano da Silva',
+                    'apelido' => 'Fulaninho',
+                    'genero' => 'Homem cisgênero',
+                    'documento' => '',
+                    'contato' => '',
+                    'observacoes' => '',
+                ],
+            ],
+            'participantes' => [$participante->id],
+            'moradores_presentes' => [$moradorExistente->id],
+            // Campos boolean como o form realmente envia: strings '1'/'0'
+            // (FormData.entries() nunca produz bool nativo) — 'idosos' como
+            // bool nativo também, pra garantir que o request tolera ambos.
+            'resistencia' => '1',
+            'crianca_adolescente' => '0',
+            'idosos' => true,
+        ]);
+
+        $resp = $this->actingAs($user)->postJson('/api/vistorias', $payload);
+
+        $resp->assertOk()->assertJsonStructure(['id', 'redirect_url', 'client_uuid']);
+
+        $vistoriaId = $resp->json('id');
+
+        $this->assertDatabaseHas('vistorias', [
+            'id' => $vistoriaId,
+            'client_uuid' => $uuid,
+            'resistencia' => true,
+            'crianca_adolescente' => false,
+            'idosos' => true,
+        ]);
+
+        $this->assertDatabaseHas('moradores', [
+            'nome_social' => 'Fulano da Silva',
+            'apelido' => 'Fulaninho',
+        ]);
+
+        $this->assertDatabaseHas('vistoria_participantes', [
+            'vistoria_id' => $vistoriaId,
+            'user_id' => $participante->id,
+        ]);
+
+        // Morador pré-existente marcado como "presente" teve entrada
+        // registrada no ponto recém-criado da vistoria (atualizarPresencaVistoria).
+        $vistoria = Vistoria::findOrFail($vistoriaId);
+        $moradorExistente->refresh();
+        $this->assertSame($vistoria->ponto_id, $moradorExistente->ponto_atual_id);
     }
 }

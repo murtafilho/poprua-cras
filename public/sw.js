@@ -1,4 +1,4 @@
-const CACHE_VERSION = 35;
+const CACHE_VERSION = 36;
 const CACHE_NAME = 'poprua-v' + CACHE_VERSION;
 const TILE_CACHE = 'poprua-tiles-v1';
 const API_CACHE = 'poprua-api-v1';
@@ -235,6 +235,29 @@ function idbDeleteFrom(db, store, id) {
     });
 }
 
+// Atualiza (merge) um registro existente de uma store, mantendo o mesmo id.
+// Usado para marcar status='failed' sem apagar o registro (dead-letter).
+function idbUpdateIn(db, store, id, changes) {
+    return new Promise(function(resolve) {
+        var tx = db.transaction(store, 'readwrite');
+        var os = tx.objectStore(store);
+        var req = os.get(id);
+        req.onsuccess = function() {
+            var record = req.result;
+            if (record) {
+                os.put(Object.assign({}, record, changes));
+            }
+        };
+        req.onerror = function() { resolve(); };
+        tx.oncomplete = function() { resolve(); };
+        tx.onerror = function() { resolve(); };
+    });
+}
+
+// Status HTTP que indicam rejeicao PERMANENTE pelo servidor — reenviar nao
+// vai adiantar (espelha PERMANENT_REJECTION_STATUSES em offline-vistoria.js).
+var PERMANENT_REJECTION_STATUSES = [422, 409, 403];
+
 // Reescreve vistoria_id temp_* -> id real no banco de fotos poprua_fotos.
 async function reconcilePhotosInSw(tempId, realId) {
     if (!tempId) return;
@@ -256,7 +279,8 @@ async function reconcilePhotosInSw(tempId, realId) {
 async function syncPendingVistorias() {
     var db;
     try { db = await vistoriasDbOpen(); } catch (e) { return; }
-    var pendentes = await idbGetAllStore(db, 'pendentes');
+    var todos = await idbGetAllStore(db, 'pendentes');
+    var pendentes = todos.filter(function(r) { return r.status !== 'failed'; });
     if (pendentes.length === 0) { db.close(); return; }
 
     var xsrf = await getXsrfToken();
@@ -279,8 +303,14 @@ async function syncPendingVistorias() {
                 await reconcilePhotosInSw(rec.temp_photo_id, data.id);
                 await idbDeleteFrom(db, 'pendentes', rec.id);
                 reconciliouAlguma = true;
+            } else if (PERMANENT_REJECTION_STATUSES.indexOf(resp.status) !== -1) {
+                // Rejeicao permanente do servidor (dado invalido/duplicidade/
+                // autorizacao): marca como 'failed' em vez de deixar 'pending'
+                // para nao ficar retentando para sempre (dead-letter).
+                await idbUpdateIn(db, 'pendentes', rec.id, { status: 'failed' });
             }
-        } catch (e) { /* mantem na fila p/ nova tentativa */ }
+            // 5xx/outros: mantem 'pending' na fila para nova tentativa.
+        } catch (e) { /* falha de rede: mantem na fila p/ nova tentativa */ }
     }
     db.close();
 

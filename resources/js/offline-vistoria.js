@@ -58,9 +58,19 @@ export async function getPendingVistorias() {
     });
 }
 
+/**
+ * Registros ainda "vivos" (não descartados definitivamente pelo servidor).
+ * Um registro 'failed' foi rejeitado de forma permanente (422/409/403) e não
+ * deve mais ser reenviado nem contado como pendência de sincronização.
+ */
+export async function getSyncableVistorias() {
+    const all = await getPendingVistorias();
+    return all.filter((r) => r.status !== 'failed');
+}
+
 export async function countPendingVistorias() {
     try {
-        return (await getPendingVistorias()).length;
+        return (await getSyncableVistorias()).length;
     } catch {
         return 0;
     }
@@ -76,9 +86,39 @@ export async function removePendingVistoria(id) {
     });
 }
 
+/** Atualiza (merge) um registro existente da outbox, mantendo o mesmo id. */
+export async function updatePendingVistoria(id, changes) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        const store = tx.objectStore(STORE);
+        const req = store.get(id);
+        req.onsuccess = () => {
+            const record = req.result;
+            if (record) {
+                store.put({ ...record, ...changes });
+            }
+        };
+        req.onerror = () => reject(req.error);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+// Status HTTP que indicam rejeição PERMANENTE pelo servidor (dado inválido,
+// duplicidade de outro usuário, autorização) — reenviar não vai adiantar.
+const PERMANENT_REJECTION_STATUSES = [422, 409, 403];
+
 /**
  * Envia uma vistoria pendente. Em caso de sucesso, reconcilia as fotos
- * (temp → id real) e remove da fila. Retorna o id real ou lança em falha.
+ * (temp → id real) e remove da fila, retornando o id real.
+ *
+ * Distingue falha de REDE (fetch rejeita a Promise) — deixada subir para o
+ * chamador, registro permanece 'pending' para nova tentativa — de rejeição
+ * do SERVIDOR: em 4xx permanente (422/409/403) o registro é marcado
+ * 'failed' (mantido no IndexedDB só para auditoria/UX, mas não deletado nem
+ * relançado) e a função retorna `null` como sentinela; em 5xx/outros lança
+ * (transiente → tentativa futura).
  */
 export async function syncOneVistoria(record, options = {}) {
     const appBase = options.appBase
@@ -86,6 +126,8 @@ export async function syncOneVistoria(record, options = {}) {
     const csrf = options.csrfToken
         ?? document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
+    // Falha de rede: deixa o erro propagar (não captura aqui) — o registro
+    // permanece 'pending' na fila para a próxima tentativa de sync.
     const resp = await fetch(`${appBase}/api/vistorias`, {
         method: 'POST',
         credentials: 'same-origin',
@@ -96,9 +138,16 @@ export async function syncOneVistoria(record, options = {}) {
         },
         body: JSON.stringify(record.payload),
     });
+
     if (!resp.ok) {
+        if (PERMANENT_REJECTION_STATUSES.includes(resp.status)) {
+            await updatePendingVistoria(record.id, { status: 'failed' });
+            return null;
+        }
+        // 5xx ou outro status transiente: mantém 'pending' para nova tentativa.
         throw new Error(`sync vistoria falhou: ${resp.status}`);
     }
+
     const data = await resp.json();
     if (record.temp_photo_id) {
         await reconcileTempId(record.temp_photo_id, data.id);
@@ -107,17 +156,26 @@ export async function syncOneVistoria(record, options = {}) {
     return data.id;
 }
 
-/** Sincroniza todas as vistorias pendentes (nível de página). */
+/**
+ * Sincroniza todas as vistorias pendentes (nível de página).
+ * Retorna { total, enviadas, falhas } para a UI poder avisar uma única vez
+ * quando alguma vistoria foi definitivamente recusada pelo servidor.
+ */
 export async function syncPendingVistorias(options = {}) {
-    const pendentes = await getPendingVistorias();
+    const pendentes = await getSyncableVistorias();
     let enviadas = 0;
+    let falhas = 0;
     for (const record of pendentes) {
         try {
-            await syncOneVistoria(record, options);
-            enviadas++;
+            const id = await syncOneVistoria(record, options);
+            if (id === null) {
+                falhas++;
+            } else {
+                enviadas++;
+            }
         } catch { /* mantém na fila p/ nova tentativa */ }
     }
-    return { total: pendentes.length, enviadas };
+    return { total: pendentes.length, enviadas, falhas };
 }
 
 /** Agenda a sincronização (Background Sync, com fallback para o evento online). */

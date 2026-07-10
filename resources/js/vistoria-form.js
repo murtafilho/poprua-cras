@@ -10,6 +10,7 @@ import {
     MAX_FILE_SIZE_BYTES,
     reconcileTempId,
     getTempPhotoId,
+    clearTempPhotoId,
 } from './offline-upload';
 import { initDynamicClickHandlers, initStepperNavigation } from './vistoria-delegation';
 import { updateComunicadoZeladoriaCampos as syncComunicadoZeladoriaCampos } from './comunicado-zeladoria-campos';
@@ -1163,6 +1164,10 @@ if (formEl) {
         } catch (_networkErr) {
             // Rede indisponível → enfileira e sincroniza depois.
             await enqueueVistoria(payload);
+            // Rotaciona o temp_id: o outbox e as fotos já enfileiradas carregam
+            // o temp_id atual, mas a PRÓXIMA vistoria (novo formulário) precisa
+            // de um id novo — senão suas fotos seriam reconciliadas para ESTA.
+            clearTempPhotoId();
             limparRascunho();
             window.updateSyncBadge?.();
             window.showToast?.('Vistoria salva no aparelho — será enviada quando houver conexão.', 'info');
@@ -1187,6 +1192,7 @@ if (formEl) {
         // Sucesso: reconcilia as fotos (tolerante a falha do IndexedDB — a vistoria já existe).
         try {
             await reconcileTempId(getTempPhotoId(), data.id);
+            clearTempPhotoId();
         } catch (_reconcileErr) { /* não bloqueia o redirect */ }
         limparRascunho();
         window.location.assign(data.redirect_url);

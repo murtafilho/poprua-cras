@@ -158,15 +158,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.syncAllPendingPhotos = async function() {
         const rv = await syncPendingVistorias({ appBase: APP_BASE, csrfToken });
-        if (rv.enviadas > 0) {
+        await updateSyncBadge();
+
+        // Vistorias tem prioridade na mensagem: recusa permanente (dead-letter)
+        // é mais importante que o "sucesso" de envio, e nenhuma das duas pode
+        // ser silenciada pelo aviso genérico de "nada pra fazer" das fotos.
+        if (rv.falhas > 0) {
+            showToast('Uma ou mais vistorias foram recusadas pelo servidor e não serão reenviadas.', 'warning');
+        } else if (rv.enviadas > 0) {
             showToast(`${rv.enviadas} vistoria(s) enviada(s).`, 'success');
         }
-        await updateSyncBadge();
 
         const fotos = await getSyncablePhotos();
 
         if (fotos.length === 0) {
-            showToast('Nenhuma foto pendente para sincronizar.', 'info');
+            // Só avisa "nada pendente" se vistorias também não tinham nada a
+            // reportar — senão contradiz a mensagem de vistoria acima.
+            if (rv.enviadas === 0 && rv.falhas === 0) {
+                showToast('Nenhuma foto ou vistoria pendente para sincronizar.', 'info');
+            }
             return;
         }
 
@@ -192,6 +202,33 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('nav-sync-fotos')?.addEventListener('click', async function() {
         closeSidebar();
         await window.syncAllPendingPhotos();
+    });
+
+    // --- Auto-sync global de vistorias offline ---
+    // O Background Sync do SW só dispara em navegadores Chromium, e o
+    // listener 'online' do form de criação só existe na própria página do
+    // form. Depois do redirect (ex.: /minhas-vistorias), iOS Safari nunca
+    // mais tentaria sincronizar sozinho. Este handler roda em TODA página
+    // que carrega app.js, cobrindo online + retomada de visibilidade.
+    let autoSyncEmAndamento = false;
+    async function autoSyncVistoriasPendentes() {
+        if (autoSyncEmAndamento) return;
+        autoSyncEmAndamento = true;
+        try {
+            const rv = await syncPendingVistorias({ appBase: APP_BASE, csrfToken });
+            if (rv.falhas > 0) {
+                showToast('Uma ou mais vistorias foram recusadas pelo servidor e não serão reenviadas.', 'warning');
+            } else if (rv.enviadas > 0) {
+                showToast(`${rv.enviadas} vistoria(s) enviada(s).`, 'success');
+            }
+            await updateSyncBadge();
+        } finally {
+            autoSyncEmAndamento = false;
+        }
+    }
+    window.addEventListener('online', autoSyncVistoriasPendentes);
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) autoSyncVistoriasPendentes();
     });
 
     openFotosDB().then(() => cleanupOrphanedTempRecords()).catch(() => {});
