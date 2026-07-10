@@ -160,7 +160,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.syncAllPendingPhotos = async function() {
         const rv = await syncPendingVistorias({ appBase: APP_BASE, csrfToken });
-        await syncPendingAcoes({ appBase: APP_BASE, csrfToken });
+        const ra = await syncPendingAcoes({ appBase: APP_BASE, csrfToken });
+        if (ra.falhas > 0) {
+            showToast('Uma ou mais ações foram recusadas pelo servidor e não serão reenviadas.', 'warning');
+        }
+        window.dispatchEvent(new CustomEvent('poprua:acoes-sync', { detail: ra }));
         await updateSyncBadge();
 
         // Vistorias tem prioridade na mensagem: recusa permanente (dead-letter)
@@ -224,7 +228,11 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (rv.enviadas > 0) {
                 showToast(`${rv.enviadas} vistoria(s) enviada(s).`, 'success');
             }
-            await syncPendingAcoes({ appBase: APP_BASE, csrfToken });
+            const ra = await syncPendingAcoes({ appBase: APP_BASE, csrfToken });
+            if (ra.falhas > 0) {
+                showToast('Uma ou mais ações foram recusadas pelo servidor e não serão reenviadas.', 'warning');
+            }
+            window.dispatchEvent(new CustomEvent('poprua:acoes-sync', { detail: ra }));
             await updateSyncBadge();
         } finally {
             autoSyncEmAndamento = false;

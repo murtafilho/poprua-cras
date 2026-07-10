@@ -7,7 +7,7 @@ import {
     removePendingPhotoById,
     uploadPendingPhoto,
 } from './offline-upload';
-import { enqueueAcao, syncPendingAcoes } from './offline-vistoria-acao';
+import { enqueueAcao } from './offline-vistoria-acao';
 
 const slideshowUrls = [...(window.SLIDESHOW_URLS || [])];
 const slideshowLegends = [...(window.SLIDESHOW_LEGENDS || [])];
@@ -284,6 +284,7 @@ document.getElementById('btn-print-vistoria')?.addEventListener('click', () => w
 (function wireAcoesEstado() {
     const APP_BASE = document.querySelector('meta[name="app-base"]')?.content ?? '';
     const forms = document.querySelectorAll('form[data-acao-offline]');
+    let acaoEnfileiradaNestaPagina = false;
 
     forms.forEach((form) => {
         form.addEventListener('submit', async (e) => {
@@ -306,9 +307,10 @@ document.getElementById('btn-print-vistoria')?.addEventListener('click', () => w
                 });
             } catch (_networkErr) {
                 await enqueueAcao({ vistoria_id: vistoriaId, acao });
+                acaoEnfileiradaNestaPagina = true;
                 window.updateSyncBadge?.();
                 window.showToast?.('Ação salva no aparelho — será enviada quando houver conexão.', 'info');
-                marcarPendente(form, acao);
+                marcarPendente(form);
                 return;
             }
 
@@ -321,13 +323,21 @@ document.getElementById('btn-print-vistoria')?.addEventListener('click', () => w
         });
     });
 
-    function marcarPendente(form, acao) {
+    function marcarPendente(form) {
         const btn = form.querySelector('button');
         if (btn) btn.textContent = 'Pendente de envio…';
     }
 
-    // Auto-sync ao voltar a conexão nesta página.
-    window.addEventListener('online', () => {
-        syncPendingAcoes().then((r) => { if (r.enviadas > 0) window.location.reload(); });
+    // Reage ao resultado da sincronização feita pelo app.js (sync único).
+    window.addEventListener('poprua:acoes-sync', (e) => {
+        if (!acaoEnfileiradaNestaPagina) return;
+        const r = e.detail || {};
+        if (r.enviadas > 0) {
+            window.location.reload(); // aplicada no servidor: reflete o novo estado
+        } else if (r.falhas > 0) {
+            acaoEnfileiradaNestaPagina = false;
+            document.querySelectorAll('form[data-acao-offline] button').forEach((b) => { b.disabled = false; });
+            // o toast de falha já vem do app.js
+        }
     });
 })();
