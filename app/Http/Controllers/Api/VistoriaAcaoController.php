@@ -13,6 +13,11 @@ class VistoriaAcaoController extends Controller
 
     public function finalizar(Vistoria $vistoria): JsonResponse
     {
+        if ($vistoria->finalizada) {
+            $this->authorize('view', $vistoria); // já finalizada: idempotente
+
+            return $this->estado($vistoria);
+        }
         $this->authorize('update', $vistoria);
         $this->vistoriaService->finalizar($vistoria);
 
@@ -21,6 +26,11 @@ class VistoriaAcaoController extends Controller
 
     public function cancelar(Vistoria $vistoria): JsonResponse
     {
+        if ($vistoria->cancelada) {
+            $this->authorize('view', $vistoria); // já cancelada: idempotente
+
+            return $this->estado($vistoria);
+        }
         $this->authorize('cancelar', $vistoria);
         $this->vistoriaService->cancelar($vistoria);
 
@@ -29,6 +39,11 @@ class VistoriaAcaoController extends Controller
 
     public function reativar(Vistoria $vistoria): JsonResponse
     {
+        if (! $vistoria->finalizada) {
+            $this->authorize('view', $vistoria); // já não-finalizada: idempotente
+
+            return $this->estado($vistoria);
+        }
         $this->authorize('reativar', $vistoria);
         $this->vistoriaService->reativar($vistoria);
 

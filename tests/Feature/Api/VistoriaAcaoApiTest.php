@@ -89,4 +89,81 @@ class VistoriaAcaoApiTest extends TestCase
             ->postJson("/api/vistorias/{$vistoria->id}/finalizar")
             ->assertStatus(403);
     }
+
+    /**
+     * Garantia de idempotência para o retry offline: o outbox reenvia a ação quando a
+     * RESPOSTA do primeiro POST se perde (ex.: queda de rede após o servidor já ter
+     * aplicado a mudança). O dono é o ator real desse fluxo — antes da correção, o
+     * retry batia em VistoriaPolicy::update (que nega para o dono quando já
+     * finalizada) e devolvia 403 para uma ação que na verdade teve sucesso.
+     */
+    public function test_finalizar_retry_pelo_dono_e_idempotente_200(): void
+    {
+        $dono = User::factory()->create();
+        $vistoria = Vistoria::factory()->create(['user_id' => $dono->id, 'finalizada' => false]);
+
+        $this->actingAs($dono)
+            ->postJson("/api/vistorias/{$vistoria->id}/finalizar")
+            ->assertOk()
+            ->assertJson(['finalizada' => true]);
+
+        // Retry do outbox pelo mesmo dono: deve ser 200 idempotente, não 403.
+        $this->actingAs($dono)
+            ->postJson("/api/vistorias/{$vistoria->id}/finalizar")
+            ->assertOk()
+            ->assertJson(['finalizada' => true]);
+
+        $this->assertTrue($vistoria->fresh()->finalizada);
+    }
+
+    /**
+     * reativar() exige a permission "reativar vistorias" na PRIMEIRA chamada (regra
+     * de negócio inalterada), então o setup usa um admin autorizado. O retry, porém,
+     * deve funcionar para esse mesmo ator via authorize('view') — sem reaplicar a
+     * reativação nem esbarrar de novo na ability 'reativar'.
+     */
+    public function test_reativar_retry_apos_sucesso_e_idempotente_200(): void
+    {
+        $admin = $this->criarAdminComPermissao('reativar vistorias');
+        $vistoria = Vistoria::factory()->create(['user_id' => $admin->id, 'finalizada' => true]);
+
+        $this->actingAs($admin)
+            ->postJson("/api/vistorias/{$vistoria->id}/reativar")
+            ->assertOk()
+            ->assertJson(['finalizada' => false]);
+
+        // Retry do outbox pelo mesmo ator: idempotente, 200 (não bate mais na ability
+        // 'reativar', que exigiria finalizada == true).
+        $this->actingAs($admin)
+            ->postJson("/api/vistorias/{$vistoria->id}/reativar")
+            ->assertOk()
+            ->assertJson(['finalizada' => false]);
+
+        $this->assertFalse($vistoria->fresh()->finalizada);
+    }
+
+    /**
+     * cancelar() pelo dono é autorizado diretamente pela policy (vistoria não
+     * finalizada, dono da vistoria). O retry, com a vistoria já cancelada, deve
+     * devolver 200 idempotente em vez de 403 (a policy nega cancelar() quando
+     * cancelada == true, para qualquer ator).
+     */
+    public function test_cancelar_retry_apos_sucesso_e_idempotente_200(): void
+    {
+        $dono = User::factory()->create();
+        $vistoria = Vistoria::factory()->create(['user_id' => $dono->id, 'finalizada' => false, 'cancelada' => false]);
+
+        $this->actingAs($dono)
+            ->postJson("/api/vistorias/{$vistoria->id}/cancelar")
+            ->assertOk()
+            ->assertJson(['cancelada' => true]);
+
+        // Retry do outbox pelo mesmo dono: idempotente, 200.
+        $this->actingAs($dono)
+            ->postJson("/api/vistorias/{$vistoria->id}/cancelar")
+            ->assertOk()
+            ->assertJson(['cancelada' => true]);
+
+        $this->assertTrue($vistoria->fresh()->cancelada);
+    }
 }
