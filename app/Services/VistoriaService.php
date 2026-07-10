@@ -125,6 +125,43 @@ class VistoriaService
         return ['vistoria' => $vistoria, 'ponto_novo' => $pontoNovo];
     }
 
+    public function finalizar(Vistoria $vistoria): void
+    {
+        $vistoria->update([
+            'finalizada' => true,
+            'finalizada_em' => now(),
+            'finalizada_por' => Auth::id(),
+        ]);
+        $this->invalidarCachesPosMutacao();
+    }
+
+    public function reativar(Vistoria $vistoria): void
+    {
+        $vistoria->update([
+            'finalizada' => false,
+            'finalizada_em' => null,
+            'finalizada_por' => null,
+        ]);
+        $this->invalidarCachesPosMutacao();
+    }
+
+    public function cancelar(Vistoria $vistoria): void
+    {
+        $vistoria->update([
+            'cancelada' => true,
+            'cancelada_em' => now(),
+            'cancelada_por' => Auth::id(),
+        ]);
+        $this->invalidarCachesPosMutacao();
+    }
+
+    public function invalidarCachesPosMutacao(): void
+    {
+        Cache::forget('dashboard:totais');
+        Cache::forget('dashboard:dados_mensais');
+        $this->invalidarCacheListagem();
+    }
+
     /**
      * Monta os campos da vistoria a partir do request validado (store e update).
      *
