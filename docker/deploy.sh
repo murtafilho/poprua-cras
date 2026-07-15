@@ -125,12 +125,28 @@ else
 fi
 
 step "[7/8] Caches + worker"
+# Reinicia FPM ANTES do route:cache: com opcache.validate_timestamps=0 o PHP
+# ainda pode estar lendo routes/web.php antigo e regravar routes-v7.php errado
+# (sintoma: GET / continua redirecionando guests para login).
+docker restart "$CONTAINER" >/dev/null 2>&1 || true
+echo "  $CONTAINER reiniciado (limpa opcache de routes/*.php)."
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 15; do
+    if docker exec "$CONTAINER" php -r 'exit(0);' >/dev/null 2>&1 \
+       && nc -z -w 2 127.0.0.1 9086 2>/dev/null; then
+        echo "  FPM pronto apos ${i}s."
+        break
+    fi
+    sleep 1
+done
+docker exec -u www-data "$CONTAINER" php -r 'function_exists("opcache_reset") && opcache_reset();' >/dev/null 2>&1 || true
 $ART config:cache
 $ART route:cache
-# Recarrega o FPM para o OPcache abandonar bootstrap/cache/routes*.php antigo.
-# Sem isso, rotas novas (ex.: home publica) podem continuar autenticadas.
-docker restart "$CONTAINER" >/dev/null 2>&1 || true
-echo "  $CONTAINER reiniciado (opcache)."
+# Confirma que a home ficou publica (so web, sem Authenticate).
+HOME_MW=$($ART route:list --name=home -v 2>/dev/null | tr '\n' ' ')
+echo "  rota home: $HOME_MW"
+if echo "$HOME_MW" | grep -qi Authenticate; then
+    die "rota home ainda tem Authenticate apos route:cache — abortando."
+fi
 if [ "$OLD" = "$NEW" ] || need '^(app/(Models|Jobs)/|config/|composer\.lock)'; then
     docker restart "$QUEUE_CONTAINER" >/dev/null 2>&1 || true
     echo "  $QUEUE_CONTAINER reiniciado."
