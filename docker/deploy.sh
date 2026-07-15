@@ -119,6 +119,10 @@ fi
 step "[7/8] Caches + worker"
 $ART config:cache
 $ART route:cache
+# Recarrega o FPM para o OPcache abandonar bootstrap/cache/routes*.php antigo.
+# Sem isso, rotas novas (ex.: home publica) podem continuar autenticadas.
+docker restart "$CONTAINER" >/dev/null 2>&1 || true
+echo "  $CONTAINER reiniciado (opcache)."
 if [ "$OLD" = "$NEW" ] || need '^(app/(Models|Jobs)/|config/|composer\.lock)'; then
     docker restart "$QUEUE_CONTAINER" >/dev/null 2>&1 || true
     echo "  $QUEUE_CONTAINER reiniciado."

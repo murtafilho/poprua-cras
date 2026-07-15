@@ -4,11 +4,12 @@
 #
 # Uso: sudo bash docker/smoke-test.sh   (no host vlcp-sufis01)
 #
-# Roda 4 checks essenciais que cobrem o pipe HTTP completo do usuario:
+# Roda checks essenciais que cobrem o pipe HTTP completo do usuario:
 #   1. PHP-FPM (container) responde via FastCGI no host:9086
-#   2. URL externa publica retorna 200 + CSRF token + titulo
-#   3. Banco tem dados de dominio (count pontos > 0)
-#   4. Sem ERROR no laravel.log nos ultimos 5 minutos
+#   2. URL externa publica /login retorna 200 + CSRF token
+#   3. Home institucional / retorna 200 + ADPF 976 (nao redireciona a login)
+#   4. Banco tem dados de dominio (count pontos > 0)
+#   5. Sem ERROR no laravel.log nos ultimos 5 minutos
 #
 # Cada check imprime PASS/FAIL. Script sai 0 se todos PASS; senao 1.
 # Adicionado por ADR-006 (Sinal #6: smoke-test obrigatorio).
@@ -38,7 +39,7 @@ echo ""
 
 # --- 1. Porta 9086 (PHP-FPM/FastCGI) esta listening no host?
 # 9086 e FastCGI binario, nao HTTP — nao da pra curl. Testar com nc.
-echo "[1/4] PHP-FPM listening em 127.0.0.1:9086 (FastCGI)..."
+echo "[1/5] PHP-FPM listening em 127.0.0.1:9086 (FastCGI)..."
 if nc -z -w 2 127.0.0.1 9086 2>/dev/null; then
   pass "127.0.0.1:9086 (FastCGI) aceita conexao"
 else
@@ -47,7 +48,7 @@ fi
 echo ""
 
 # --- 2. URL externa de prod retorna login + CSRF
-echo "[2/4] URL publica ${PROD_URL}/login ..."
+echo "[2/5] URL publica ${PROD_URL}/login ..."
 PROD_BODY=$(curl -s -L "${PROD_URL}/login" --max-time 10 2>&1)
 PROD_CODE=$(curl -s -o /dev/null -w "%{http_code}" -L "${PROD_URL}/login" --max-time 10 2>&1 || echo "000")
 if [ "$PROD_CODE" = "200" ] && echo "$PROD_BODY" | grep -q "csrf-token"; then
@@ -57,8 +58,21 @@ else
 fi
 echo ""
 
-# --- 3. DB tem dados de dominio
-echo "[3/4] DB tem dados de dominio..."
+# --- 2b. Home institucional publica (nao redireciona para login)
+echo "[3/5] Home institucional ${PROD_URL}/ ..."
+HOME_CODE=$(curl -s -o /tmp/poprua-home-smoke.html -w "%{http_code}" "${PROD_URL}/" --max-time 10 2>&1 || echo "000")
+HOME_LOC=$(curl -s -o /dev/null -w "%{redirect_url}" "${PROD_URL}/" --max-time 10 2>&1 || true)
+if [ "$HOME_CODE" = "200" ] && grep -q "ADPF 976" /tmp/poprua-home-smoke.html 2>/dev/null; then
+  pass "Home publica 200 com ADPF 976"
+elif [ "$HOME_CODE" = "302" ] && echo "$HOME_LOC" | grep -q login; then
+  fail "Home ainda redireciona para login (route cache/opcache?)"
+else
+  fail "Home falhou (HTTP $HOME_CODE)"
+fi
+echo ""
+
+# --- 4. DB tem dados de dominio
+echo "[4/5] DB tem dados de dominio..."
 PONTOS_COUNT=$(sudo docker exec pg17-poprua-cras psql -U poprua_cras -d poprua_cras -tAc "SELECT count(*) FROM pontos" 2>/dev/null || echo "ERROR")
 if echo "$PONTOS_COUNT" | grep -qE '^[0-9]+$' && [ "$PONTOS_COUNT" -gt 0 ]; then
   pass "pontos = $PONTOS_COUNT (> 0)"
@@ -67,8 +81,8 @@ else
 fi
 echo ""
 
-# --- 4. Sem ERROR nos ultimos 5 minutos no laravel.log
-echo "[4/4] laravel.log sem ERROR nos ultimos 5 minutos..."
+# --- 5. Sem ERROR nos ultimos 5 minutos no laravel.log
+echo "[5/5] laravel.log sem ERROR nos ultimos 5 minutos..."
 if [ ! -f "$LARAVEL_LOG" ]; then
   echo -e "  ${YELLOW}WARN${RESET}  $LARAVEL_LOG nao existe (sem logs ainda — ok se app nunca foi acessado)"
   PASS=$((PASS+1))
