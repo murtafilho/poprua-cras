@@ -91,6 +91,14 @@ fi
 CHANGED=$($GIT diff --name-only "$OLD" "$NEW" 2>/dev/null)
 need() { echo "$CHANGED" | grep -qE "$1"; }
 
+# Se este script mudou no pull, a copia em memoria e a antiga — reexecutar
+# a versao do disco (evita chicken-egg: ex. reinicio FPM so no script novo).
+if [ "${POPRUA_DEPLOY_REEXEC:-0}" != "1" ] && need '^docker/deploy\.sh$'; then
+    echo "  docker/deploy.sh mudou — reexecutando a versao puxada."
+    export POPRUA_DEPLOY_REEXEC=1
+    exec bash "$APP_DIR/docker/deploy.sh"
+fi
+
 step "[4/8] Composer (so se composer.lock/json mudou)"
 if [ "$OLD" = "$NEW" ] || need '^composer\.(lock|json)$'; then
     docker exec -u www-data "$CONTAINER" composer install --no-interaction --no-dev \
