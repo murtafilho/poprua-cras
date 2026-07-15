@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(! app()->isProduction());
         Ponto::observe(PontoObserver::class);
 
-        RedirectIfAuthenticated::redirectUsing(fn () => route('mapa.index'));
+        RedirectIfAuthenticated::redirectUsing(fn () => route('home'));
 
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());

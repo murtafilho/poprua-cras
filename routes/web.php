@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\Sprint11Controller;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MapaController;
 use App\Http\Controllers\MinhaEquipeController;
 use App\Http\Controllers\MoradorController;
@@ -18,13 +19,11 @@ use App\Http\Controllers\StackProjecaoController;
 use App\Http\Controllers\VistoriaController;
 use Illuminate\Support\Facades\Route;
 
+// Home institucional — pública (marca, versão, ADPF + lançador se autenticado)
+Route::get('/', HomeController::class)->name('home');
+
 // Todas as rotas protegidas por autenticação
 Route::middleware('auth')->group(function () {
-    // Home redireciona para dashboard
-    Route::get('/', function () {
-        return redirect()->route('mapa.index');
-    });
-
     // Dashboard
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 

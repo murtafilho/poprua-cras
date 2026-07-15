@@ -28,7 +28,7 @@ class AuthenticationTest extends TestCase
 
         $response->assertSessionHasNoErrors();
         $this->assertAuthenticated();
-        $response->assertRedirect(route('mapa.index', absolute: false));
+        $response->assertRedirect(route('home', absolute: false));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

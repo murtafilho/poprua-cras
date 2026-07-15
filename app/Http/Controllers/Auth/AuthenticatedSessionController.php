@@ -28,7 +28,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('mapa.index'));
+        return redirect()->intended(route('home'));
     }
 
     /**

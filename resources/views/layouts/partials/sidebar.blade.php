@@ -4,7 +4,7 @@
         {{-- Sidebar --}}
         <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu lateral">
             <div class="sidebar-header">
-                <a href="{{ route('dashboard') }}" class="sidebar-logo">
+                <a href="{{ route('home') }}" class="sidebar-logo">
                     <span class="sidebar-tagline">Sistema Integrado de Zeladoria Municipal</span>
                     <span class="sidebar-logo-row">
                         <x-application-logo class="sidebar-logo-icon" />
