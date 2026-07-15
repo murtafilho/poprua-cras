@@ -27,7 +27,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Exibe aviso fixo no topo informando que o ambiente é de testes.
-    | Desative em produção (APP_HOMOLOGACAO_BANNER=false).
+    | Em produção deve permanecer desativado (APP_HOMOLOGACAO_BANNER=false).
     |
     */
 
