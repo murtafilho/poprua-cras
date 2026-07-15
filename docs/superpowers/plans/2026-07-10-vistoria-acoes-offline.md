@@ -1,6 +1,6 @@
 # Finalizar/Cancelar/Reativar Vistoria Offline — Plano de Implementação
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Permitir finalizar/cancelar/reativar uma vistoria existente sem rede: ao clicar, tenta o POST; se falhar, enfileira numa outbox de ações e sincroniza quando a conexão volta. Ações idempotentes (reenvio seguro).
 
@@ -49,7 +49,7 @@
 **Interfaces:**
 - Produces: `VistoriaService::finalizar(Vistoria): void`, `::cancelar(Vistoria): void`, `::reativar(Vistoria): void`, `::invalidarCachesPosMutacao(): void`. Consumido pela Task 2 e pelo controller web.
 
-- [ ] **Step 1: Escrever o teste (falha)**
+- [x] **Step 1: Escrever o teste (falha)**
 
 Create `tests/Feature/VistoriaServiceEstadoTest.php`:
 
@@ -90,12 +90,12 @@ class VistoriaServiceEstadoTest extends TestCase
 }
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `php artisan test --filter=VistoriaServiceEstadoTest`
 Expected: FAIL (métodos não existem).
 
-- [ ] **Step 3: Adicionar os métodos ao `VistoriaService`**
+- [x] **Step 3: Adicionar os métodos ao `VistoriaService`**
 
 Modify `app/Services/VistoriaService.php`: adicionar (junto dos métodos públicos, ex.: após `criarComRelacionamentos`). `Auth` e `Cache` já estão importados no arquivo.
 
@@ -138,7 +138,7 @@ Modify `app/Services/VistoriaService.php`: adicionar (junto dos métodos públic
     }
 ```
 
-- [ ] **Step 4: Refatorar o controller web para usar o service**
+- [x] **Step 4: Refatorar o controller web para usar o service**
 
 Modify `app/Http/Controllers/VistoriaController.php`: nos métodos `finalizar` (linha 204), `reativar` (219), `cancelar` (234), substituir o `$vistoria->update([...]); $this->invalidarCachesPosMutacaoVistoria();` por uma chamada ao service, mantendo `authorize` e o `redirect`. Ex. para `finalizar`:
 
@@ -154,12 +154,12 @@ Modify `app/Http/Controllers/VistoriaController.php`: nos métodos `finalizar` (
 
 Fazer o análogo para `reativar` (`$this->vistoriaService->reativar($vistoria);`) e `cancelar` (`$this->vistoriaService->cancelar($vistoria);`). NÃO alterar `complementar`/`destroy`/`store`/`update`.
 
-- [ ] **Step 5: Rodar testes (novo + regressão)**
+- [x] **Step 5: Rodar testes (novo + regressão)**
 
 Run: `php artisan test --filter=VistoriaServiceEstadoTest && php artisan test --filter=Vistoria`
 Expected: novo passa; regressão (finalizar/cancelar web) permanece verde.
 
-- [ ] **Step 6: Pint + PHPStan + commit**
+- [x] **Step 6: Pint + PHPStan + commit**
 
 ```bash
 vendor/bin/pint --dirty && vendor/bin/phpstan analyse
@@ -180,7 +180,7 @@ git commit -m "refactor(vistoria-acoes): extrair finalizar/cancelar/reativar par
 - Consumes: `VistoriaService` (Task 1); Policies `update`/`cancelar`/`reativar`.
 - Produces: `POST /api/vistorias/{vistoria}/finalizar|cancelar|reativar` → `{ id, finalizada, cancelada }`. Consumido pelas Tasks 3-4.
 
-- [ ] **Step 1: Escrever os testes (falham)**
+- [x] **Step 1: Escrever os testes (falham)**
 
 Create `tests/Feature/Api/VistoriaAcaoApiTest.php`:
 
@@ -251,12 +251,12 @@ class VistoriaAcaoApiTest extends TestCase
 
 > Nota: `test_usuario_sem_permissao_recebe_403` assume que a Policy `update` nega um usuário não-dono não-admin. Se a Policy do projeto permitir (ex.: papéis amplos), ajustar o cenário para um usuário genuinamente sem a permission — conferir `app/Policies/VistoriaPolicy.php::update` e usar um usuário/idade de acordo.
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `php artisan test --filter=VistoriaAcaoApiTest`
 Expected: FAIL (rotas não existem → 404).
 
-- [ ] **Step 3: Criar o controller**
+- [x] **Step 3: Criar o controller**
 
 Create `app/Http/Controllers/Api/VistoriaAcaoController.php`:
 
@@ -309,7 +309,7 @@ class VistoriaAcaoController extends Controller
 }
 ```
 
-- [ ] **Step 4: Registrar as rotas**
+- [x] **Step 4: Registrar as rotas**
 
 Modify `routes/api.php`: junto do grupo `['web','auth']` das vistorias, adicionar:
 
@@ -319,12 +319,12 @@ Modify `routes/api.php`: junto do grupo `['web','auth']` das vistorias, adiciona
     Route::post('/vistorias/{vistoria}/reativar', [\App\Http\Controllers\Api\VistoriaAcaoController::class, 'reativar']);
 ```
 
-- [ ] **Step 5: Rodar testes + regressão**
+- [x] **Step 5: Rodar testes + regressão**
 
 Run: `php artisan test --filter=VistoriaAcaoApiTest && php artisan test --filter=Vistoria`
 Expected: novos passam; regressão verde.
 
-- [ ] **Step 6: Pint + PHPStan + commit**
+- [x] **Step 6: Pint + PHPStan + commit**
 
 ```bash
 vendor/bin/pint --dirty && vendor/bin/phpstan analyse
@@ -342,7 +342,7 @@ git commit -m "feat(vistoria-acoes): endpoints JSON finalizar/cancelar/reativar"
 **Interfaces:**
 - Produces: `enqueueAcao({vistoria_id, acao})`, `getPendingAcoes()`, `getSyncableAcoes()`, `countPendingAcoes()`, `removePendingAcao(id)`, `syncOneAcao(record, options)`, `syncPendingAcoes(options)`, `registerAcaoSync()`. Consumido pelas Tasks 4 e 6.
 
-- [ ] **Step 1: Escrever o módulo**
+- [x] **Step 1: Escrever o módulo**
 
 Create `resources/js/offline-vistoria-acao.js` (espelha `resources/js/offline-vistoria.js`, com dead-letter em 4xx):
 
@@ -476,12 +476,12 @@ export async function registerAcaoSync() {
 }
 ```
 
-- [ ] **Step 2: Build**
+- [x] **Step 2: Build**
 
 Run: `npm run build`
 Expected: sem erros.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add resources/js/offline-vistoria-acao.js
@@ -500,7 +500,7 @@ git commit -m "feat(vistoria-acoes): modulo outbox de acoes (IndexedDB poprua_vi
 - Consumes: `enqueueAcao`, `syncPendingAcoes` (Task 3); endpoints (Task 2); `window.updateSyncBadge` (app.js).
 - Produces: os 3 forms de estado passam a: online → aplica + reload; offline → enfileira + UI otimista.
 
-- [ ] **Step 1: Trocar o confirm Alpine por `data-*` nos 3 forms**
+- [x] **Step 1: Trocar o confirm Alpine por `data-*` nos 3 forms**
 
 Modify `resources/views/vistorias/show.blade.php`:
 - Form **finalizar** (linha 600-601): remover o atributo `x-on:submit="..."` e adicionar
@@ -512,7 +512,7 @@ Modify `resources/views/vistorias/show.blade.php`:
 
 Deixar o form **complementar** (630) INALTERADO (fora de escopo).
 
-- [ ] **Step 2: Interceptar no `vistoria-show.js`**
+- [x] **Step 2: Interceptar no `vistoria-show.js`**
 
 Modify `resources/js/vistoria-show.js`: adicionar o import no topo e a fiação no final do arquivo.
 
@@ -577,16 +577,16 @@ Fiação (adicionar ao final, executada no carregamento do show):
 })();
 ```
 
-- [ ] **Step 3: Build**
+- [x] **Step 3: Build**
 
 Run: `npm run build`
 Expected: sem erros.
 
-- [ ] **Step 4: Verificação (online, sem regressão)**
+- [x] **Step 4: Verificação (online, sem regressão)**
 
 Manual (o offline é verificado no Task 7): servir a app, abrir uma vistoria não finalizada, clicar **Finalizar** → confirma → a página recarrega mostrando o estado finalizado (agora via `POST /api/vistorias/{id}/finalizar`, conferir na aba Network).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add resources/views/vistorias/show.blade.php resources/js/vistoria-show.js
@@ -604,7 +604,7 @@ git commit -m "feat(vistoria-acoes): interceptar forms de estado (online reload 
 - Consumes: outbox `poprua_vistoria_acoes` (Task 3); endpoints (Task 2).
 - Produces: sincronização das ações com o app fechado (Chromium).
 
-- [ ] **Step 1: Registrar a tag no evento sync**
+- [x] **Step 1: Registrar a tag no evento sync**
 
 Modify `public/sw.js`: no listener `self.addEventListener('sync', ...)`, adicionar:
 
@@ -614,7 +614,7 @@ Modify `public/sw.js`: no listener `self.addEventListener('sync', ...)`, adicion
     }
 ```
 
-- [ ] **Step 2: Implementar `syncPendingAcoes` no SW**
+- [x] **Step 2: Implementar `syncPendingAcoes` no SW**
 
 Modify `public/sw.js`: após a seção de `syncPendingVistorias`, adicionar (reusa `getXsrfToken`; helpers próprios para o banco de ações):
 
@@ -656,11 +656,11 @@ async function syncPendingAcoes() {
 
 > `idbGetAllStore`, `idbDeleteFrom` e `idbUpdateIn` já existem no `sw.js` (criados na fatia 1). Reusar; NÃO redefinir.
 
-- [ ] **Step 3: Incrementar `CACHE_VERSION`**
+- [x] **Step 3: Incrementar `CACHE_VERSION`**
 
 Modify `public/sw.js`: linha 1, `const CACHE_VERSION = 36;` → `const CACHE_VERSION = 37;`.
 
-- [ ] **Step 4: Build + commit**
+- [x] **Step 4: Build + commit**
 
 Run: `npm run build` (deve passar).
 
@@ -680,19 +680,19 @@ git commit -m "feat(vistoria-acoes): background sync sync-acoes-vistoria (CACHE_
 - Consumes: `countPendingAcoes`, `syncPendingAcoes` (Task 3).
 - Produces: badge global soma fotos + vistorias + ações; auto-sync global e botão manual sincronizam ações.
 
-- [ ] **Step 1: Import + badge**
+- [x] **Step 1: Import + badge**
 
 Modify `resources/js/app.js`:
 - Adicionar ao import: `import { countPendingAcoes, syncPendingAcoes } from './offline-vistoria-acao';`
 - Em `updateSyncBadge`, incluir `countPendingAcoes()` no `Promise.all` e somar ao total.
 
-- [ ] **Step 2: Auto-sync global + botão manual incluem ações**
+- [x] **Step 2: Auto-sync global + botão manual incluem ações**
 
 Modify `resources/js/app.js`:
 - Na função global `autoSyncVistoriasPendentes` (fatia 1), após sincronizar vistorias, chamar `await syncPendingAcoes({ appBase: APP_BASE, csrfToken });` e `updateSyncBadge()`.
 - Em `window.syncAllPendingPhotos`, após `syncPendingVistorias`, chamar também `syncPendingAcoes({ appBase: APP_BASE, csrfToken })`.
 
-- [ ] **Step 3: Build + commit**
+- [x] **Step 3: Build + commit**
 
 Run: `npm run build` (deve passar).
 
@@ -707,25 +707,25 @@ git commit -m "feat(vistoria-acoes): badge e auto-sync incluindo acoes de estado
 
 **Files:** nenhum.
 
-- [ ] **Step 1: Backend**
+- [x] **Step 1: Backend**
 
 Run: `php artisan test --filter=Vistoria`
 Expected: todos verdes (novos + regressão).
 
-- [ ] **Step 2: Suíte completa + build**
+- [x] **Step 2: Suíte completa + build**
 
 Run: `php artisan test && npm run build`
 Expected: verde; build limpo.
 
-- [ ] **Step 3: Checklist funcional (navegador)**
+- [x] **Step 3: Checklist funcional (navegador)**
 
-- [ ] Online: Finalizar/Cancelar/Reativar → confirma → página recarrega no novo estado (via `/api/...`).
-- [ ] Offline (patch de fetch ou DevTools Offline): clicar → toast "salva no aparelho", badge incrementa, botões "pendente".
-- [ ] Reconexão: a ação sincroniza e o estado é aplicado no servidor.
-- [ ] Reenvio (idempotência): repetir a mesma ação não gera erro.
-- [ ] Sem regressão no fluxo web (usuário de navegador).
+- [x] Online: Finalizar/Cancelar/Reativar → confirma → página recarrega no novo estado (via `/api/...`).
+- [x] Offline (patch de fetch ou DevTools Offline): clicar → toast "salva no aparelho", badge incrementa, botões "pendente".
+- [x] Reconexão: a ação sincroniza e o estado é aplicado no servidor.
+- [x] Reenvio (idempotência): repetir a mesma ação não gera erro.
+- [x] Sem regressão no fluxo web (usuário de navegador).
 
-- [ ] **Step 4: Registrar o resultado** no spec e commitar.
+- [x] **Step 4: Registrar o resultado** no spec e commitar.
 
 ---
 

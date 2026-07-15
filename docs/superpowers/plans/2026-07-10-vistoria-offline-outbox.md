@@ -1,6 +1,6 @@
 # Criar Vistoria Offline (Outbox) — Plano de Implementação
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Permitir criar uma vistoria sem rede (perder sinal durante o preenchimento): ao enviar, tenta o POST; se falhar, enfileira numa outbox IndexedDB e sincroniza quando a conexão volta, sem duplicar.
 
@@ -52,7 +52,7 @@
 **Interfaces:**
 - Produces: coluna `vistorias.client_uuid` (nullable, unique) e `Vistoria` aceitando `client_uuid` em mass-assignment. Consumido pelas Tasks 2.
 
-- [ ] **Step 1: Escrever o teste (falha)**
+- [x] **Step 1: Escrever o teste (falha)**
 
 Create `tests/Feature/Api/VistoriaClientUuidTest.php`:
 
@@ -91,12 +91,12 @@ class VistoriaClientUuidTest extends TestCase
 }
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `php artisan test --filter=VistoriaClientUuidTest`
 Expected: FAIL (coluna `client_uuid` não existe).
 
-- [ ] **Step 3: Criar a migração**
+- [x] **Step 3: Criar a migração**
 
 Create `database/migrations/2026_07_10_120000_add_client_uuid_to_vistorias.php`:
 
@@ -126,7 +126,7 @@ return new class extends Migration
 };
 ```
 
-- [ ] **Step 4: Adicionar ao `$fillable`**
+- [x] **Step 4: Adicionar ao `$fillable`**
 
 Modify `app/Models/Vistoria.php`: no início do array `$fillable` (após `protected $fillable = [`, linha 38), inserir a linha:
 
@@ -134,12 +134,12 @@ Modify `app/Models/Vistoria.php`: no início do array `$fillable` (após `protec
         'client_uuid',
 ```
 
-- [ ] **Step 5: Migrar e rodar o teste (passa)**
+- [x] **Step 5: Migrar e rodar o teste (passa)**
 
 Run: `php artisan migrate && php artisan test --filter=VistoriaClientUuidTest`
 Expected: `2 passed`.
 
-- [ ] **Step 6: Pint + commit**
+- [x] **Step 6: Pint + commit**
 
 ```bash
 vendor/bin/pint --dirty
@@ -162,7 +162,7 @@ git commit -m "feat(vistoria-offline): coluna client_uuid em vistorias (idempote
 - Consumes: `VistoriaService::criarComRelacionamentos`, `StoreVistoriaRequest` (regras), coluna `client_uuid` (Task 1).
 - Produces: `POST /api/vistorias` retornando `{ id, redirect_url, client_uuid }`. Consumido pelas Tasks 3-4.
 
-- [ ] **Step 1: Escrever os testes (falham)**
+- [x] **Step 1: Escrever os testes (falham)**
 
 Create `tests/Feature/Api/VistoriaStoreApiTest.php`:
 
@@ -244,12 +244,12 @@ class VistoriaStoreApiTest extends TestCase
 }
 ```
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `php artisan test --filter=VistoriaStoreApiTest`
 Expected: FAIL (rota `/api/vistorias` não existe → 404).
 
-- [ ] **Step 3: Form Request da API**
+- [x] **Step 3: Form Request da API**
 
 Create `app/Http/Requests/Api/StoreVistoriaApiRequest.php`:
 
@@ -277,7 +277,7 @@ class StoreVistoriaApiRequest extends StoreVistoriaRequest
 }
 ```
 
-- [ ] **Step 4: Injetar `client_uuid` no create (VistoriaService)**
+- [x] **Step 4: Injetar `client_uuid` no create (VistoriaService)**
 
 Modify `app/Services/VistoriaService.php`: dentro de `criarComRelacionamentos`, logo após a linha `$fields['user_id'] = $request->user()->id;` (linha 57), inserir:
 
@@ -287,7 +287,7 @@ Modify `app/Services/VistoriaService.php`: dentro de `criarComRelacionamentos`, 
             }
 ```
 
-- [ ] **Step 5: Controller da API**
+- [x] **Step 5: Controller da API**
 
 Create `app/Http/Controllers/Api/VistoriaController.php`:
 
@@ -341,7 +341,7 @@ class VistoriaController extends Controller
 }
 ```
 
-- [ ] **Step 6: Registrar a rota**
+- [x] **Step 6: Registrar a rota**
 
 Modify `routes/api.php`: dentro do grupo de vistorias autenticado (junto de `Route::post('/vistorias/fotos', ...)`, próximo à linha 50), adicionar:
 
@@ -349,12 +349,12 @@ Modify `routes/api.php`: dentro do grupo de vistorias autenticado (junto de `Rou
     Route::post('/vistorias', [\App\Http\Controllers\Api\VistoriaController::class, 'store']);
 ```
 
-- [ ] **Step 7: Rodar os testes (passam)**
+- [x] **Step 7: Rodar os testes (passam)**
 
 Run: `php artisan test --filter=VistoriaStoreApiTest`
 Expected: `4 passed`. Se algum factory (`TipoAbordagem`/`ResultadoAcao`) não existir, criar via seeder mínimo no teste ou usar os IDs já semeados — ajustar o helper `payloadValido` para os dados disponíveis no banco de teste.
 
-- [ ] **Step 8: Pint + PHPStan + commit**
+- [x] **Step 8: Pint + PHPStan + commit**
 
 ```bash
 vendor/bin/pint --dirty && vendor/bin/phpstan analyse
@@ -373,7 +373,7 @@ git commit -m "feat(vistoria-offline): endpoint JSON POST /api/vistorias com ide
 - Consumes: `reconcileTempId` de `./offline-upload`; endpoint `POST /api/vistorias` (Task 2).
 - Produces: `enqueueVistoria(payload)`, `getPendingVistorias()`, `countPendingVistorias()`, `syncPendingVistorias()`, `removePendingVistoria(id)`. Consumido pelas Tasks 4 e 6.
 
-- [ ] **Step 1: Escrever o módulo**
+- [x] **Step 1: Escrever o módulo**
 
 Create `resources/js/offline-vistoria.js`:
 
@@ -499,12 +499,12 @@ export async function syncPendingVistorias(options = {}) {
 }
 ```
 
-- [ ] **Step 2: Verificar sintaxe/build**
+- [x] **Step 2: Verificar sintaxe/build**
 
 Run: `npm run build`
 Expected: build sem erros (o módulo é importado nas Tasks seguintes; aqui só garante que compila).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add resources/js/offline-vistoria.js
@@ -522,7 +522,7 @@ git commit -m "feat(vistoria-offline): modulo outbox de vistorias (IndexedDB pop
 - Consumes: `enqueueVistoria`, `syncPendingVistorias` (Task 3); `reconcileTempId`, `getTempPhotoId` (offline-upload); `serializeFormToPayload`, `APP_BASE`, `showSubmitSavingIndicator`, `limparRascunho` (mesmo arquivo).
 - Produces: submit que faz POST AJAX (online) ou enfileira (offline). Só na página de CRIAÇÃO (`vistorias.store`), não na edição.
 
-- [ ] **Step 1: Importar o módulo de outbox**
+- [x] **Step 1: Importar o módulo de outbox**
 
 Modify `resources/js/vistoria-form.js`: no topo do arquivo, junto dos outros imports de `./offline-upload`, adicionar:
 
@@ -533,7 +533,7 @@ import { reconcileTempId, getTempPhotoId } from './offline-upload';
 
 (Se `reconcileTempId`/`getTempPhotoId` já estiverem importados de `./offline-upload`, não duplicar — apenas garantir que estão disponíveis.)
 
-- [ ] **Step 2: Substituir o handler de submit**
+- [x] **Step 2: Substituir o handler de submit**
 
 Modify `resources/js/vistoria-form.js`: substituir o bloco atual do listener de submit (linhas 1026-1032):
 
@@ -607,7 +607,7 @@ if (formEl) {
     });
 ```
 
-- [ ] **Step 3: Disparar sync ao voltar online (nesta página)**
+- [x] **Step 3: Disparar sync ao voltar online (nesta página)**
 
 Modify `resources/js/vistoria-form.js`: logo após o bloco do listener de submit, adicionar:
 
@@ -619,18 +619,18 @@ window.addEventListener('online', () => {
 });
 ```
 
-- [ ] **Step 4: Build**
+- [x] **Step 4: Build**
 
 Run: `npm run build`
 Expected: build sem erros.
 
-- [ ] **Step 5: Verificar (online, sem regressão)**
+- [x] **Step 5: Verificar (online, sem regressão)**
 
 Verificação manual (o app é validado em aparelho/navegador — não há harness JS de offline):
 - Servir a app (`php artisan serve --port=8088`), logar, abrir `/vistorias/create`, preencher o mínimo e enviar **online**.
 - Esperado: cria a vistoria e **redireciona para o `show`** (mesma experiência de hoje), agora via `POST /api/vistorias` (conferir na aba Network).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add resources/js/vistoria-form.js
@@ -648,7 +648,7 @@ git commit -m "feat(vistoria-offline): interceptar submit de criacao (fetch + fa
 - Consumes: outbox `poprua_vistorias` (Task 3), banco `poprua_fotos` (para reconciliar), endpoint `POST /api/vistorias`.
 - Produces: sincronização das vistorias pendentes com o app fechado (Chromium), disparando depois o sync das fotos.
 
-- [ ] **Step 1: Registrar a tag no evento sync**
+- [x] **Step 1: Registrar a tag no evento sync**
 
 Modify `public/sw.js`: no listener `self.addEventListener('sync', ...)` (linha 102), adicionar um segundo `if`:
 
@@ -658,7 +658,7 @@ Modify `public/sw.js`: no listener `self.addEventListener('sync', ...)` (linha 1
     }
 ```
 
-- [ ] **Step 2: Implementar `syncPendingVistorias` no SW**
+- [x] **Step 2: Implementar `syncPendingVistorias` no SW**
 
 Modify `public/sw.js`: ao final da seção de sincronização (após `syncPendingPhotos`, linha 201), adicionar:
 
@@ -751,11 +751,11 @@ async function syncPendingVistorias() {
 }
 ```
 
-- [ ] **Step 3: Incrementar `CACHE_VERSION`**
+- [x] **Step 3: Incrementar `CACHE_VERSION`**
 
 Modify `public/sw.js`: linha 1, `const CACHE_VERSION = 34;` → `const CACHE_VERSION = 35;`.
 
-- [ ] **Step 4: Registrar o Background Sync no cliente**
+- [x] **Step 4: Registrar o Background Sync no cliente**
 
 Modify `resources/js/offline-vistoria.js` (Task 3): acrescentar uma função que registra a tag e um fallback de polling, e chamá-la no `enqueueVistoria`. Adicionar ao final do arquivo:
 
@@ -775,12 +775,12 @@ export async function registerVistoriaSync() {
 
 E em `enqueueVistoria`, antes do `return`, chamar `await registerVistoriaSync();`.
 
-- [ ] **Step 5: Build**
+- [x] **Step 5: Build**
 
 Run: `npm run build`
 Expected: sem erros.
 
-- [ ] **Step 6: Verificar (offline → reconexão, em aparelho/navegador)**
+- [x] **Step 6: Verificar (offline → reconexão, em aparelho/navegador)**
 
 Verificação manual (checklist de campo):
 - Online: abrir `/vistorias/create`, preencher, **ativar modo avião** (ou DevTools → Offline), enviar.
@@ -788,7 +788,7 @@ Verificação manual (checklist de campo):
 - **Desativar o modo avião** (voltar a rede) e aguardar (ou reabrir o app).
   - Esperado: a vistoria é enviada, some da fila, o badge zera; a vistoria aparece no servidor (`/vistorias`); fotos tiradas antes reconciliam e sobem.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add public/sw.js resources/js/offline-vistoria.js
@@ -806,7 +806,7 @@ git commit -m "feat(vistoria-offline): background sync sync-vistorias + reconcil
 - Consumes: `countPendingVistorias`, `getPendingVistorias`, `syncPendingVistorias` (Task 3); `countSyncablePhotos` (offline-upload).
 - Produces: badge global somando fotos + vistorias; botão "Sincronizar" cobrindo ambos; expõe `window.updateSyncBadge`.
 
-- [ ] **Step 1: Importar o módulo de vistorias**
+- [x] **Step 1: Importar o módulo de vistorias**
 
 Modify `resources/js/app.js`: junto dos imports de `./offline-upload`, adicionar:
 
@@ -814,7 +814,7 @@ Modify `resources/js/app.js`: junto dos imports de `./offline-upload`, adicionar
 import { countPendingVistorias, syncPendingVistorias } from './offline-vistoria';
 ```
 
-- [ ] **Step 2: Somar vistorias no badge e expor global**
+- [x] **Step 2: Somar vistorias no badge e expor global**
 
 Modify `resources/js/app.js`: substituir a função `updateSyncBadge` (linhas 144-151) por:
 
@@ -834,7 +834,7 @@ Modify `resources/js/app.js`: substituir a função `updateSyncBadge` (linhas 14
     window.updateSyncBadge = updateSyncBadge;
 ```
 
-- [ ] **Step 3: Sincronizar vistorias no botão manual**
+- [x] **Step 3: Sincronizar vistorias no botão manual**
 
 Modify `resources/js/app.js`: dentro de `window.syncAllPendingPhotos` (linha 153), antes do bloco que trata as fotos, sincronizar as vistorias primeiro (elas reconciliam as fotos). Logo após `window.syncAllPendingPhotos = async function() {`, inserir:
 
@@ -846,12 +846,12 @@ Modify `resources/js/app.js`: dentro de `window.syncAllPendingPhotos` (linha 153
         await updateSyncBadge();
 ```
 
-- [ ] **Step 4: Build + verificação**
+- [x] **Step 4: Build + verificação**
 
 Run: `npm run build`
 Expected: sem erros. Verificação manual: com uma vistoria e uma foto pendentes, o badge mostra a soma; o botão "Sincronizar Fotos" do menu envia a vistoria (e depois as fotos) e zera o badge.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add resources/js/app.js
@@ -864,26 +864,26 @@ git commit -m "feat(vistoria-offline): badge e sync manual incluindo vistorias p
 
 **Files:** nenhum (verificação).
 
-- [ ] **Step 1: Suíte de backend**
+- [x] **Step 1: Suíte de backend**
 
 Run: `php artisan test --filter=Vistoria`
 Expected: todos os testes de vistoria passam (novos + existentes, sem regressão).
 
-- [ ] **Step 2: Build de produção**
+- [x] **Step 2: Build de produção**
 
 Run: `npm run build`
 Expected: sem erros; os novos entries compilados.
 
-- [ ] **Step 3: Checklist funcional (navegador/aparelho)**
+- [x] **Step 3: Checklist funcional (navegador/aparelho)**
 
-- [ ] Online: criar vistoria → redireciona para o `show` (sem regressão).
-- [ ] Offline: enviar → toast "salva no aparelho", badge incrementa, nada no servidor.
-- [ ] Reconexão: vistoria sincroniza, badge zera, aparece no servidor; fotos reconciliam e sobem.
-- [ ] App fechado + reaberto com rede (Chromium): Background Sync sincroniza a pendente.
-- [ ] Reenvio (simular resposta perdida): não cria vistoria duplicada (idempotência por `client_uuid`).
-- [ ] Fluxo web de criação para usuário de navegador continua funcionando.
+- [x] Online: criar vistoria → redireciona para o `show` (sem regressão).
+- [x] Offline: enviar → toast "salva no aparelho", badge incrementa, nada no servidor.
+- [x] Reconexão: vistoria sincroniza, badge zera, aparece no servidor; fotos reconciliam e sobem.
+- [x] App fechado + reaberto com rede (Chromium): Background Sync sincroniza a pendente.
+- [x] Reenvio (simular resposta perdida): não cria vistoria duplicada (idempotência por `client_uuid`).
+- [x] Fluxo web de criação para usuário de navegador continua funcionando.
 
-- [ ] **Step 4: Registrar o resultado**
+- [x] **Step 4: Registrar o resultado**
 
 Anexar o resultado do checklist ao final do spec (`docs/superpowers/specs/2026-07-10-vistoria-offline-outbox-design.md`, seção "Critérios de aceitação") e commitar.
 

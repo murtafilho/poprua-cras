@@ -28,6 +28,27 @@ function openDB() {
     return dbPromise;
 }
 
+/**
+ * Meta de exibição para Minhas Zeladorias (não vai no POST da API).
+ * @returns {{ endereco_label?: string, tipo_label?: string }}
+ */
+function buildDisplayMeta(payload) {
+    const form = document.getElementById('vistoria-form');
+    const endereco =
+        form?.dataset?.enderecoLabel?.trim()
+        || (payload.lat != null && payload.lng != null
+            ? `Lat ${Number(payload.lat).toFixed(5)} · Lng ${Number(payload.lng).toFixed(5)}`
+            : 'Localização pendente');
+
+    let tipo_label = '';
+    const tipoSelect = form?.querySelector('[name="tipo_abordagem_id"]');
+    if (tipoSelect instanceof HTMLSelectElement) {
+        tipo_label = tipoSelect.selectedOptions[0]?.textContent?.trim() || '';
+    }
+
+    return { endereco_label: endereco, tipo_label };
+}
+
 /** Grava um payload de criação de vistoria na outbox. */
 export async function enqueueVistoria(payload) {
     const db = await openDB();
@@ -35,6 +56,7 @@ export async function enqueueVistoria(payload) {
         client_uuid: payload.client_uuid,
         temp_photo_id: getTempPhotoId(),
         payload,
+        display: buildDisplayMeta(payload),
         created_at: new Date().toISOString(),
         status: 'pending',
     };

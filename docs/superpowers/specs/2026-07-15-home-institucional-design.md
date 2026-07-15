@@ -1,7 +1,7 @@
 # Spec — Home institucional SIZEM
 
 **Data:** 2026-07-15  
-**Status:** aprovada (abordagem A + lançador de funções)
+**Status:** Implementado (2026-07-15)
 
 ## Objetivo
 

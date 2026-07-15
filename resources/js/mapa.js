@@ -10,6 +10,17 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', function() {
     const APP_BASE = window.APP_BASE;
 
+    // Warm shell do create para abrir offline (fatia 3).
+    if (navigator.onLine && 'caches' in window) {
+        caches.keys().then(function(keys) {
+            const app = keys.filter((k) => /^poprua-v\d+$/.test(k)).sort();
+            if (!app.length) return;
+            return caches.open(app[app.length - 1]).then((cache) =>
+                cache.add(`${APP_BASE}/vistorias/create`).catch(() => null)
+            );
+        }).catch(() => {});
+    }
+
     const mapConfig = window.MAPA_CONFIG || {};
     const BH_CENTER = mapConfig.center || [-19.9135, -43.9514];
     const DEFAULT_ZOOM = mapConfig.zoom ?? 12;

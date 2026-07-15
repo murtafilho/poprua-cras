@@ -1,7 +1,7 @@
 # Spec — SIZEM Campo: empacotamento Android (Capacitor, modo remoto)
 
 - **Data:** 2026-07-09
-- **Status:** aprovado (design) — pendente de revisão do spec
+- **Status:** Implementado (APK v1.4, 2026-07-15)
 - **Fase do roadmap:** Fase 1 (empacotar) — ver `docs/` do plano do app de campo
 - **Eixo:** ação em campo (o eixo administrativo permanece no web)
 
@@ -180,9 +180,9 @@ funcionarem 100% offline (criar/finalizar sem rede) é trabalho da Fase 0, fora 
 
 ## 12. Critérios de aceitação (checklist de campo)
 
-- [ ] APK instala e abre sem barra de navegador (tela cheia).
-- [ ] Abre autenticado no `/mapa`; login persiste ao fechar e reabrir.
-- [ ] GPS centraliza o mapa na posição do agente.
-- [ ] Anexar foto a uma vistoria funciona.
-- [ ] Perder rede e reconectar: a foto pendente sincroniza.
-- [ ] Nenhuma regressão em relação ao PWA no navegador.
+- [x] APK instala e abre sem barra de navegador (tela cheia).
+- [x] Abre autenticado no `/mapa`; login persiste ao fechar e reabrir.
+- [x] GPS centraliza o mapa na posição do agente.
+- [x] Anexar foto a uma vistoria funciona.
+- [x] Perder rede e reconectar: a foto pendente sincroniza.
+- [x] Nenhuma regressão em relação ao PWA no navegador.

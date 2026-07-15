@@ -46,6 +46,8 @@ const submitSpinnerSVG = '<svg class="spinner" style="width: 20px; height: 20px;
 
 
 document.addEventListener('DOMContentLoaded', function() {
+    syncLatLngFromUrl();
+    cacheCreatePageForOffline();
     showTab(0);
 
     document.querySelectorAll('input[type="number"]').forEach(input => {
@@ -82,6 +84,59 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleZeladoriaCampos();
     }
 });
+
+/**
+ * Permite shell `/vistorias/create` em cache receber coords da query
+ * (navegação offline a partir do mapa com lat/lng novos).
+ */
+function syncLatLngFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const lat = params.get('lat');
+    const lng = params.get('lng');
+    const form = document.getElementById('vistoria-form');
+    if (!form) return;
+
+    const latInput = form.querySelector('input[name="lat"]');
+    const lngInput = form.querySelector('input[name="lng"]');
+    if (lat != null && latInput) latInput.value = lat;
+    if (lng != null && lngInput) lngInput.value = lng;
+
+    if (window.VISTORIA_RASCUNHO_CTX) {
+        if (lat != null) window.VISTORIA_RASCUNHO_CTX.lat = Number(lat);
+        if (lng != null) window.VISTORIA_RASCUNHO_CTX.lng = Number(lng);
+    }
+}
+
+/** Grava a página create atual + shell sem query no Cache API (SW network-first). */
+async function cacheCreatePageForOffline() {
+    if (!('caches' in window) || !navigator.onLine) return;
+    try {
+        const cacheName = await resolveAppCacheName();
+        if (!cacheName) return;
+        const cache = await caches.open(cacheName);
+        const current = window.location.href;
+        await cache.add(current).catch(() => null);
+
+        // Shell sem query: permite abrir create offline e aplicar lat/lng via JS.
+        const shell = new URL(window.location.pathname, window.location.origin).href;
+        if (shell !== current) {
+            await cache.add(shell).catch(() => null);
+        }
+    } catch {
+        /* offline cache é best-effort */
+    }
+}
+
+/** Descobre o nome do cache poprua-vN ativo (espelha public/sw.js). */
+async function resolveAppCacheName() {
+    try {
+        const keys = await caches.keys();
+        const app = keys.filter((k) => /^poprua-v\d+$/.test(k)).sort();
+        return app.length ? app[app.length - 1] : null;
+    } catch {
+        return null;
+    }
+}
 
 function updateStepper(currentIndex) {
     visitedSteps.add(currentIndex);

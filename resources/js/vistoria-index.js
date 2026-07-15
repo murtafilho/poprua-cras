@@ -1,3 +1,5 @@
+import { getSyncableVistorias } from './offline-vistoria';
+
 document.addEventListener('DOMContentLoaded', function() {
 const APP_BASE = document.querySelector('meta[name="app-base"]')?.content || '';
 const searchInput = document.getElementById('search-endereco');
@@ -132,4 +134,86 @@ function submeterBusca() {
     hiddenNumero.value = numero || '';
     form.submit();
 }
+
+/** Fatia 3: injeta linhas da outbox só em Minhas Zeladorias. */
+async function injectPendentesOffline() {
+    const path = window.location.pathname.replace(/\/+$/, '');
+    if (!path.endsWith('/minhas-vistorias')) return;
+
+    const tbody = document.querySelector('.vistorias-table tbody');
+    if (!tbody) return;
+
+    let pendentes = [];
+    try {
+        pendentes = await getSyncableVistorias();
+    } catch {
+        return;
+    }
+    if (!pendentes.length) return;
+
+    // Remove empty-state se existir (lista só com outbox local).
+    const emptyRow = tbody.querySelector('.empty-state')?.closest('tr');
+    if (emptyRow) emptyRow.remove();
+
+    const frag = document.createDocumentFragment();
+    for (const record of pendentes.sort((a, b) =>
+        String(b.created_at || '').localeCompare(String(a.created_at || ''))
+    )) {
+        const p = record.payload || {};
+        const display = record.display || {};
+        const rawDate = p.data_abordagem || record.created_at;
+        let dataHtml = '—';
+        if (rawDate) {
+            const d = new Date(rawDate);
+            if (!Number.isNaN(d.getTime())) {
+                const dd = String(d.getDate()).padStart(2, '0');
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const yyyy = d.getFullYear();
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mi = String(d.getMinutes()).padStart(2, '0');
+                dataHtml = `<span style="font-weight: var(--font-semibold);">${dd}/${mm}/${yyyy}</span>`
+                    + (hh !== '00' || mi !== '00'
+                        ? `<span class="text-muted" style="font-size: var(--text-xs); display: block;">${hh}:${mi}</span>`
+                        : '');
+            }
+        }
+
+        const endereco = display.endereco_label
+            || (p.lat != null && p.lng != null
+                ? `Lat ${Number(p.lat).toFixed(5)} · Lng ${Number(p.lng).toFixed(5)}`
+                : 'Pendente de envio');
+        const tipo = display.tipo_label || '—';
+        const pessoas = p.quantidade_pessoas || '—';
+
+        const tr = document.createElement('tr');
+        tr.className = 'vistoria-pendente-offline';
+        tr.dataset.pendingId = String(record.id);
+        tr.innerHTML = `
+            <td style="white-space: nowrap;">${dataHtml}</td>
+            <td class="col-endereco">
+                <span style="font-weight: var(--font-medium); display: block;">${escapeHtml(endereco)}</span>
+                <span class="text-muted" style="font-size: var(--text-xs);">Salva no aparelho</span>
+            </td>
+            <td class="hide-mobile"><span class="text-muted" style="font-size: var(--text-sm);">Você</span></td>
+            <td class="hide-mobile"><span class="badge badge-secondary">${escapeHtml(tipo)}</span></td>
+            <td style="white-space: nowrap;"><span class="badge badge-warning">Pendente de envio</span></td>
+            <td class="hide-mobile"><span class="text-muted">—</span></td>
+            <td class="hide-mobile"><span class="text-muted">—</span></td>
+            <td class="hide-mobile text-center">${escapeHtml(String(pessoas))}</td>
+            <td class="hide-mobile text-center"><span class="text-muted" style="font-size: var(--text-xs);">Aguarda sync</span></td>
+        `;
+        frag.appendChild(tr);
+    }
+    tbody.prepend(frag);
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+injectPendentesOffline();
 });

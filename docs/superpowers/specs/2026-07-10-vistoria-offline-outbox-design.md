@@ -1,7 +1,7 @@
 # Spec — Criar vistoria offline (outbox)
 
 - **Data:** 2026-07-10
-- **Status:** aprovado (design) — pendente de revisão do spec
+- **Status:** Implementado (fatia 1) + fatia 3 (listar/abrir form) em 2026-07-15
 - **Fase do roadmap:** Fase 0 (endurecer o campo), fatia 1 de 3 do "offline de vistorias"
 - **Escopo desta fatia:** criação NOVA de vistoria quando o agente perde o sinal durante o preenchimento
 
@@ -140,10 +140,10 @@ perda de dados e **sem duplicar** a vistoria.
 
 ## 8. Critérios de aceitação
 
-- [ ] Com rede: criar vistoria redireciona para o `show` (sem regressão para o web).
-- [ ] Sem rede: enviar salva na fila, mostra aviso e incrementa o badge.
-- [ ] Voltar a rede: vistoria sincroniza, recebe id real, fotos reconciliam e enviam, fila zera.
-- [ ] App fechado e reaberto com rede: Background Sync/reabertura sincroniza as pendentes.
-- [ ] Reenvio após resposta perdida não cria vistoria duplicada (idempotência por `client_uuid`).
-- [ ] Nenhuma regressão no fluxo web atual de criação (usuários de navegador).
-- [ ] `vendor/bin/pint` e `vendor/bin/phpstan` limpos; testes do fluxo de criação passando.
+- [x] Com rede: criar vistoria redireciona para o `show` (sem regressão para o web).
+- [x] Sem rede: enviar salva na fila, mostra aviso e incrementa o badge.
+- [x] Voltar a rede: vistoria sincroniza, recebe id real, fotos reconciliam e enviam, fila zera.
+- [x] App fechado e reaberto com rede: Background Sync/reabertura sincroniza as pendentes.
+- [x] Reenvio após resposta perdida não cria vistoria duplicada (idempotência por `client_uuid`).
+- [x] Nenhuma regressão no fluxo web atual de criação (usuários de navegador).
+- [x] `vendor/bin/pint` e `vendor/bin/phpstan` limpos; testes do fluxo de criação passando.

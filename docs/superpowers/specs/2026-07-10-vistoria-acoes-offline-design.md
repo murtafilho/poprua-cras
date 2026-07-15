@@ -1,7 +1,7 @@
 # Spec — Finalizar/cancelar/reativar vistoria offline
 
 - **Data:** 2026-07-10
-- **Status:** aprovado (design) — pendente de revisão do spec
+- **Status:** Implementado (fatia 2, 2026-07)
 - **Fase do roadmap:** Fase 0, fatia 2 de 3 do "offline de vistorias"
 - **Escopo:** mudanças de estado (finalizar, cancelar, reativar) de uma vistoria existente sem rede
 
@@ -119,10 +119,10 @@ conexão, sem regressão para o usuário web.
 
 ## 8. Critérios de aceitação
 
-- [ ] Online: finalizar/cancelar/reativar aplica e a tela reflete o estado (sem regressão web).
-- [ ] Offline: clicar enfileira, toast + badge, botões desabilitados/"pendente".
-- [ ] Reconexão: a ação sincroniza e o estado é aplicado no servidor.
-- [ ] Reenvio da mesma ação é seguro (idempotente), sem erro.
-- [ ] 403 quando o usuário não tem permissão (Policy) no endpoint da API.
-- [ ] Nenhuma regressão no fluxo web de finalizar/cancelar/reativar.
-- [ ] `php artisan test` (incl. novos), `vendor/bin/pint`, `vendor/bin/phpstan` limpos.
+- [x] Online: finalizar/cancelar/reativar aplica e a tela reflete o estado (sem regressão web).
+- [x] Offline: clicar enfileira, toast + badge, botões desabilitados/"pendente".
+- [x] Reconexão: a ação sincroniza e o estado é aplicado no servidor.
+- [x] Reenvio da mesma ação é seguro (idempotente), sem erro.
+- [x] 403 quando o usuário não tem permissão (Policy) no endpoint da API.
+- [x] Nenhuma regressão no fluxo web de finalizar/cancelar/reativar.
+- [x] `php artisan test` (incl. novos), `vendor/bin/pint`, `vendor/bin/phpstan` limpos.

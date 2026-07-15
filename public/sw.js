@@ -1,4 +1,4 @@
-const CACHE_VERSION = 38;
+const CACHE_VERSION = 39;
 const CACHE_NAME = 'poprua-v' + CACHE_VERSION;
 const TILE_CACHE = 'poprua-tiles-v1';
 const API_CACHE = 'poprua-api-v1';
@@ -85,6 +85,33 @@ self.addEventListener('fetch', function(event) {
                         return cached;
                     });
                     return cached || fetchPromise;
+                });
+            })
+        );
+        return;
+    }
+
+    // Create de vistoria: network-first; offline cai na URL exata ou no shell sem query
+    if (url.pathname.match(/\/vistorias\/create\/?$/)) {
+        event.respondWith(
+            fetch(event.request).then(function(response) {
+                if (response.status === 200) {
+                    var clone = response.clone();
+                    caches.open(CACHE_NAME).then(function(cache) {
+                        cache.put(event.request, clone);
+                        // Também guarda shell sem query (lat/lng aplicados no JS).
+                        var shellReq = new Request(url.origin + url.pathname, {
+                            credentials: event.request.credentials,
+                            headers: event.request.headers,
+                        });
+                        cache.put(shellReq, response.clone()).catch(function() {});
+                    });
+                }
+                return response;
+            }).catch(function() {
+                return caches.match(event.request).then(function(exact) {
+                    if (exact) return exact;
+                    return caches.match(url.origin + url.pathname);
                 });
             })
         );

@@ -19,7 +19,31 @@
 
 @section('content')
     <div class="form-page">
-        <form id="vistoria-form" action="{{ route('vistorias.store') }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate x-data="{}" x-cloak>
+        @php
+            $enderecoLabelOffline = null;
+            if ($pontoProximo) {
+                $ea = $pontoProximo->enderecoAtualizado;
+                $enderecoLabelOffline = trim(sprintf(
+                    '%s %s, %s - %s',
+                    $ea->tipo ?? '',
+                    $ea->logradouro ?? '',
+                    $ea->numero ?? $pontoProximo->numero,
+                    $ea->bairro ?? ''
+                ));
+            } elseif ($enderecoReferencia) {
+                $enderecoLabelOffline = trim(sprintf(
+                    '%s %s, %s - %s',
+                    $enderecoReferencia['tipo'] ?? '',
+                    $enderecoReferencia['logradouro'] ?? '',
+                    $enderecoReferencia['numero'] ?? '',
+                    $enderecoReferencia['bairro'] ?? ''
+                ));
+            } elseif ($lat !== null && $lat !== '' && $lng !== null && $lng !== '') {
+                $enderecoLabelOffline = sprintf('Lat %s · Lng %s', number_format((float) $lat, 5), number_format((float) $lng, 5));
+            }
+        @endphp
+        <form id="vistoria-form" action="{{ route('vistorias.store') }}" method="POST" enctype="multipart/form-data" class="form-container" novalidate x-data="{}" x-cloak
+              data-endereco-label="{{ $enderecoLabelOffline ?? '' }}">
             @csrf
             <input type="hidden" name="lat" value="{{ $lat }}">
             <input type="hidden" name="lng" value="{{ $lng }}">
