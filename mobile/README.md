@@ -41,7 +41,8 @@ adb install -r mobile/android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Status
 
-- APK debug gerado com sucesso em app/build/outputs/apk/debug/app-debug.apk
+- APK debug **v1.2** (`versionCode 3`) em `app/build/outputs/apk/debug/app-debug.apk`
+- Reinstalado por sideload em 2026-07-15 (limpa cache HTTP do WebView a cada nova versão)
 - Validado em campo (Samsung Galaxy A16 5G / Android 14, 2026-07-10):
   - Instala e abre em tela cheia, sem barra de navegador
   - Modo remoto carrega a produção; loader adaptativo cobre a carga (sem tela branca)

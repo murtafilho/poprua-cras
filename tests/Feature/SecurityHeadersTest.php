@@ -39,4 +39,14 @@ class SecurityHeadersTest extends TestCase
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('X-Frame-Options', 'SAMEORIGIN');
     }
+
+    public function test_html_documents_are_not_cached_by_clients(): void
+    {
+        $response = $this->get('/login');
+
+        $cacheControl = (string) $response->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-cache', $cacheControl);
+        $this->assertStringContainsString('private', $cacheControl);
+        $response->assertHeader('Pragma', 'no-cache');
+    }
 }
