@@ -75,16 +75,17 @@ step "[3/8] Pull (fast-forward only)"
 $GIT merge --ff-only "origin/$BRANCH" || die "nao foi fast-forward (servidor divergiu de origin/$BRANCH). Resolva manualmente."
 chown -R www-data:www-data "$APP_DIR" 2>/dev/null || true
 
-# Remover faixa de homologacao no ambiente PBH (sistema em producao).
+# Producao: faixa de homologacao sempre desligada.
+# (O script em memoria no inicio do deploy pode ser a versao antiga ate o pull;
+# por isso forcamos false de forma incondicional a cada deploy.)
 ENV_FILE="$APP_DIR/.env"
 if [ -f "$ENV_FILE" ]; then
-    if ! grep -q '^APP_HOMOLOGACAO_BANNER=' "$ENV_FILE"; then
+    if grep -qE '^[[:space:]]*APP_HOMOLOGACAO_BANNER=' "$ENV_FILE"; then
+        sed -i 's/^[[:space:]]*APP_HOMOLOGACAO_BANNER=.*/APP_HOMOLOGACAO_BANNER=false/' "$ENV_FILE"
+    else
         echo 'APP_HOMOLOGACAO_BANNER=false' >> "$ENV_FILE"
-        echo "  .env: APP_HOMOLOGACAO_BANNER=false (adicionado)"
-    elif grep -qE '^APP_HOMOLOGACAO_BANNER=(true|1|"true"|'"'"'true'"'"')' "$ENV_FILE"; then
-        sed -i 's/^APP_HOMOLOGACAO_BANNER=.*/APP_HOMOLOGACAO_BANNER=false/' "$ENV_FILE"
-        echo "  .env: APP_HOMOLOGACAO_BANNER desativado"
     fi
+    echo "  .env: APP_HOMOLOGACAO_BANNER=false"
 fi
 
 CHANGED=$($GIT diff --name-only "$OLD" "$NEW" 2>/dev/null)

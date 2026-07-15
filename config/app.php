@@ -26,12 +26,12 @@ return [
     | Faixa de homologação
     |--------------------------------------------------------------------------
     |
-    | Exibe aviso fixo no topo informando que o ambiente é de testes.
-    | Em produção deve permanecer desativado (APP_HOMOLOGACAO_BANNER=false).
+    | Desligada em definitivo (sistema em produção). Para reativar temporariamente
+    | em um ambiente de teste, altere para filtrar APP_HOMOLOGACAO_BANNER.
     |
     */
 
-    'homologacao_banner' => filter_var(env('APP_HOMOLOGACAO_BANNER', false), FILTER_VALIDATE_BOOL),
+    'homologacao_banner' => false,
 
     /*
     |--------------------------------------------------------------------------
