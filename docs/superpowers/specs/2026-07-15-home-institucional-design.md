@@ -39,7 +39,8 @@ Substituir o redirect `/` → mapa por uma **home institucional** exibida ao abr
 | Pessoas | `moradores.index` |
 | Dashboard | `dashboard` |
 
-Fora da grade: admin, Power BI, Sobre, etc. (menu lateral).
+Fora da grade: admin, Power BI, etc. (menu lateral).  
+**Sobre:** link textual no rodapé da home (“Sobre o sistema”) — não como tile da grade (padrão Material: About é secundário).
 
 ## Visual (tokens PBH existentes)
 

@@ -89,6 +89,11 @@
 
         <footer class="home-footer">
             <p>Prefeitura de Belo Horizonte · GINFI / SUFIS</p>
+            <nav class="home-footer-links" aria-label="Informações">
+                @auth
+                    <a href="{{ route('sobre.index') }}" class="home-footer-link">Sobre o sistema</a>
+                @endauth
+            </nav>
             @auth
                 <form method="POST" action="{{ route('logout') }}" class="home-logout">
                     @csrf

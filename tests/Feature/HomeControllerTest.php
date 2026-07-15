@@ -44,6 +44,8 @@ class HomeControllerTest extends TestCase
         $response->assertSee('Pessoas', false);
         $response->assertSee('Dashboard', false);
         $response->assertSee(route('mapa.index'), false);
+        $response->assertSee('Sobre o sistema', false);
+        $response->assertSee(route('sobre.index'), false);
     }
 
     public function test_home_shows_brand_and_version(): void
