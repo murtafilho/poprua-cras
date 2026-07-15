@@ -22,6 +22,13 @@ class HomeControllerTest extends TestCase
         $response->assertDontSee('href="'.route('mapa.index').'"', false);
     }
 
+    public function test_root_redirects_to_home(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertRedirect(route('home'));
+    }
+
     public function test_authenticated_user_sees_launcher_shortcuts(): void
     {
         $user = User::factory()->create();

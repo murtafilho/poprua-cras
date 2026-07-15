@@ -59,9 +59,9 @@ fi
 echo ""
 
 # --- 2b. Home institucional publica (nao redireciona para login)
-echo "[3/5] Home institucional ${PROD_URL}/ ..."
-HOME_CODE=$(curl -s -o /tmp/poprua-home-smoke.html -w "%{http_code}" "${PROD_URL}/" --max-time 10 2>&1 || echo "000")
-HOME_LOC=$(curl -s -o /dev/null -w "%{redirect_url}" "${PROD_URL}/" --max-time 10 2>&1 || true)
+echo "[3/5] Home institucional ${PROD_URL}/bem-vindo ..."
+HOME_CODE=$(curl -s -o /tmp/poprua-home-smoke.html -w "%{http_code}" "${PROD_URL}/bem-vindo" --max-time 10 2>&1 || echo "000")
+HOME_LOC=$(curl -s -o /dev/null -w "%{redirect_url}" "${PROD_URL}/bem-vindo" --max-time 10 2>&1 || true)
 if [ "$HOME_CODE" = "200" ] && grep -q "ADPF 976" /tmp/poprua-home-smoke.html 2>/dev/null; then
   pass "Home publica 200 com ADPF 976"
 elif [ "$HOME_CODE" = "302" ] && echo "$HOME_LOC" | grep -q login; then

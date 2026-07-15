@@ -19,8 +19,11 @@ use App\Http\Controllers\StackProjecaoController;
 use App\Http\Controllers\VistoriaController;
 use Illuminate\Support\Facades\Route;
 
-// Home institucional — pública (marca, versão, ADPF + lançador se autenticado)
-Route::get('/', HomeController::class)->name('home');
+// Home institucional — pública (marca, versão, ADPF + lançador se autenticado).
+// Usa /bem-vindo como URI canônica: em produção o pedido a "/" (DirectoryIndex)
+// vinha redirecionando guests para login mesmo com a rota `home` só em `web`.
+Route::get('/bem-vindo', HomeController::class)->name('home');
+Route::redirect('/', '/bem-vindo');
 
 // Todas as rotas protegidas por autenticação
 Route::middleware('auth')->group(function () {

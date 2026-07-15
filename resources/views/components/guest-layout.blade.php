@@ -18,7 +18,7 @@
         <x-homologacao-banner />
         <div class="guest-container">
             <div class="guest-logo">
-                <a href="/">
+                <a href="{{ route('home') }}">
                     <x-application-logo style="width: 64px; height: 64px; color: var(--accent-primary);" />
                 </a>
             </div>
