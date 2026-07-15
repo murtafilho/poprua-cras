@@ -41,7 +41,7 @@ adb install -r mobile/android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Status
 
-- APK debug **v1.3** (`versionCode 4`) — abre em `/bem-vindo`
+- APK debug **v1.4** (`versionCode 5`) — abre em `/bem-vindo`
 - Reinstalado por sideload em 2026-07-15 (limpa cache HTTP do WebView a cada nova versão)
 - Validado em campo (Samsung Galaxy A16 5G / Android 14, 2026-07-10):
   - Instala e abre em tela cheia, sem barra de navegador
