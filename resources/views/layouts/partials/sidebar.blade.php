@@ -7,7 +7,7 @@
                 <a href="{{ route('home') }}" class="sidebar-logo">
                     <span class="sidebar-tagline">Sistema Integrado de Zeladoria Municipal</span>
                     <span class="sidebar-logo-row">
-                        <x-application-logo class="sidebar-logo-icon" />
+                        <x-application-logo class="sidebar-logo-icon" alt="" />
                         <span class="sidebar-brand">{{ config('app.brand', 'SIZEM') }}</span>
                         <span class="sidebar-version">v2.0</span>
                     </span>

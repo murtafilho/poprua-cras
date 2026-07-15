@@ -23,6 +23,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Logomarca canônica
+    |--------------------------------------------------------------------------
+    |
+    | Mesmo asset do ícone do app Android (SIZEM Campo v2 icon-a2).
+    | Usado por <x-application-logo /> em login, home, sidebar, etc.
+    |
+    */
+
+    'logo' => env('APP_LOGO', 'images/brand/v2/sizem-icon-a2.svg'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Faixa de homologação
     |--------------------------------------------------------------------------
     |

@@ -19,7 +19,7 @@
 
     <main id="home-main" class="home-shell">
         <header class="home-brand">
-            <x-application-logo class="home-logo" style="width: 5.5rem; height: 5.5rem; color: var(--accent-primary);" />
+            <x-application-logo class="home-logo" alt="{{ config('app.brand', 'SIZEM') }}" />
             <h1 class="home-title">{{ $brand }}</h1>
             <p class="home-subtitle">Sistema Integrado de Zeladoria Municipal</p>
             <p class="home-version">v{{ $version }}</p>

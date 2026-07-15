@@ -12,7 +12,7 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4);">
-                        <x-application-logo style="width: 48px; height: 48px; color: var(--accent-primary); flex-shrink: 0;" />
+                        <x-application-logo style="width: 48px; height: 48px; flex-shrink: 0;" alt="" />
                         <div>
                             <h2 style="font-size: var(--text-lg); font-weight: var(--font-bold); margin: 0;">
                                 {{ config('app.brand', 'SIZEM') }}

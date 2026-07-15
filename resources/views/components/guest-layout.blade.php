@@ -8,6 +8,10 @@
 
         <title>{{ config('app.brand', 'SIZEM') }}</title>
 
+        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+        <link rel="icon" type="image/svg+xml" href="{{ asset(config('app.logo', 'images/brand/v2/sizem-icon-a2.svg')) }}">
+        <link rel="apple-touch-icon" href="{{ asset('icons/icon-192x192.png') }}">
+
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -19,7 +23,7 @@
         <div class="guest-container">
             <div class="guest-logo">
                 <a href="{{ route('home') }}">
-                    <x-application-logo style="width: 64px; height: 64px; color: var(--accent-primary);" />
+                    <x-application-logo style="width: 80px; height: 80px;" alt="{{ config('app.brand', 'SIZEM') }}" />
                 </a>
             </div>
 

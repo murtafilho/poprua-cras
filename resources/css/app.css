@@ -610,17 +610,26 @@ body.has-homolog-banner .skip-link:focus {
 }
 
 .sidebar-logo-icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
   flex-shrink: 0;
-  color: var(--chrome-text);
+  object-fit: contain;
+  display: block;
 }
 
 .mobile-header-logo {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
   flex-shrink: 0;
-  color: var(--chrome-text);
+  object-fit: contain;
+  display: block;
+}
+
+.app-logo {
+  display: block;
+  object-fit: contain;
+  max-width: 100%;
+  height: auto;
 }
 
 .sidebar-tagline {
@@ -5499,7 +5508,10 @@ body.slideshow-open {
 
 .home-logo {
   display: block;
+  width: 5.5rem;
+  height: 5.5rem;
   margin-bottom: var(--space-4);
+  object-fit: contain;
 }
 
 .home-title {

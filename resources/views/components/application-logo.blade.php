@@ -1,15 +1,11 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" {{ $attributes }}>
-    {{-- SIZEM — pin (território) + pessoa (abordagem social / morador) · estilo PBH --}}
-    <path
-        d="M32 5.5c-9.39 0-17 7.61-17 17 0 11.2 14.2 28.5 16.4 31.6.55.82 1.65.82 2.2 0C36.8 51.2 51 33.9 51 22.5c0-9.39-7.61-17-17-17z"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="4.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-    />
-    <g fill="var(--logo-accent, var(--chrome-accent, #FFE500))">
-        <circle cx="32" cy="19" r="3.5"/>
-        <path d="M32 23.5c-4.15 0-7.5 2.35-7.5 5.25V30.5h15v-1.75c0-2.9-3.35-5.25-7.5-5.25z"/>
-    </g>
-</svg>
+@props([
+    'alt' => '',
+])
+
+{{-- Logo canônica SIZEM Campo (v2 icon-a2) — mesma do ícone Android / splash. --}}
+<img
+    src="{{ asset(config('app.logo', 'images/brand/v2/sizem-icon-a2.svg')) }}"
+    alt="{{ $alt }}"
+    decoding="async"
+    {{ $attributes->class('app-logo') }}
+>

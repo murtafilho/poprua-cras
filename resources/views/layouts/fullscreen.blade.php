@@ -11,6 +11,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="{{ config('app.brand', 'SIZEM') }}">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="{{ asset(config('app.logo', 'images/brand/v2/sizem-icon-a2.svg')) }}">
     <link rel="apple-touch-icon" href="{{ asset('icons/icon-192x192.png') }}">
 
     <title>{{ config('app.brand', 'SIZEM') }} — @yield('title', 'Sistema')</title>

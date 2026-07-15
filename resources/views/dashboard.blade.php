@@ -4,7 +4,7 @@
 
 @section('header')
     <a href="{{ route('dashboard') }}" class="flex items-center gap-3" style="color: #FFFFFF;">
-        <x-application-logo class="mobile-header-logo" />
+        <x-application-logo class="mobile-header-logo" alt="" />
         <span class="mobile-header-title">{{ config('app.brand', 'SIZEM') }}</span>
     </a>
     <div class="flex items-center gap-2">
