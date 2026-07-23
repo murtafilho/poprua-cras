@@ -13,7 +13,7 @@ exibido e escondido de forma adaptativa em `MainActivity.onPageLoaded`
 
 - Node 22, JDK 21
 - Android SDK em `/home/murtafilho/Android/Sdk`
-  (platform `android-35`, build-tools `35.0.0`, `cmdline-tools/latest`)
+  (platform `android-36`, build-tools `36.0.0`, `cmdline-tools/latest`)
 - `adb` em `/usr/bin/adb`
 
 Antes de qualquer comando Gradle, exporte o caminho do SDK:
@@ -71,16 +71,16 @@ adb install -r mobile/android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Status
 
-- APK debug **v1.8** (`versionCode 9`) — gerado em 2026-07-23, **aguardando sideload**
+- APK debug **v1.9** (`versionCode 10`) — gerado em 2026-07-23, **aguardando sideload**
+  - Capacitor 8.4.2, `targetSdk 36`, `minSdk 24` (Android 7.0+) — resolve o prazo do Google Play de 31/08/2026
   - Alvo do WebView selecionável por ambiente (`SIZEM_ALVO` / `SIZEM_URL`) + `network_security_config` liberando HTTP só para os endereços de desenvolvimento
   - `MainActivity` publica a versão do APK para a página (`window.__sizemAppVersao`), que a tela inicial usa no rótulo de versão
   - Corrige o crash na abertura em Android 6.0–8.0 (`getLongVersionCode` exigia API 28 com `minSdk` 23)
-- v1.6 e v1.7 não foram distribuídas — a v1.8 as substitui
-  - Corrige crash na abertura em Android 6.0–8.0 (`getLongVersionCode` exigia API 28 com `minSdk` 23) — o aparelho de campo (Android 14) não era afetado
   - `<uses-feature required="false">` para câmera e GPS; permissões antes do `<application>`
-  - `./gradlew :app:lintDebug` passou de 2 erros para **0 erros** (26 avisos), destravando as variantes de release
-- APK debug v1.5 (`versionCode 6`) — abre em `/bem-vindo`; incorpora a fatia 3 offline (listar pendentes e criar vistoria sem rede)
-- A camada offline vive no `public/sw.js` (deploy do Laravel) e vale também para os APKs antigos: desde o `CACHE_VERSION 40`, o app abre sem rede (shell `/bem-vindo` e `/vistorias` no cache) e o sync de fotos não descarta mais a fila quando a sessão não está autenticada. Ver `mobile/android/ANALISE-ANDROID-STUDIO.md` §8, §9 e §15
+  - `./gradlew :app:lintDebug`: **0 erros** (antes eram 2), o que destrava as variantes de release
+- v1.6, v1.7 e v1.8 não chegaram a ser distribuídas — a v1.9 as substitui
+- APK debug v1.5 (`versionCode 6`) — a versão que está no aparelho de campo
+- A camada offline vive no `public/sw.js` (deploy do Laravel) e vale também para os APKs antigos, inclusive a v1.5: o app abre sem rede (shell `/bem-vindo`, `/vistorias` e `/vistorias/create` em cache) e o sync não descarta mais a fila quando a sessão não está autenticada. Ver `ANALISE-ANDROID-STUDIO.md` §8, §9 e §15
 - Limpa o cache HTTP do WebView a cada nova versão
 - Validado em campo (Samsung Galaxy A16 5G / Android 14, 2026-07-10):
   - Instala e abre em tela cheia, sem barra de navegador

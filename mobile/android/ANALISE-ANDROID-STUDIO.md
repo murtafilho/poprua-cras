@@ -360,7 +360,7 @@ com `PackageInfoCompat` (§3) segue necessária de qualquer forma.
 | 7 | Restringir `external-path`/`cache-path` do FileProvider | `res/xml/file_paths.xml` | P1 |
 | 8 | `@capacitor/app` + tratamento do botão Voltar | `mobile/package.json`, `capacitor.config.ts` | P1 |
 | 9 | Commitar o upgrade de toolchain; **não** versionar `gradle-daemon-jvm.properties` | `mobile/android/` | P1 |
-| 10 | Upgrade Capacitor 8 + `targetSdk 36` (resolve o prazo da Play Store) | `variables.gradle`, `mobile/package.json` | P1 |
+| 10 | ✅ **feito** — Capacitor 8 + `targetSdk 36` (prazo da Play Store resolvido) | `variables.gradle`, `mobile/package.json` | P1 |
 | 11 | ✅ **feito** — `<uses-feature required="false">` câmera/GPS + ordem do manifest | `AndroidManifest.xml` | P2 |
 | 12 | Corrigir/remover `ExampleInstrumentedTest` (ainda asserta `com.getcapacitor.app`) | `app/src/androidTest/…` | P2 |
 | 13 | Ícone `monochrome` + round circular | `res/mipmap-*` | P2 |
