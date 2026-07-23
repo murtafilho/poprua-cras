@@ -16,10 +16,33 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            // Por padrao usa a MESMA chave de debug que assinou as versoes ja
+            // instaladas em campo. Nao e descuido: trocar de chave impede o
+            // `adb install -r` por cima, obrigaria a desinstalar, e desinstalar
+            // apaga a fila offline (fotos e vistorias ainda nao sincronizadas).
+            //
+            // O ganho imediato do build de release nao vem da chave e sim do
+            // buildType: ele sai com debuggable=false, tirando o WebView (com
+            // sessao e fotos) do alcance de chrome://inspect.
+            //
+            // Quando existir keystore proprio, basta exportar as variaveis —
+            // nenhuma mudanca de codigo:
+            //   SIZEM_KEYSTORE, SIZEM_KEYSTORE_PASS, SIZEM_KEY_ALIAS, SIZEM_KEY_PASS
+            storeFile file(System.getenv('SIZEM_KEYSTORE')
+                ?: "${System.properties['user.home']}/.android/debug.keystore")
+            storePassword System.getenv('SIZEM_KEYSTORE_PASS') ?: 'android'
+            keyAlias System.getenv('SIZEM_KEY_ALIAS') ?: 'androiddebugkey'
+            keyPassword System.getenv('SIZEM_KEY_PASS') ?: 'android'
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
