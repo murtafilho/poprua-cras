@@ -1,4 +1,5 @@
 import { imgType } from './img-format';
+import { DESTINO, cabecalhos, classificarResposta, endpoint } from './offline/politica.js';
 
 /**
  * SIZEM — Camada canônica de fila offline de fotos (IndexedDB + Service Worker).
@@ -249,17 +250,14 @@ export async function uploadPendingPhoto(foto, options = {}) {
     }
     formData.append('publica', foto.publica ? '1' : '0');
 
-    const response = await fetch(`${appBase}/api/vistorias/fotos`, {
+    const response = await fetch(endpoint(appBase, 'foto'), {
         method: 'POST',
         body: formData,
-        headers: {
-            'X-CSRF-TOKEN': csrfToken,
-            Accept: 'application/json',
-        },
+        headers: cabecalhos({ csrf: csrfToken }),
         credentials: 'same-origin',
     });
 
-    if (!response.ok) {
+    if (classificarResposta(response, 'foto') !== DESTINO.SUCESSO) {
         throw new Error(`Upload failed: ${response.status}`);
     }
 

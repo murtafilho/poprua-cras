@@ -5,15 +5,18 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "build": "vite build",
-        "dev": "vite"
+        "build": "vite build && node scripts/build-sw.mjs",
+        "build:sw": "node scripts/build-sw.mjs",
+        "dev": "vite",
+        "test:js": "vitest run"
     },
     "devDependencies": {
         "@playwright/test": "^1.61.1",
         "alpinejs": "^3.4.2",
         "axios": "^1.11.0",
         "laravel-vite-plugin": "^2.0.0",
-        "vite": "^7.0.7"
+        "vite": "^7.0.7",
+        "vitest": "^4.1.10"
     },
     "dependencies": {
         "chart.js": "^4.5.1",

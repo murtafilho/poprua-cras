@@ -1,4 +1,5 @@
 import { reconcileTempId, getTempPhotoId } from './offline-upload';
+import { DESTINO, cabecalhos, classificarResposta, endpoint } from './offline/politica.js';
 
 /**
  * SIZEM — Outbox de criação de vistoria offline (IndexedDB separado).
@@ -127,10 +128,6 @@ export async function updatePendingVistoria(id, changes) {
     });
 }
 
-// Status HTTP que indicam rejeição PERMANENTE pelo servidor (dado inválido,
-// duplicidade de outro usuário, autorização) — reenviar não vai adiantar.
-const PERMANENT_REJECTION_STATUSES = [422, 409, 403];
-
 /**
  * Envia uma vistoria pendente. Em caso de sucesso, reconcilia as fotos
  * (temp → id real) e remove da fila, retornando o id real.
@@ -150,23 +147,20 @@ export async function syncOneVistoria(record, options = {}) {
 
     // Falha de rede: deixa o erro propagar (não captura aqui) — o registro
     // permanece 'pending' na fila para a próxima tentativa de sync.
-    const resp = await fetch(`${appBase}/api/vistorias`, {
+    const resp = await fetch(endpoint(appBase, 'vistoria'), {
         method: 'POST',
         credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-CSRF-TOKEN': csrf,
-        },
+        headers: cabecalhos({ csrf, json: true }),
         body: JSON.stringify(record.payload),
     });
 
-    if (!resp.ok) {
-        if (PERMANENT_REJECTION_STATUSES.includes(resp.status)) {
+    const destino = classificarResposta(resp, 'vistoria');
+    if (destino !== DESTINO.SUCESSO) {
+        if (destino === DESTINO.PERMANENTE) {
             await updatePendingVistoria(record.id, { status: 'failed' });
             return null;
         }
-        // 5xx ou outro status transiente: mantém 'pending' para nova tentativa.
+        // 5xx, 401, 419 ou redirect para login: mantém 'pending' para nova tentativa.
         throw new Error(`sync vistoria falhou: ${resp.status}`);
     }
 

@@ -142,7 +142,10 @@ class AppVersao
             return null;
         }
 
-        if (preg_match('/const\s+CACHE_VERSION\s*=\s*(\d+)/', $sw, $matches)) {
+        // public/sw.js é gerado por scripts/build-sw.mjs (esbuild), que emite
+        // `var` dentro do IIFE — o fonte usa `const`. Aceita as duas formas
+        // para a versão do cache não sumir da tela administrativa.
+        if (preg_match('/(?:const|var|let)\s+CACHE_VERSION\s*=\s*(\d+)/', $sw, $matches)) {
             return $matches[1];
         }
 

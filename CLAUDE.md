@@ -96,7 +96,12 @@ Frontend: Blade + Alpine + Leaflet. Design system em `resources/css/app.css` (te
 - Logica nova no Service, nao no controller.
 - `vendor/bin/pint --dirty` antes de finalizar.
 - UI/relatorios: nomenclatura **Zeladoria** quando aplicavel.
-- Service Worker: incrementar `CACHE_VERSION` em `public/sw.js` ao mudar assets offline.
+- Service Worker: `public/sw.js` e **gerado** por `npm run build:sw` a partir de
+  `resources/js/sw/index.js` — nao editar o arquivo publicado. Incrementar
+  `CACHE_VERSION` no fonte ao mudar assets offline.
+- A politica de sincronizacao offline (endpoints, cabecalhos, o que fazer com a
+  resposta) vive em `resources/js/offline/politica.js` e e compartilhada pelas
+  paginas e pelo Service Worker. Testes: `npm run test:js`.
 - Sempre em pt-BR com acentuacao correta.
 
 ## ETL (Geo → CRAS)

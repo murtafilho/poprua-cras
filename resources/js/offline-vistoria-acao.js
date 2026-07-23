@@ -3,10 +3,11 @@
  * offline. IndexedDB separado (poprua_vistoria_acoes). Ações idempotentes.
  */
 
+import { DESTINO, cabecalhos, classificarResposta, endpoint } from './offline/politica.js';
+
 const DB_NAME = 'poprua_vistoria_acoes';
 const DB_VERSION = 1;
 const STORE = 'pendentes';
-const PERMANENT_REJECTION_STATUSES = [403, 404, 422];
 
 let dbPromise = null;
 
@@ -87,21 +88,24 @@ export async function syncOneAcao(record, options = {}) {
     const csrf = options.csrfToken
         ?? document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
-    const resp = await fetch(`${appBase}/api/vistorias/${record.vistoria_id}/${record.acao}`, {
+    const url = endpoint(appBase, 'acao', { vistoriaId: record.vistoria_id, acao: record.acao });
+    const resp = await fetch(url, {
         method: 'POST',
         credentials: 'same-origin',
-        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
+        headers: cabecalhos({ csrf }),
     });
-    if (resp.ok) {
+
+    const destino = classificarResposta(resp, 'acao');
+    if (destino === DESTINO.SUCESSO) {
         await removePendingAcao(record.id);
         return true;
     }
-    if (PERMANENT_REJECTION_STATUSES.includes(resp.status)) {
+    if (destino === DESTINO.PERMANENTE) {
         record.status = 'failed';
         await updateAcao(record);
         return null; // rejeição permanente: não re-tenta
     }
-    throw new Error(`sync acao falhou: ${resp.status}`); // 5xx/rede: mantém p/ retry
+    throw new Error(`sync acao falhou: ${resp.status}`); // 5xx/401/419/rede: mantém p/ retry
 }
 
 export async function syncPendingAcoes(options = {}) {
