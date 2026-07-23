@@ -114,9 +114,12 @@
             var el = document.getElementById('home-version');
             if (!el) return;
 
+            var aplicado = false;
+
             function aplicar() {
                 var apk = window.__sizemAppVersao;
-                if (!apk) return false;
+                if (!apk || aplicado) return aplicado;
+                aplicado = true;
                 // No app, a versao do APK e a informacao principal; a data sai da
                 // linha (fica no title) para o rotulo nao virar uma frase.
                 var partes = el.dataset.versaoWeb.split(' · ');
