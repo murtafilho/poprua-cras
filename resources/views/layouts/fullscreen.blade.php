@@ -56,17 +56,6 @@
 
     @stack('scripts')
 
-    <script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('{{ asset("sw.js") }}', { scope: '{{ asset("/") }}' })
-            .then(function(reg) {
-                setInterval(function() { reg.update(); }, 1800000);
-                var refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', function() {
-                    if (!refreshing) { refreshing = true; window.location.reload(); }
-                });
-            });
-    }
-    </script>
+    @include('partials.sw-register')
 </body>
 </html>

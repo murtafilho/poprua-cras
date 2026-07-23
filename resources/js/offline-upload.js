@@ -273,16 +273,16 @@ class OfflineUpload {
 
     _init() {
         if ('serviceWorker' in navigator) {
-            // Caminho dinamico baseado na baseURL da aplicacao
-            const base = document.querySelector('meta[name="app-base"]')?.content
-                ?? document.querySelector('base')?.getAttribute('href')
-                ?? '';
-            const swPath = base + '/sw.js';
-            navigator.serviceWorker.register(swPath)
+            // Nao registra aqui: quem registra e partials/sw-register.blade.php,
+            // no servidor, onde o caminho e sempre correto. Este registro
+            // paralelo montava '/sw.js' na raiz do dominio quando a meta
+            // app-base faltava (o caso da tela inicial) e batia em 404 na
+            // producao, que roda em subdiretorio.
+            navigator.serviceWorker.ready
                 .then((reg) => {
                     this._swRegistration = reg;
                 })
-                .catch((err) => console.error('[OfflineUpload] SW registration failed:', err));
+                .catch(() => { /* sem service worker: sync fica so em primeiro plano */ });
 
             navigator.serviceWorker.addEventListener('message', (event) => {
                 this._emit(event.data.type, event.data);

@@ -105,6 +105,8 @@
         </footer>
     </main>
 
+    @include('partials.sw-register')
+
     <script>
         // Dentro do app de campo, a MainActivity injeta a versao do APK instalado.
         // Ela chega depois do HTML, entao o rotulo comeca com a versao publicada
