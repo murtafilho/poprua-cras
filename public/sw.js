@@ -1,27 +1,94 @@
-const CACHE_VERSION = 39;
+const CACHE_VERSION = 40;
 const CACHE_NAME = 'poprua-v' + CACHE_VERSION;
 const TILE_CACHE = 'poprua-tiles-v1';
 const API_CACHE = 'poprua-api-v1';
 const MAX_TILE_CACHE = 2000;
 
+// Shell offline: paginas que precisam abrir sem rede. Sem isto, a partida a
+// frio do app de campo (WebView carregando /bem-vindo) cai na pagina de erro
+// do Chromium e a fila offline fica inacessivel, mesmo com os dados salvos
+// no IndexedDB. Relativas ao scope (em producao o app roda em subdiretorio).
+// 'vistorias/create' entra aqui (sem query) porque a troca de CACHE_VERSION
+// apaga o cache da versao anterior: sem precache, quem atualiza o SW perde o
+// formulario de criacao offline ate a proxima visita com rede.
+var SHELL_PATHS = ['bem-vindo', 'vistorias', 'vistorias/create'];
+
+/** URLs absolutas do shell, resolvidas contra o scope do SW. */
+function shellUrls() {
+    return SHELL_PATHS.map(function(path) {
+        return new URL(path, self.registration.scope).toString();
+    });
+}
+
+/** URL absoluta do shell principal (fallback de ultima instancia). */
+function shellFallbackUrl() {
+    return shellUrls()[0];
+}
+
+/** A URL navegada e uma das paginas do shell? */
+function isShellUrl(url) {
+    return shellUrls().indexOf(url.origin + url.pathname) !== -1;
+}
+
+/** Guarda o documento no cache do shell, sem query e sem respostas redirecionadas. */
+function cacheShellDocument(url, response) {
+    // Resposta redirecionada (ex.: sessao expirada -> /login) nao serve de shell
+    // e ainda quebra o replay em navegacao ("redirected flag set").
+    if (!response.ok || response.redirected) return Promise.resolve();
+    var clone = response.clone();
+    return caches.open(CACHE_NAME).then(function(cache) {
+        return cache.put(url.origin + url.pathname, clone);
+    }).catch(function() {});
+}
+
+/** Baixa o shell na instalacao do SW, para a primeira partida offline ja funcionar. */
+function precacheShell() {
+    return Promise.all(SHELL_PATHS.map(function(path) {
+        var url = new URL(path, self.registration.scope);
+        return fetch(url.toString(), { credentials: 'same-origin' })
+            .then(function(response) {
+                return cacheShellDocument(url, response);
+            })
+            .catch(function() { /* sem rede na instalacao: fica para a 1a navegacao */ });
+    }));
+}
+
 self.addEventListener('install', function(event) {
     self.skipWaiting();
+    event.waitUntil(precacheShell());
 });
+
+/** O shell da versao nova ja esta gravado? */
+function shellDisponivel() {
+    return caches.open(CACHE_NAME)
+        .then(function(cache) { return cache.match(shellFallbackUrl()); })
+        .then(Boolean)
+        .catch(function() { return false; });
+}
+
+function limparCachesAntigos() {
+    return caches.keys().then(function(names) {
+        var keepCaches = [CACHE_NAME, TILE_CACHE, API_CACHE];
+        return Promise.all(
+            names.filter(function(name) {
+                return keepCaches.indexOf(name) === -1;
+            }).map(function(name) {
+                return caches.delete(name);
+            })
+        );
+    });
+}
 
 self.addEventListener('activate', function(event) {
     event.waitUntil(
-        caches.keys().then(function(names) {
-            var keepCaches = [CACHE_NAME, TILE_CACHE, API_CACHE];
-            return Promise.all(
-                names.filter(function(name) {
-                    return keepCaches.indexOf(name) === -1;
-                }).map(function(name) {
-                    return caches.delete(name);
-                })
-            );
-        }).then(function() {
-            return clients.claim();
-        })
+        // So apaga o cache da versao anterior depois de confirmar que o shell
+        // novo esta gravado. Se a rede falhar no meio da atualizacao, o agente
+        // fica com o cache antigo — desatualizado, mas funcional — em vez de
+        // ficar sem nada. A limpeza acontece na proxima ativacao com rede.
+        shellDisponivel()
+            .then(function(ok) { return ok ? true : precacheShell().then(shellDisponivel); })
+            .then(function(ok) { return ok ? limparCachesAntigos() : null; })
+            .then(function() { return clients.claim(); })
     );
 });
 
@@ -112,6 +179,29 @@ self.addEventListener('fetch', function(event) {
                 return caches.match(event.request).then(function(exact) {
                     if (exact) return exact;
                     return caches.match(url.origin + url.pathname);
+                });
+            })
+        );
+        return;
+    }
+
+    // Navegacao (documento HTML) na propria origem: network-first, mantendo o
+    // shell atualizado com o HTML ja autenticado. Offline, tenta a URL exata,
+    // depois a mesma rota sem query e, por fim, o shell — em vez de devolver
+    // undefined ao respondWith, que vira a pagina de erro do Chromium.
+    if (event.request.mode === 'navigate' && url.origin === self.location.origin) {
+        event.respondWith(
+            fetch(event.request).then(function(response) {
+                if (isShellUrl(url)) {
+                    cacheShellDocument(url, response);
+                }
+                return response;
+            }).catch(function() {
+                return caches.match(event.request).then(function(exata) {
+                    if (exata) return exata;
+                    return caches.match(url.origin + url.pathname);
+                }).then(function(cached) {
+                    return cached || caches.match(shellFallbackUrl());
                 });
             })
         );
@@ -219,7 +309,12 @@ async function syncPendingPhotos() {
             if (foto.legenda) {
                 form.append('legenda', foto.legenda);
             }
-            var headers = {};
+            // 'Accept: application/json' e obrigatorio: sem ele o middleware
+            // 'auth' responde a sessao expirada com REDIRECT para /login, o
+            // fetch segue o 302, recebe 200 com o HTML do login e a foto seria
+            // apagada da fila sem nunca ter sido enviada. Com o header, vem 401
+            // — que nao apaga nada e mantem o registro para nova tentativa.
+            var headers = { 'Accept': 'application/json' };
             if (xsrf) headers['X-XSRF-TOKEN'] = xsrf;
             var resp = await fetch(endpoint, {
                 method: 'POST',
@@ -227,7 +322,7 @@ async function syncPendingPhotos() {
                 headers: headers,
                 credentials: 'same-origin'
             });
-            if (resp.ok) await idbDelete(db, foto.id);
+            if (resp.ok && !resp.redirected) await idbDelete(db, foto.id);
         } catch (e) { /* mantem na fila p/ nova tentativa */ }
     }
     db.close();
