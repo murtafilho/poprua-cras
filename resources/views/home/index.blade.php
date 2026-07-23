@@ -22,7 +22,9 @@
             <x-application-logo class="home-logo" alt="{{ config('app.brand', 'SIZEM') }}" />
             <h1 class="home-title">{{ $brand }}</h1>
             <p class="home-subtitle">Sistema Integrado de Zeladoria Municipal</p>
-            <p class="home-version">v{{ $version }}</p>
+            <p class="home-version" id="home-version"
+               data-versao-web="{{ $version }}"
+               title="{{ $versionDetalhe }}">{{ $version }}</p>
             <div class="home-rule" aria-hidden="true"></div>
             <p class="home-seal">ADPF 976 · PNPSR</p>
         </header>
@@ -102,5 +104,34 @@
             @endauth
         </footer>
     </main>
+
+    <script>
+        // Dentro do app de campo, a MainActivity injeta a versao do APK instalado.
+        // Ela chega depois do HTML, entao o rotulo comeca com a versao publicada
+        // (data + commit) e e completado quando o valor aparece — no navegador
+        // nada acontece e o rotulo permanece o da web.
+        (function () {
+            var el = document.getElementById('home-version');
+            if (!el) return;
+
+            function aplicar() {
+                var apk = window.__sizemAppVersao;
+                if (!apk) return false;
+                // No app, a versao do APK e a informacao principal; a data sai da
+                // linha (fica no title) para o rotulo nao virar uma frase.
+                var partes = el.dataset.versaoWeb.split(' · ');
+                var commit = partes[partes.length - 1];
+                el.textContent = 'v' + apk + ' · ' + commit;
+                el.title = 'APK ' + apk + ' · ' + el.title;
+                return true;
+            }
+
+            if (aplicar()) return;
+            document.addEventListener('sizem:app-versao', aplicar, { once: true });
+            // Rede de seguranca: se o evento vier antes deste script, o valor ja
+            // esta na window; se vier depois do listener, o evento resolve.
+            setTimeout(aplicar, 1500);
+        })();
+    </script>
 </body>
 </html>

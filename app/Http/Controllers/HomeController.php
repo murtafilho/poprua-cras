@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AppVersao;
 use Illuminate\View\View;
 
 class HomeController extends Controller
@@ -10,7 +11,8 @@ class HomeController extends Controller
     {
         return view('home.index', [
             'brand' => config('app.brand', 'SIZEM'),
-            'version' => config('app.version', '2.0'),
+            'version' => AppVersao::telaInicial(),
+            'versionDetalhe' => AppVersao::detalhe(),
         ]);
     }
 }

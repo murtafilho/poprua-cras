@@ -34,8 +34,37 @@ public class MainActivity extends BridgeActivity {
                     "window.Capacitor?.Plugins?.SplashScreen?.hide?.();",
                     null
                 );
+                publicarVersaoDoApk(webView);
             }
         });
+    }
+
+    /**
+     * Publica a versao do APK instalado para a pagina remota.
+     *
+     * A tela inicial mostra por padrao a build publicada no servidor (data +
+     * commit); dentro do app o que interessa saber tambem e qual APK esta no
+     * aparelho, que so o lado nativo conhece. Injetar no onPageLoaded cobre
+     * qualquer navegacao, inclusive a primeira.
+     */
+    private void publicarVersaoDoApk(WebView webView) {
+        String versao = versionName();
+        if (versao == null) {
+            return;
+        }
+        webView.evaluateJavascript(
+            "window.__sizemAppVersao='" + versao.replace("'", "") + "';"
+                + "document.dispatchEvent(new CustomEvent('sizem:app-versao'));",
+            null
+        );
+    }
+
+    private String versionName() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void clearWebViewCacheOncePerVersion() {

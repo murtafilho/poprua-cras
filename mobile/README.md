@@ -41,7 +41,9 @@ adb install -r mobile/android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Status
 
-- APK debug **v1.6** (`versionCode 7`) — gerado em 2026-07-22, **aguardando sideload**
+- APK debug **v1.7** (`versionCode 8`) — gerado em 2026-07-23, **aguardando sideload**
+  - `MainActivity` publica a versão do APK para a página (`window.__sizemAppVersao`), que a tela inicial usa no rótulo de versão
+- APK debug v1.6 (`versionCode 7`) — 2026-07-22, não distribuída
   - Corrige crash na abertura em Android 6.0–8.0 (`getLongVersionCode` exigia API 28 com `minSdk` 23) — o aparelho de campo (Android 14) não era afetado
   - `<uses-feature required="false">` para câmera e GPS; permissões antes do `<application>`
   - `./gradlew :app:lintDebug` passou de 2 erros para **0 erros** (26 avisos), destravando as variantes de release
