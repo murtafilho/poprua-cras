@@ -45,6 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     map.whenReady(() => map.invalidateSize());
+    if (window.ResizeObserver) {
+        new ResizeObserver(() => map.invalidateSize()).observe(map.getContainer());
+    }
     map.getContainer().addEventListener('click', (e) => {
         const link = e.target.closest('.popup-abrir-relatorio');
         if (link) {
