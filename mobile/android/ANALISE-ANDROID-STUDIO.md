@@ -364,7 +364,7 @@ com `PackageInfoCompat` (§3) segue necessária de qualquer forma.
 | 11 | ✅ **feito** — `<uses-feature required="false">` câmera/GPS + ordem do manifest | `AndroidManifest.xml` | P2 |
 | 12 | Corrigir/remover `ExampleInstrumentedTest` (ainda asserta `com.getcapacitor.app`) | `app/src/androidTest/…` | P2 |
 | 13 | Ícone `monochrome` + round circular | `res/mipmap-*` | P2 |
-| 14 | Config separada para homologação (flavor + `applicationIdSuffix`) | `capacitor.config.ts` | P2 |
+| 14 | ✅ **feito** — alvo do WebView por ambiente (`SIZEM_ALVO`/`SIZEM_URL`) + `network_security_config` | `capacitor.config.ts` | P2 |
 
 **Lacunas operacionais** (sem item de código, mas decidem o risco em campo):
 não há CI de APK — `versionCode` é incrementado à mão e o build sai de uma

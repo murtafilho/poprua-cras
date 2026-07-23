@@ -28,10 +28,40 @@ export PATH="$ANDROID_HOME/platform-tools:$PATH"
 ```bash
 cd mobile
 npm install
-npx cap sync android
-cd android && ./gradlew assembleDebug
+npm run apk:producao        # sync + assembleDebug apontando para a produção
 # APK: mobile/android/app/build/outputs/apk/debug/app-debug.apk
 ```
+
+## Apontar o app para o servidor local
+
+O modo remoto faz o WebView carregar a produção, então mudança de front não
+aparece no app sem publicar. Para trabalhar sem deploy:
+
+```bash
+php artisan serve --port=8088        # na raiz do projeto Laravel
+cd mobile && npm run apk:local       # APK apontando para http://10.0.2.2:8088
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+`10.0.2.2` é como o emulador enxerga o host. Para aparelho físico na mesma rede,
+use o IP da máquina e suba o servidor aberto:
+
+```bash
+php artisan serve --host=0.0.0.0 --port=8088
+SIZEM_URL=http://192.168.0.10:8088/bem-vindo npm run apk:local
+```
+
+O `cap sync` imprime para onde o APK vai apontar — confira antes de distribuir:
+
+```
+[SIZEM Campo] alvo: producao -> https://sufis.pbh.gov.br/ginfi/poprua-cras/public/bem-vindo
+```
+
+**Nunca distribua um APK construído com `apk:local`**: em campo ele não abre
+nada. Antes de gerar a versão de campo, rode `npm run apk:producao`.
+
+O HTTP em claro fica restrito a `10.0.2.2`, `localhost` e `127.0.0.1` por
+`res/xml/network_security_config.xml` — o resto do app continua exigindo HTTPS.
 
 ## Instalar por sideload
 
@@ -41,9 +71,11 @@ adb install -r mobile/android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Status
 
-- APK debug **v1.7** (`versionCode 8`) — gerado em 2026-07-23, **aguardando sideload**
+- APK debug **v1.8** (`versionCode 9`) — gerado em 2026-07-23, **aguardando sideload**
+  - Alvo do WebView selecionável por ambiente (`SIZEM_ALVO` / `SIZEM_URL`) + `network_security_config` liberando HTTP só para os endereços de desenvolvimento
   - `MainActivity` publica a versão do APK para a página (`window.__sizemAppVersao`), que a tela inicial usa no rótulo de versão
-- APK debug v1.6 (`versionCode 7`) — 2026-07-22, não distribuída
+  - Corrige o crash na abertura em Android 6.0–8.0 (`getLongVersionCode` exigia API 28 com `minSdk` 23)
+- v1.6 e v1.7 não foram distribuídas — a v1.8 as substitui
   - Corrige crash na abertura em Android 6.0–8.0 (`getLongVersionCode` exigia API 28 com `minSdk` 23) — o aparelho de campo (Android 14) não era afetado
   - `<uses-feature required="false">` para câmera e GPS; permissões antes do `<application>`
   - `./gradlew :app:lintDebug` passou de 2 erros para **0 erros** (26 avisos), destravando as variantes de release

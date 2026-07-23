@@ -5,7 +5,10 @@
   "description": "Shell Android (Capacitor) do SIZEM — ação em campo",
   "scripts": {
     "sync": "cap sync android",
-    "apk": "cd android && ./gradlew assembleDebug"
+    "sync:local": "SIZEM_ALVO=local cap sync android",
+    "apk": "cd android && ./gradlew assembleDebug",
+    "apk:local": "npm run sync:local && cd android && ./gradlew assembleDebug",
+    "apk:producao": "npm run sync && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.7",
