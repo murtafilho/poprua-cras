@@ -1,8 +1,11 @@
 package br.gov.pbh.sizem;
 
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.webkit.WebView;
+
+import androidx.core.content.pm.PackageInfoCompat;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.WebViewListener;
@@ -40,9 +43,12 @@ public class MainActivity extends BridgeActivity {
         int lastCleared = prefs.getInt(KEY_CACHE_CLEARED_FOR, 0);
         int versionCode;
         try {
-            versionCode = (int) getPackageManager()
-                .getPackageInfo(getPackageName(), 0)
-                .getLongVersionCode();
+            // PackageInfoCompat, e nao getLongVersionCode() direto: o metodo so
+            // existe a partir da API 28 e o minSdk e 23 — em Android 6.0–8.0 a
+            // chamada direta estoura NoSuchMethodError (um Error, que este
+            // catch de Exception nao pega) e o app fecharia no onCreate.
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            versionCode = (int) PackageInfoCompat.getLongVersionCode(info);
         } catch (Exception e) {
             return;
         }

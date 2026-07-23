@@ -41,8 +41,13 @@ adb install -r mobile/android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Status
 
-- APK debug **v1.5** (`versionCode 6`) — abre em `/bem-vindo`; incorpora a fatia 3 offline (listar pendentes e criar vistoria sem rede)
-- Gerado em 2026-07-17; aguardando sideload (limpa cache HTTP do WebView a cada nova versão)
+- APK debug **v1.6** (`versionCode 7`) — gerado em 2026-07-22, **aguardando sideload**
+  - Corrige crash na abertura em Android 6.0–8.0 (`getLongVersionCode` exigia API 28 com `minSdk` 23) — o aparelho de campo (Android 14) não era afetado
+  - `<uses-feature required="false">` para câmera e GPS; permissões antes do `<application>`
+  - `./gradlew :app:lintDebug` passou de 2 erros para **0 erros** (26 avisos), destravando as variantes de release
+- APK debug v1.5 (`versionCode 6`) — abre em `/bem-vindo`; incorpora a fatia 3 offline (listar pendentes e criar vistoria sem rede)
+- A camada offline vive no `public/sw.js` (deploy do Laravel) e vale também para os APKs antigos: desde o `CACHE_VERSION 40`, o app abre sem rede (shell `/bem-vindo` e `/vistorias` no cache) e o sync de fotos não descarta mais a fila quando a sessão não está autenticada. Ver `mobile/android/ANALISE-ANDROID-STUDIO.md` §8, §9 e §15
+- Limpa o cache HTTP do WebView a cada nova versão
 - Validado em campo (Samsung Galaxy A16 5G / Android 14, 2026-07-10):
   - Instala e abre em tela cheia, sem barra de navegador
   - Modo remoto carrega a produção; loader adaptativo cobre a carga (sem tela branca)

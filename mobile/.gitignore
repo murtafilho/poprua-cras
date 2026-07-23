@@ -6,5 +6,9 @@ android/.gradle/
 android/.idea/
 android/local.properties
 android/app/release/
+# Gerado pelo Android Studio (updateDaemonJvm): fixa o JDK do daemon numa JBR
+# especifica e faz o Gradle baixar o toolchain da foojay.io — especifico da
+# maquina e incompativel com build --offline. Ver ANALISE-ANDROID-STUDIO.md §7.
+android/gradle/gradle-daemon-jvm.properties
 *.apk
 *.aab
